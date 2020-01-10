@@ -19,6 +19,8 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Httx.Requests;
+using Httx.Requests.Types;
+using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -29,7 +31,10 @@ public class SandboxBehaviour : MonoBehaviour {
 
     // Must be conf: Context, IProgress
 
-    var result = await new Request<string>("http://time.jsontest.com");
+    // var result = await new Request<string>("http://time.jsontest.com");
+    // Debug.Log("result: " + result);
+
+    var result = await new Get<string>(new Text("https://google.com"));
     Debug.Log("result: " + result);
 
   }

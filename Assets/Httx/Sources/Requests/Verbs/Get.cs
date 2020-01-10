@@ -18,17 +18,11 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx {
-  public class Context { // implements IRequest?
-    // urls
-    // headers
-    // timeouts
+using UnityEngine.Networking;
 
-    // caches size, cache folder?
-
-    // success codes
-    // result mapping / strategy mapping / ext mapping
-
-    // authorization func?
+namespace Httx.Requests.Verbs {
+  public class Get<T> : Request<T> {
+    public Get(Request<T> next) : base(next) { }
+    public override string Verb => UnityWebRequest.kHttpVerbGET;
   }
 }

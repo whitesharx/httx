@@ -18,17 +18,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using UnityEngine;
+
 namespace Httx {
-  public class Context { // implements IRequest?
-    // urls
-    // headers
-    // timeouts
+  public class Registry : MonoBehaviour{
 
-    // caches size, cache folder?
-
-    // success codes
-    // result mapping / strategy mapping / ext mapping
-
-    // authorization func?
   }
 }

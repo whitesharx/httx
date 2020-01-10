@@ -19,14 +19,14 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Collections.Generic;
+using Httx.Requests.Awaiters;
 
 namespace Httx.Requests {
-  public interface IRequest {
-    string Method { get; }
+  public interface IRequest<T> {
+    string Verb { get; }
     string Url { get; }
-
-    IDictionary<string, string> Headers { get; }
-
-    // TODO: PathVars, QueryVars?
+    IEnumerable<byte> Body { get; }
+    IDictionary<string, object> Headers { get; }
+    IAwaiter<T> GetAwaiter();
   }
 }

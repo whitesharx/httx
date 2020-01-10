@@ -18,12 +18,69 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System.Collections.Generic;
+using System.Linq;
+using Httx.Requests.Awaiters;
+using UnityEngine;
+
 namespace Httx.Requests {
-  public class Request<T> {
-    private readonly string url;
+  public class Request<T> : IRequest<T> {
+    private readonly Request<T> next;
 
-    public Request(string url) => this.url = url;
+    public Request(Request<T> next) => this.next = next;
 
-    public RequestAwaiter<T> GetAwaiter() { return new RequestAwaiter<T>(url); }
+
+
+    // public virtual string Verb {
+    //   get {
+    //     var inner = this;
+    //
+    //     while (null != inner && string.IsNullOrEmpty(inner.Verb)) {
+    //       Debug.Log($"Searching verb... {inner.GetType().Name}");
+    //       inner = next;
+    //     }
+    //
+    //     return inner?.Verb;
+    //   }
+    // }
+
+
+    public virtual string Verb => null;
+    public virtual string Url => null;
+    public virtual IEnumerable<byte> Body => null;
+    public virtual IDictionary<string, object> Headers => null;
+
+
+
+
+    public virtual IAwaiter<T> GetAwaiter() {
+      var awaiter = LeftToRight(false).Select(r => r.GetAwaiter()).First(a => null != a);
+      awaiter.Awake(this);
+
+      return awaiter;
+    }
+
+
+
+
+    private IEnumerable<Request<T>> LeftToRight(bool includeSelf) {
+      var result = new List<Request<T>>();
+      var inner = this;
+
+      while (null != inner) {
+        result.Add(inner);
+        inner = inner.next;
+      }
+
+      return includeSelf ? result : result.Skip(1);
+    }
+
+    private IEnumerable<Request<T>> RightToLeft(bool includeSelf) {
+      return LeftToRight(includeSelf).Reverse();
+    }
+
+
+
+
   }
 }

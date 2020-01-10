@@ -18,17 +18,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx {
-  public class Context { // implements IRequest?
-    // urls
-    // headers
-    // timeouts
+using System.Runtime.CompilerServices;
 
-    // caches size, cache folder?
-
-    // success codes
-    // result mapping / strategy mapping / ext mapping
-
-    // authorization func?
+namespace Httx.Requests.Awaiters {
+  public interface IAwaiter<T> : INotifyCompletion {
+    void Awake(IRequest<T> request);
+    bool IsCompleted { get; }
+    T GetResult();
   }
 }
