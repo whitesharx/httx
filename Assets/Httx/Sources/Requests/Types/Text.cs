@@ -5,13 +5,17 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Httx.Requests.Awaiters;
+using System.Text;
+using Httx.Attributes;
+using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
+  [Awaiter(typeof(UnityWebRequestAwaiter<string>))]
+  [Mapper(typeof(TextMapper))] // In/Out, Generic/Custom?
   public class Text : Request<string> {
     public Text(string url, string body = null) : base(null) {
       Url = url;
-      Body = string.IsNullOrEmpty(body) ? null : System.Text.Encoding.UTF8.GetBytes(body);
+      Body = string.IsNullOrEmpty(body) ? null : Encoding.UTF8.GetBytes(body);
     }
 
     public override string Url { get; }
@@ -31,7 +35,5 @@ namespace Httx.Requests.Types {
         return headers;
       }
     }
-
-    public override IAwaiter<string> GetAwaiter(bool isRoot) => new UnityWebRequestAwaiter<string>();
   }
 }

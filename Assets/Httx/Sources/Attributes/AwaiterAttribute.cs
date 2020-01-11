@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2020 Sergey Ivonchik
+// Copyright (c) 2020 Sergey Ivonchik
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,15 +20,10 @@
 
 using System;
 
-namespace Httpx {
-  [AttributeUsage(AttributeTargets.Class)]
-  public class RootAttribute : Attribute {
-    public RootAttribute(string url) {
-      Url = url;
-    }
-
-    public string Url {
-      get;
-    }
+namespace Httx.Attributes {
+  [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+  public class AwaiterAttribute : Attribute {
+    public AwaiterAttribute(Type awaiterType) => AwaiterType = awaiterType;
+    public Type AwaiterType { get; }
   }
 }

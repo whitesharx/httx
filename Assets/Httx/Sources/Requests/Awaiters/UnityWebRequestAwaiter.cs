@@ -15,12 +15,18 @@ namespace Httx.Requests {
     private UnityWebRequestAsyncOperation operation;
     private Action<AsyncOperation> continuationAction;
 
-    public UnityWebRequestAwaiter() { }
-
     [UsedImplicitly]
-    public UnityWebRequestAwaiter(IRequest<T> request) : base(request) {
+    public UnityWebRequestAwaiter(IRequest<T> request) {
       if (null != request) {
-        Debug.Log($"Verb: {request.Verb}");
+        Debug.Log($"Verb: {request.Verb} Url: {request.Url}");
+
+        var headers = request.Headers;
+
+        if (null != headers && 0 != headers.Count) {
+          foreach (var p in headers) {
+            Debug.Log($"Header: {p.Key}->{p.Value}");
+          }
+        }
 
         //   this.request = request;
         //

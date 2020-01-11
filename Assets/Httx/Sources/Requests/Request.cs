@@ -20,6 +20,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Httx.Attributes;
+using Httx.Extensions;
 using Httx.Requests.Awaiters;
 
 namespace Httx.Requests {
@@ -37,22 +40,20 @@ namespace Httx.Requests {
     public virtual IEnumerable<byte> Body =>
       RightToLeft(false).Select(r => r.Body).First(body => null != body && 0 != body.Count());
 
-    public virtual IDictionary<string, object> Headers => null;
+    public virtual IDictionary<string, object> Headers =>
+      LeftToRight(false).Select(r => r.Headers).Aggregate((a, b) => a.Merge(b));
 
-    public virtual IAwaiter<T> GetAwaiter(bool isRoot) {
-      var awaiter = LeftToRight(false).Select(r => r.GetAwaiter(false)).First(a => null != a);
-
-      if (!isRoot) {
-        return awaiter;
-      }
+    public IAwaiter<T> GetAwaiter() {
+      var awaiterType = LeftToRight(false).Select(r => {
+        var attribute = r.GetType().GetCustomAttribute<AwaiterAttribute>();
+        return attribute?.AwaiterType;
+      }).First(a => null != a);
 
       var awakeTypes = new[] { typeof(IRequest<T>) };
-      var awakeConstructor = awaiter.GetType().GetConstructor(awakeTypes);
+      var awakeConstructor = awaiterType.GetConstructor(awakeTypes);
 
       return (IAwaiter<T>) awakeConstructor?.Invoke(new object[] { this });
     }
-
-    public virtual IAwaiter<T> GetAwaiter() => GetAwaiter(true);
 
     private IEnumerable<Request<T>> LeftToRight(bool includeSelf) {
       var result = new List<Request<T>>();

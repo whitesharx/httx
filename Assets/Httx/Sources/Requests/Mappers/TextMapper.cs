@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2020 Sergey Ivonchik
+// Copyright (c) 2020 Sergey Ivonchik
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,17 +18,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
+using System.Text;
 
-namespace Httpx {
-  [AttributeUsage(AttributeTargets.Class)]
-  public class PathAttribute : Attribute {
-    public PathAttribute(string pattern) {
-      Pattern = pattern;
-    }
-
-    public string Pattern {
-      get;
-    }
+namespace Httx.Requests.Mappers {
+  public class TextMapper : IMapper<string> {
+    public string Map(byte[] bytes) => Encoding.UTF8.GetString(bytes);
   }
 }

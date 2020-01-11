@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2020 Sergey Ivonchik
+// Copyright (c) 2020 Sergey Ivonchik
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,16 +19,11 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using JetBrains.Annotations;
 
-namespace Httpx {
-  [AttributeUsage(AttributeTargets.Class)]
-  public class EmitsAttribute : Attribute {
-    [UsedImplicitly]
-    private readonly Type modelType;
-
-    public EmitsAttribute(Type type) {
-      modelType = type;
-    }
+namespace Httx.Attributes {
+  [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+  public class MapperAttribute : Attribute {
+    public MapperAttribute(Type mapperType) => MapperType = mapperType;
+    public Type MapperType { get; }
   }
 }

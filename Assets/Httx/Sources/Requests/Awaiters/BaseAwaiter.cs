@@ -22,9 +22,6 @@ using System;
 
 namespace Httx.Requests.Awaiters {
   public abstract class BaseAwaiter<T> : IAwaiter<T> {
-    public BaseAwaiter() : this(null) { }
-    public BaseAwaiter(IRequest<T> request) { }
-
     public abstract void OnCompleted(Action continuation);
     public abstract bool IsCompleted { get; }
     public abstract T GetResult();

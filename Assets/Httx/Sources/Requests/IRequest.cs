@@ -28,6 +28,5 @@ namespace Httx.Requests {
     IEnumerable<byte> Body { get; }
     IDictionary<string, object> Headers { get; }
     IAwaiter<T> GetAwaiter();
-    IAwaiter<T> GetAwaiter(bool isRoot);
   }
 }
