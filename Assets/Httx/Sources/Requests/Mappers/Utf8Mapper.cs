@@ -21,7 +21,8 @@
 using System.Text;
 
 namespace Httx.Requests.Mappers {
-  public class TextMapper : IMapper<string> {
-    public string Map(byte[] bytes) => Encoding.UTF8.GetString(bytes);
+  public class Utf8Mapper : IMapper<string> {
+    public string As(byte[] bytes) => Encoding.UTF8.GetString(bytes);
+    public byte[] From(string text) => Encoding.UTF8.GetBytes(text);
   }
 }

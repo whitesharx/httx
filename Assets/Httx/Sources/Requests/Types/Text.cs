@@ -10,11 +10,10 @@ using Httx.Attributes;
 using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
-  [Awaiter(typeof(UnityWebRequestAwaiter<string>))]
-  [Mapper(typeof(TextMapper))] // In/Out, Generic/Custom?
+  [Awaiter(typeof(UnityWebRequestAwaiter<string>)), Mapper(typeof(Utf8Mapper))]
   public class Text : Request<string> {
     public Text(string url, string body = null) : base(null) {
-      Url = url;
+      Url = url; // TODO: Body From Mapper
       Body = string.IsNullOrEmpty(body) ? null : Encoding.UTF8.GetBytes(body);
     }
 

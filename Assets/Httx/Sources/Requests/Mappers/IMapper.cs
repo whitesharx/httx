@@ -19,7 +19,8 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Httx.Requests.Mappers {
-  public interface IMapper<out T> {
-    T Map(byte[] bytes);
+  public interface IMapper<T> {
+    T As(byte[] bytes);
+    byte[] From(T t);
   }
 }

@@ -17,30 +17,26 @@ namespace Httx.Requests {
 
     [UsedImplicitly]
     public UnityWebRequestAwaiter(IRequest<T> request) {
-      if (null != request) {
-        Debug.Log($"Verb: {request.Verb} Url: {request.Url}");
+      Debug.Log($"Verb: {request.Verb} Url: {request.Url}");
 
-        var headers = request.Headers;
+      var headers = request.Headers;
 
-        if (null != headers && 0 != headers.Count) {
-          foreach (var p in headers) {
-            Debug.Log($"Header: {p.Key}->{p.Value}");
-          }
+      if (null != headers && 0 != headers.Count) {
+        foreach (var p in headers) {
+          Debug.Log($"Header: {p.Key}->{p.Value}");
         }
-
-        //   this.request = request;
-        //
-        //   Debug.Log($"url: {request.Url} verb: {request.Verb}");
-        //
-        //   var requestImpl = new UnityWebRequest(request.Url, request.Verb) {
-        //     downloadHandler = new DownloadHandlerBuffer()
-        //   };
-        //
-        //   operation = requestImpl.SendWebRequest();
-        //   // operation.completed += OnCompleted()
       }
 
-      Debug.Log("RequestAwaiter:Apply");
+      //   this.request = request;
+      //
+      //   Debug.Log($"url: {request.Url} verb: {request.Verb}");
+      //
+      //   var requestImpl = new UnityWebRequest(request.Url, request.Verb) {
+      //     downloadHandler = new DownloadHandlerBuffer()
+      //   };
+      //
+      //   operation = requestImpl.SendWebRequest();
+      //   // operation.completed += OnCompleted()
     }
 
     public override bool IsCompleted {
