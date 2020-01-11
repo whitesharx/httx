@@ -5,31 +5,39 @@
 
 using System;
 using Httx.Requests.Awaiters;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests {
-  public class UnityWebRequestAwaiter<T> : IAwaiter<T> {
+  public class UnityWebRequestAwaiter<T> : BaseAwaiter<T> {
     private IRequest<T> request;
     private UnityWebRequestAsyncOperation operation;
     private Action<AsyncOperation> continuationAction;
 
-    public void Awake(IRequest<T> request) {
-      Debug.Log("RequestAwaiter:Apply");
+    public UnityWebRequestAwaiter() { }
 
-    //   this.request = request;
-    //
-    //   Debug.Log($"url: {request.Url} verb: {request.Verb}");
-    //
-    //   var requestImpl = new UnityWebRequest(request.Url, request.Verb) {
-    //     downloadHandler = new DownloadHandlerBuffer()
-    //   };
-    //
-    //   operation = requestImpl.SendWebRequest();
-    //   // operation.completed += OnCompleted()
+    [UsedImplicitly]
+    public UnityWebRequestAwaiter(IRequest<T> request) : base(request) {
+      if (null != request) {
+        Debug.Log($"Verb: {request.Verb}");
+
+        //   this.request = request;
+        //
+        //   Debug.Log($"url: {request.Url} verb: {request.Verb}");
+        //
+        //   var requestImpl = new UnityWebRequest(request.Url, request.Verb) {
+        //     downloadHandler = new DownloadHandlerBuffer()
+        //   };
+        //
+        //   operation = requestImpl.SendWebRequest();
+        //   // operation.completed += OnCompleted()
+      }
+
+      Debug.Log("RequestAwaiter:Apply");
     }
 
-    public bool IsCompleted {
+    public override bool IsCompleted {
       get {
         Debug.Log("RequestAwaiter:IsCompleted");
         // return operation.isDone;
@@ -37,7 +45,7 @@ namespace Httx.Requests {
       }
     }
 
-    public T GetResult() {
+    public override T GetResult() {
       // Debug.Log($"RequestAwaiter:GetResult:{operation.webRequest.error}");
       //
       // if (!string.IsNullOrEmpty(operation.webRequest.error)) {
@@ -58,7 +66,7 @@ namespace Httx.Requests {
       return default;
     }
 
-    public void OnCompleted(Action continuation) {
+    public override void OnCompleted(Action continuation) {
       Debug.Log("RequestAwaiter:OnCompleted");
 
       // continuationAction = asyncOperation => continuation();

@@ -21,7 +21,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Awaiters;
-using UnityEngine;
 
 namespace Httx.Requests {
   public class Request<T> : IRequest<T> {
@@ -29,39 +28,31 @@ namespace Httx.Requests {
 
     public Request(Request<T> next) => this.next = next;
 
+    public virtual string Verb =>
+      RightToLeft(false).Select(r => r.Verb).First(verb => !string.IsNullOrEmpty(verb));
 
+    public virtual string Url =>
+      RightToLeft(false).Select(r => r.Url).First(url => !string.IsNullOrEmpty(url));
 
-    // public virtual string Verb {
-    //   get {
-    //     var inner = this;
-    //
-    //     while (null != inner && string.IsNullOrEmpty(inner.Verb)) {
-    //       Debug.Log($"Searching verb... {inner.GetType().Name}");
-    //       inner = next;
-    //     }
-    //
-    //     return inner?.Verb;
-    //   }
-    // }
+    public virtual IEnumerable<byte> Body =>
+      RightToLeft(false).Select(r => r.Body).First(body => null != body && 0 != body.Count());
 
-
-    public virtual string Verb => null;
-    public virtual string Url => null;
-    public virtual IEnumerable<byte> Body => null;
     public virtual IDictionary<string, object> Headers => null;
 
+    public virtual IAwaiter<T> GetAwaiter(bool isRoot) {
+      var awaiter = LeftToRight(false).Select(r => r.GetAwaiter(false)).First(a => null != a);
 
+      if (!isRoot) {
+        return awaiter;
+      }
 
+      var awakeTypes = new[] { typeof(IRequest<T>) };
+      var awakeConstructor = awaiter.GetType().GetConstructor(awakeTypes);
 
-    public virtual IAwaiter<T> GetAwaiter() {
-      var awaiter = LeftToRight(false).Select(r => r.GetAwaiter()).First(a => null != a);
-      awaiter.Awake(this);
-
-      return awaiter;
+      return (IAwaiter<T>) awakeConstructor?.Invoke(new object[] { this });
     }
 
-
-
+    public virtual IAwaiter<T> GetAwaiter() => GetAwaiter(true);
 
     private IEnumerable<Request<T>> LeftToRight(bool includeSelf) {
       var result = new List<Request<T>>();
@@ -78,9 +69,5 @@ namespace Httx.Requests {
     private IEnumerable<Request<T>> RightToLeft(bool includeSelf) {
       return LeftToRight(includeSelf).Reverse();
     }
-
-
-
-
   }
 }

@@ -22,11 +22,12 @@ using System.Collections.Generic;
 using Httx.Requests.Awaiters;
 
 namespace Httx.Requests {
-  public interface IRequest<T> {
+  public interface IRequest<out T> {
     string Verb { get; }
     string Url { get; }
     IEnumerable<byte> Body { get; }
     IDictionary<string, object> Headers { get; }
     IAwaiter<T> GetAwaiter();
+    IAwaiter<T> GetAwaiter(bool isRoot);
   }
 }

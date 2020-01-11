@@ -32,6 +32,6 @@ namespace Httx.Requests.Types {
       }
     }
 
-    public override IAwaiter<string> GetAwaiter() => new UnityWebRequestAwaiter<string>();
+    public override IAwaiter<string> GetAwaiter(bool isRoot) => new UnityWebRequestAwaiter<string>();
   }
 }

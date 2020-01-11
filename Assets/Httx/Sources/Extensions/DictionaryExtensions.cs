@@ -18,11 +18,13 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using UnityEngine.Networking;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Httx.Requests.Verbs {
-  public class Post<T> : Request<T> {
-    public Post(Request<T> next) : base(next) { }
-    public override string Verb => UnityWebRequest.kHttpVerbPOST;
+namespace Httx.Extensions {
+  public static class DictionaryExtensions {
+    public static IDictionary<A, B> Merge<A, B>(this IDictionary<A, B> that, IDictionary<A, B> other) {
+      return that.Union(other).ToDictionary(p => p.Key, p => p.Value);
+    }
   }
 }

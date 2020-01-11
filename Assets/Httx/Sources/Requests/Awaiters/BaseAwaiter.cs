@@ -18,11 +18,15 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using UnityEngine.Networking;
+using System;
 
-namespace Httx.Requests.Verbs {
-  public class Post<T> : Request<T> {
-    public Post(Request<T> next) : base(next) { }
-    public override string Verb => UnityWebRequest.kHttpVerbPOST;
+namespace Httx.Requests.Awaiters {
+  public abstract class BaseAwaiter<T> : IAwaiter<T> {
+    public BaseAwaiter() : this(null) { }
+    public BaseAwaiter(IRequest<T> request) { }
+
+    public abstract void OnCompleted(Action continuation);
+    public abstract bool IsCompleted { get; }
+    public abstract T GetResult();
   }
 }

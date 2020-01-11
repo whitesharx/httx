@@ -21,8 +21,7 @@
 using System.Runtime.CompilerServices;
 
 namespace Httx.Requests.Awaiters {
-  public interface IAwaiter<T> : INotifyCompletion {
-    void Awake(IRequest<T> request);
+  public interface IAwaiter<out T> : INotifyCompletion {
     bool IsCompleted { get; }
     T GetResult();
   }

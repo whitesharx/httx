@@ -35,6 +35,7 @@ public class SandboxBehaviour : MonoBehaviour {
     // Debug.Log("result: " + result);
 
     var result = await new Get<string>(new Text("https://google.com"));
+
     Debug.Log("result: " + result);
 
   }
