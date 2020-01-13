@@ -5,19 +5,18 @@
 
 using System;
 using System.Linq;
-using Httx.Requests.Awaiters;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Httx.Requests {
-  public class UnityWebRequestAwaiter<T> : BaseAwaiter<T> {
-    private IRequest<T> inputRequest;
+namespace Httx.Requests.Awaiters {
+  public class UnityWebRequestAwaiter : BaseAwaiter<byte[]> {
+    private IRequest inputRequest;
     private UnityWebRequestAsyncOperation operation;
     private Action<AsyncOperation> continuationAction;
 
     [UsedImplicitly]
-    public UnityWebRequestAwaiter(IRequest<T> request) {
+    public UnityWebRequestAwaiter(IRequest request) {
       inputRequest = request;
 
       var verb = request.Verb;
@@ -49,7 +48,7 @@ namespace Httx.Requests {
       operation.completed += continuationAction;
     }
 
-    public override T GetResult() {
+    public override byte[] GetResult() {
       Debug.Log($"UnityWebRequestAwaiter:GetResult:{operation.webRequest.error}");
 
       if (!string.IsNullOrEmpty(operation.webRequest.error)) {
@@ -61,13 +60,15 @@ namespace Httx.Requests {
 
       Debug.Log($"RequestAwaiter:Bytes:{bytes?.Length}");
 
-      if (null != continuationAction) {
-        operation.completed -= continuationAction;
-        operation = null;
-        continuationAction = null;
+      if (null == continuationAction) {
+        return bytes;
       }
 
-      return default;
+      operation.completed -= continuationAction;
+      operation = null;
+      continuationAction = null;
+
+      return bytes;
     }
   }
 }

@@ -18,12 +18,20 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Text;
-using UnityEngine;
+using System.Collections.Generic;
+using Httx.Requests.Awaiters;
 
-namespace Httx.Requests.Mappers {
-  public class Utf8JsonUtilityMapper<A, B> : IMapper<A, B> {
-    public byte[] From(A t) => Encoding.UTF8.GetBytes(JsonUtility.ToJson(t));
-    public B As(byte[] bytes) => JsonUtility.FromJson<B>(Encoding.UTF8.GetString(bytes));
+namespace Httx.Requests.Aux {
+  public class As<T> : IRequest, IAwaitable<T> {
+    private readonly IRequest request;
+
+    public As(IRequest request) => this.request = request;
+
+    public string Verb => request.Verb;
+    public string Url => request.Url;
+    public IEnumerable<byte> Body => request.Body;
+    public IDictionary<string, object> Headers => request.Headers;
+
+    public IAwaiter<T> GetAwaiter() => throw new System.NotImplementedException();
   }
 }

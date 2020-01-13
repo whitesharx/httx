@@ -5,16 +5,17 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Httx.Attributes;
+using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
-  [Awaiter(typeof(UnityWebRequestAwaiter<string>)), Mapper(typeof(Utf8TextMapper))]
-  public class Text : Request<string> {
+  [Awaiter(typeof(UnityWebRequestAwaiter))]
+  [Mapper(typeof(Utf8TextMapper))]
+  public class Text : Request{
     public Text(string url, string body = null) : base(null) {
-      Url = url; // TODO: Body From Mapper
-      Body = string.IsNullOrEmpty(body) ? null : Encoding.UTF8.GetBytes(body);
+      Url = url;
+      Body = string.IsNullOrEmpty(body) ? null : GetMapper<string, string>().From(body);
     }
 
     public override string Url { get; }

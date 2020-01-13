@@ -21,8 +21,8 @@
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Verbs {
-  public class Get<T> : Request<T> {
-    public Get(Request<T> next) : base(next) { }
+  public class Get : Request {
+    public Get(Request next) : base(next) { }
     public override string Verb => UnityWebRequest.kHttpVerbGET;
   }
 }

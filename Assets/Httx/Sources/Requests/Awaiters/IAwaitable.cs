@@ -18,12 +18,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Text;
-using UnityEngine;
-
-namespace Httx.Requests.Mappers {
-  public class Utf8JsonUtilityMapper<A, B> : IMapper<A, B> {
-    public byte[] From(A t) => Encoding.UTF8.GetBytes(JsonUtility.ToJson(t));
-    public B As(byte[] bytes) => JsonUtility.FromJson<B>(Encoding.UTF8.GetString(bytes));
+namespace Httx.Requests.Awaiters {
+  public interface IAwaitable<out T> {
+    IAwaiter<T> GetAwaiter();
   }
 }

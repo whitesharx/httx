@@ -21,7 +21,7 @@
 using System;
 
 namespace Httx.Attributes {
-  [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+  [AttributeUsage(AttributeTargets.Class)]
   public class MapperAttribute : Attribute {
     public MapperAttribute(Type mapperType) => MapperType = mapperType;
     public Type MapperType { get; }

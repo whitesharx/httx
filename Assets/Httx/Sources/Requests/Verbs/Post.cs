@@ -21,8 +21,8 @@
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Verbs {
-  public class Post<T> : Request<T> {
-    public Post(Request<T> next) : base(next) { }
+  public class Post : Request {
+    public Post(Request next) : base(next) { }
     public override string Verb => UnityWebRequest.kHttpVerbPOST;
   }
 }
