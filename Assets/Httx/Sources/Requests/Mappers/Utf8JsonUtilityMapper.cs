@@ -18,11 +18,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Requests.Mappers {
-  public interface IMapper<A, B> {
-    byte[] From(A t);
-    B As(byte[] bytes);
-  }
+using System.Text;
+using UnityEngine;
 
-  public interface IMapper<T> : IMapper<T, T> { }
+namespace Httx.Requests.Mappers {
+  public class Utf8JsonUtilityMapper<B> : IMapper<object, B> {
+    public byte[] From(object t) => Encoding.UTF8.GetBytes(JsonUtility.ToJson(t));
+    public B As(byte[] bytes) => JsonUtility.FromJson<B>(Encoding.UTF8.GetString(bytes));
+  }
 }

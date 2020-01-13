@@ -4,6 +4,7 @@
 //
 
 using System;
+using System.Linq;
 using Httx.Requests.Awaiters;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -11,68 +12,62 @@ using UnityEngine.Networking;
 
 namespace Httx.Requests {
   public class UnityWebRequestAwaiter<T> : BaseAwaiter<T> {
-    private IRequest<T> request;
+    private IRequest<T> inputRequest;
     private UnityWebRequestAsyncOperation operation;
     private Action<AsyncOperation> continuationAction;
 
     [UsedImplicitly]
     public UnityWebRequestAwaiter(IRequest<T> request) {
-      Debug.Log($"Verb: {request.Verb} Url: {request.Url}");
+      inputRequest = request;
 
+      var verb = request.Verb;
+      var url = request.Url;
       var headers = request.Headers;
+      var body = request.Body?.ToArray();
+
+      var requestImpl = new UnityWebRequest(url, verb) {
+        downloadHandler = new DownloadHandlerBuffer()
+      };
 
       if (null != headers && 0 != headers.Count) {
         foreach (var p in headers) {
-          Debug.Log($"Header: {p.Key}->{p.Value}");
+          requestImpl.SetRequestHeader(p.Key, p.Value?.ToString());
         }
       }
 
-      //   this.request = request;
-      //
-      //   Debug.Log($"url: {request.Url} verb: {request.Verb}");
-      //
-      //   var requestImpl = new UnityWebRequest(request.Url, request.Verb) {
-      //     downloadHandler = new DownloadHandlerBuffer()
-      //   };
-      //
-      //   operation = requestImpl.SendWebRequest();
-      //   // operation.completed += OnCompleted()
+      if (null != body && 0 != body.Length) {
+        requestImpl.uploadHandler = new UploadHandlerRaw(body);
+      }
+
+      operation = requestImpl.SendWebRequest();
     }
 
-    public override bool IsCompleted {
-      get {
-        Debug.Log("RequestAwaiter:IsCompleted");
-        // return operation.isDone;
-        return false;
-      }
+    public override bool IsCompleted => operation.isDone;
+
+    public override void OnCompleted(Action continuation) {
+      continuationAction = asyncOperation => continuation();
+      operation.completed += continuationAction;
     }
 
     public override T GetResult() {
-      // Debug.Log($"RequestAwaiter:GetResult:{operation.webRequest.error}");
-      //
-      // if (!string.IsNullOrEmpty(operation.webRequest.error)) {
-      //   throw new Exception(operation.webRequest.error);
-      // }
-      //
-      // var requestImpl = operation.webRequest;
-      // var bytes = requestImpl.downloadHandler.data;
-      //
-      // Debug.Log($"RequestAwaiter:Bytes:{bytes?.Length}");
-      //
-      // if (null != continuationAction) {
-      //   operation.completed -= continuationAction;
-      //   // operation = null;
-      //   continuationAction = null;
-      // }
+      Debug.Log($"UnityWebRequestAwaiter:GetResult:{operation.webRequest.error}");
+
+      if (!string.IsNullOrEmpty(operation.webRequest.error)) {
+        throw new Exception(operation.webRequest.error);
+      }
+
+      var requestImpl = operation.webRequest;
+      var bytes = requestImpl.downloadHandler.data;
+
+      Debug.Log($"RequestAwaiter:Bytes:{bytes?.Length}");
+
+      if (null != continuationAction) {
+        operation.completed -= continuationAction;
+        operation = null;
+        continuationAction = null;
+      }
 
       return default;
-    }
-
-    public override void OnCompleted(Action continuation) {
-      Debug.Log("RequestAwaiter:OnCompleted");
-
-      // continuationAction = asyncOperation => continuation();
-      // operation.completed += continuationAction;
     }
   }
 }

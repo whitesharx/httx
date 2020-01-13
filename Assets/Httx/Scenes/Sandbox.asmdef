@@ -1,0 +1,14 @@
+{
+    "name": "Sandbox",
+    "references": [
+        "GUID:417dcc2767a4a468b8028012aeaf9467"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}

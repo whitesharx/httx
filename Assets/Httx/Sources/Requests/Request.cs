@@ -38,7 +38,7 @@ namespace Httx.Requests {
       RightToLeft(false).Select(r => r.Url).First(url => !string.IsNullOrEmpty(url));
 
     public virtual IEnumerable<byte> Body =>
-      RightToLeft(false).Select(r => r.Body).First(body => null != body && 0 != body.Count());
+      RightToLeft(false).Select(r => r.Body).FirstOrDefault(body => null != body && 0 != body.Count());
 
     public virtual IDictionary<string, object> Headers =>
       LeftToRight(false).Select(r => r.Headers).Aggregate((a, b) => a.Merge(b));

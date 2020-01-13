@@ -27,8 +27,40 @@ public class SandboxBehaviour : MonoBehaviour {
   [UsedImplicitly]
   private async void Start() {
 
+    // var games = await new Get<Games>(new Json<Player, Games>(url, player));
+    // var games = await new Get<Games>(new Json<Games>(url));
+
+
+    // var games = await new Post(new Json<Player, Games>(url, player));
+    // var games = await new Get(new Json<Games>(url));
+
+
+    // var response = (await new Get(new Json<Games>(url))).Map<Games>();
+
+
+    // var r = await Cache(Get(Json<Games>(url))
+    // var r = await Cache(Authorize(Get(Json<Games>(url))))
+    // var response = await Cache(Authorize(Get(Json(url))))
+
+
+
+    // var response = await Post(Bearer(Json<Player>(url, player)))
+
+
+    // var response = await Post(Bearer(File(url, bytes), token), progress)
+
+
+    // var object = await Get(Bundle(url), progress)
+
+
+    // var texture = await Cache(Get(Texture(url))).Map<Texture2D>();
+
+    // var texture = await Cache(Get(Texture(url))).AsContext(ctx).Map<Texture2D>();
+
+
+
     // Must be conf: Context, IProgress
-    var result = await new Get<string>(new Text("https://google.com"));
+    var result = await new Get<string>(new Text("http://time.jsontest.com"));
 
     Debug.Log("result: " + result);
 
