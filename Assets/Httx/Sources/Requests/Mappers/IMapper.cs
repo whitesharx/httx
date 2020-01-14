@@ -19,6 +19,14 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Httx.Requests.Mappers {
+  public interface IAsMapper<T> {
+    T As(byte[] bytes);
+  }
+
+  public interface IFromMapper<T> {
+    byte[] From(T t);
+  }
+
   public interface IMapper<A, B> {
     byte[] From(A t);
     B As(byte[] bytes);

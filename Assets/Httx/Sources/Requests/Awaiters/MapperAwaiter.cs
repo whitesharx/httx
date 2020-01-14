@@ -18,16 +18,15 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Httx.Requests.Aux;
-using UnityEngine.Networking;
+using System;
 
-namespace Httx.Requests.Verbs {
-  public class Get : Request {
-    public Get(Request next) : base(next) { }
-    public override string Verb => UnityWebRequest.kHttpVerbGET;
-  }
+namespace Httx.Requests.Awaiters {
+  public class MapperAwaiter<T> : BaseAwaiter<T> {
+    // private readonly IAwaiter<T>
 
-  public class Get<T> : As<T> {
-    public Get(IRequest request) : base(request) { }
+    public override void OnCompleted(Action continuation) => throw new NotImplementedException();
+
+    public override bool IsCompleted { get; }
+    public override T GetResult() => throw new NotImplementedException();
   }
 }

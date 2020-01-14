@@ -45,10 +45,10 @@ public class SandboxBehaviour : MonoBehaviour {
     // var response = await Post(Bearer(Json<Player>(url, player)))
 
 
-    // var response = await As<int>Post(Bearer(File(url, bytes), token), progress))
+    // var response = await Post<int>(Bearer(File(url, bytes), token), progress))
 
 
-    // var assetBundle = await As<AssetBundle>(Get(Bundle(url), progress))
+    // var assetBundle = await Get<AssetBundle>(Bundle(url), progress))
     // AssetBundle assetBundle = Get(Bundle(url), progress)
 
     // var texture = await Cache(Get(Texture(url))).Map<Texture2D>();

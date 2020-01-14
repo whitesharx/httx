@@ -57,6 +57,9 @@ namespace Httx.Requests {
       return (IAwaiter<object>) awakeConstructor?.Invoke(new object[] { this });
     }
 
+
+
+    // ???
     protected IMapper<A, B> GetMapper<A, B>() {
       var mapperType = LeftToRight(false).Select(r => {
         var attribute = r.GetType().GetCustomAttribute<MapperAttribute>();
@@ -76,6 +79,8 @@ namespace Httx.Requests {
       var t = mapperType.MakeGenericType(typeof(A), typeof(B));
       return (IMapper<A, B>) Activator.CreateInstance(t);
     }
+
+
 
     private IEnumerable<Request> LeftToRight(bool includeSelf) {
       var result = new List<Request>();
