@@ -5,25 +5,24 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Httx.Attributes;
+using Httx.Requests.Attributes;
 using Httx.Requests.Awaiters;
+using Httx.Requests.Extensions;
 using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
-  // [Awaiter(typeof(UnityWebRequestAwaiter))]
-  [Awaiter(typeof(BaseAwaiter<object>))]
-  // [Mapper(typeof(Utf8TextMapper))]
-  public class Text : Request {
+  [Awaiter(typeof(UnityWebRequestAwaiter))]
+  [Mapper(typeof(Utf8TextMapper))]
+  public class Text : BaseRequest {
     public Text(string url, string body = null) : base(null) {
       Url = url;
-      // Body = string.IsNullOrEmpty(body) ? null : GetMapper<string, string>().From(body);
+      Body = null == body ? null : this.ResolveBodyMapper<string>().AsBody(body);
     }
 
     public override string Url { get; }
-
     public override IEnumerable<byte> Body { get; }
 
-    public override IDictionary<string, object> Headers {
+    public override IEnumerable<KeyValuePair<string, object>> Headers {
       get {
         var headers = new Dictionary<string, object> {
           { "Accept", "text/plain;charset=UTF-8" }

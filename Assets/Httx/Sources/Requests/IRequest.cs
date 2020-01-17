@@ -22,9 +22,10 @@ using System.Collections.Generic;
 
 namespace Httx.Requests {
   public interface IRequest {
+    IRequest Next { get; }
     string Verb { get; }
     string Url { get; }
     IEnumerable<byte> Body { get; }
-    IDictionary<string, object> Headers { get; }
+    IEnumerable<KeyValuePair<string, object>> Headers { get; }
   }
 }

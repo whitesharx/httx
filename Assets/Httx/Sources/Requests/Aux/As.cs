@@ -22,17 +22,11 @@ using System.Collections.Generic;
 using Httx.Requests.Awaiters;
 
 namespace Httx.Requests.Aux {
-  public class As<T> : IRequest, IAwaitable<T> {
-    private readonly IRequest request;
-
-    public As(IRequest request) => this.request = request;
-
-    public string Verb => request.Verb;
-    public string Url => request.Url;
-    public IEnumerable<byte> Body => request.Body;
-    public IDictionary<string, object> Headers => request.Headers;
+  public class As<TResult> : BaseRequest, IAwaitable<TResult> {
+    public As(IRequest next) : base(next) { }
 
     // return mapper awaiter with proper map func
-    public IAwaiter<T> GetAwaiter() => throw new System.NotImplementedException();
+    public IAwaiter<TResult> GetAwaiter() => throw new System.NotImplementedException();
+
   }
 }

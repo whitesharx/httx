@@ -18,23 +18,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections.Generic;
-using System.Linq;
+using System;
 
-namespace Httx.Extensions {
-  public static class DictionaryExtensions {
-    public static IDictionary<A, B> Merge<A, B>(this IDictionary<A, B> that, IDictionary<A, B> other) {
-      var a = that ?? new Dictionary<A, B>();
-      var b = other ?? new Dictionary<A, B>();
-
-      var pairs = a.ToList().Concat(b.ToList());
-      var result = new Dictionary<A, B>();
-
-      foreach (var p in pairs) {
-        result[p.Key] = p.Value;
-      }
-
-      return result;
-    }
+namespace Httx.Requests.Attributes {
+  [AttributeUsage(AttributeTargets.Class)]
+  public class MapperAttribute : Attribute {
+    public MapperAttribute(Type mapperType) => MapperType = mapperType;
+    public Type MapperType { get; }
   }
 }

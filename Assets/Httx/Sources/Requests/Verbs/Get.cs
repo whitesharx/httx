@@ -22,12 +22,12 @@ using Httx.Requests.Aux;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Verbs {
-  public class Get : Request {
-    public Get(Request next) : base(next) { }
+  public class Get : BaseRequest {
+    public Get(IRequest next) : base(next) { }
     public override string Verb => UnityWebRequest.kHttpVerbGET;
   }
 
-  public class Get<T> : As<T> {
+  public class Get<TResult> : As<TResult> {
     public Get(IRequest request) : base(request) { }
   }
 }

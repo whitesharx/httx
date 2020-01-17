@@ -23,40 +23,54 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
-  public class BaseAwaiter<T> : IAwaiter<T> {
+  public abstract class BaseUnityAwaiter<TResult> : IAwaiter<TResult> {
     private readonly IRequest inputRequest;
+    private UnityWebRequestAsyncOperation operation;
+    private Action<AsyncOperation> continuationAction;
     private bool isAwaken;
 
-    public BaseAwaiter(IRequest request) {
-      Debug.Log("BaseAwaiter:Construct::" + request);
+    public BaseUnityAwaiter(IRequest request) {
       inputRequest = request;
     }
 
     public void OnCompleted(Action continuation) {
       Debug.Log("BaseAwaiter:OnCompleted");
+
+      continuationAction = asyncOperation => continuation();
+      operation.completed += continuationAction;
     }
 
     public bool IsCompleted {
       get {
-
         Debug.Log("BaseAwaiter:IsCompleted");
-        // if not awaken, awake
 
+        if (!isAwaken) {
+          operation = Awake(inputRequest);
+        }
 
-        return false;
+        return operation.isDone;
       }
     }
 
-    public T GetResult() {
+    public TResult GetResult() {
       Debug.Log("BaseAwaiter:GetResult");
 
-      return default;
+      if (!string.IsNullOrEmpty(operation.webRequest.error)) {
+        throw new Exception(operation.webRequest.error);
+      }
+
+      if (null == continuationAction) {
+        return OnResult(inputRequest, operation);
+      }
+
+      operation.completed -= continuationAction;
+      operation = null;
+      continuationAction = null;
+
+      return OnResult(inputRequest, operation);
     }
 
-    // public abstract void Awake(IRequest request);
-
-
-    // public abstract T OnResult(IRequest request, UnityWebRequestAsyncOperation result);
-
+    public abstract UnityWebRequestAsyncOperation Awake(IRequest request);
+    public abstract TResult OnResult(IRequest request, UnityWebRequestAsyncOperation operation);
   }
 }

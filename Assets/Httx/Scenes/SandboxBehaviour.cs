@@ -66,6 +66,6 @@ public class SandboxBehaviour : MonoBehaviour {
     //
     // Debug.Log("result: " + result);
 
-    var result = await new Get(new Text("http://time.jsontest.com"));
+    // var result = await new Get(new Text("http://time.jsontest.com"));
   }
 }

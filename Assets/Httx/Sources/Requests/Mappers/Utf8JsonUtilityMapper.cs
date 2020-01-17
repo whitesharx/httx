@@ -18,12 +18,29 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
 namespace Httx.Requests.Mappers {
-  public class Utf8JsonUtilityMapper<A, B> : IMapper<A, B> {
-    public byte[] From(A t) => Encoding.UTF8.GetBytes(JsonUtility.ToJson(t));
-    public B As(byte[] bytes) => JsonUtility.FromJson<B>(Encoding.UTF8.GetString(bytes));
+  public class Utf8JsonUtilityMapper<TBody, TResult> : IMapper<TBody, TResult> {
+    public IEnumerable<byte> AsBody(TBody serializableObject) =>
+      Encoding.UTF8.GetBytes(JsonUtility.ToJson(serializableObject));
+
+    public TResult FromResult(object result) {
+      if (result is IEnumerable<byte> bytes) {
+        return JsonUtility.FromJson<TResult>(Encoding.UTF8.GetString(bytes.ToArray()));
+      }
+
+      if (result is string jsonString) {
+        return JsonUtility.FromJson<TResult>(jsonString);
+      }
+
+      throw new InvalidOperationException();
+    }
   }
+
+  public class Utf8JsonUtilityMapper<T> : Utf8JsonUtilityMapper<T, T> { }
 }

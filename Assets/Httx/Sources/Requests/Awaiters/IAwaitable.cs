@@ -19,7 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Httx.Requests.Awaiters {
-  public interface IAwaitable<out T> {
-    IAwaiter<T> GetAwaiter();
+  public interface IAwaitable<out TResult> {
+    IAwaiter<TResult> GetAwaiter();
   }
 }

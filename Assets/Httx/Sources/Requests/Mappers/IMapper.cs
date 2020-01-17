@@ -18,27 +18,17 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
 using System.Collections.Generic;
 
 namespace Httx.Requests.Mappers {
-
-  public delegate IEnumerable<byte> BodyMapper<in T>(T t);
-  public delegate T ResultMapper<out T>(object result);
-
-
-
-  public interface IDuplexMapper<A, B> {
-    BodyMapper<A> BodyMapper { get; }
-    ResultMapper<B> ResultMapper { get; }
+  public interface IBodyMapper<in TBody> {
+    IEnumerable<byte> AsBody(TBody t);
   }
 
-
-
-  public interface IMapper<A, B> {
-    byte[] From(A t);
-    B As(byte[] bytes);
+  public interface IResultMapper<out TResult> {
+    TResult FromResult(object result);
   }
 
+  public interface IMapper<in TBody, out TResult> : IBodyMapper<TBody>, IResultMapper<TResult> { }
   public interface IMapper<T> : IMapper<T, T> { }
 }

@@ -5,22 +5,19 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Httx.Attributes;
 using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
-  // [Mapper(typeof(Utf8JsonUtilityMapper<,>))]
-  public class Json<T> : Request {
+  public class Json<T> : BaseRequest {
     public Json(string url, T body = default) : base(null) {
       Url = url;
-      // Body = Equals(body, default(T)) ? default : GetMapper<T, object>().From(body);
+      Body = Equals(body, default(T)) ? default : new Utf8JsonUtilityMapper<T>().AsBody(body);
     }
 
     public override string Url { get; }
-
     public override IEnumerable<byte> Body { get; }
 
-    public override IDictionary<string, object> Headers {
+    public override IEnumerable<KeyValuePair<string, object>> Headers {
       get {
         var headers = new Dictionary<string, object> {
           { "Accept", "application/json;charset=UTF-8" }

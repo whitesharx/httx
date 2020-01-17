@@ -18,11 +18,15 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System.Collections.Generic;
 using System.Text;
 
 namespace Httx.Requests.Mappers {
   public class Utf8TextMapper : IMapper<string> {
-    public string As(byte[] bytes) => Encoding.UTF8.GetString(bytes);
-    public byte[] From(string text) => Encoding.UTF8.GetBytes(text);
+    public IEnumerable<byte> AsBody(string text) =>
+      string.IsNullOrEmpty(text) ? null : Encoding.UTF8.GetBytes(text);
+
+    // TODO: More safe
+    public string FromResult(object bytes) => Encoding.UTF8.GetString((byte[]) bytes);
   }
 }

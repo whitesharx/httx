@@ -20,18 +20,10 @@
 
 using System;
 
-namespace Httx.Requests.Awaiters {
-  public class MapperAwaiter<T> : IAwaiter<T> {
-    private readonly IAwaiter<object> anyAwaiter;
-    private readonly Func<object, T> mapResult;
-
-    public MapperAwaiter(IAwaiter<object> awaiter, Func<object, T> mapper) {
-      anyAwaiter = awaiter;
-      mapResult = mapper;
-    }
-
-    public void OnCompleted(Action next) => anyAwaiter.OnCompleted(next);
-    public bool IsCompleted => anyAwaiter.IsCompleted;
-    public T GetResult() => mapResult(anyAwaiter.GetResult());
+namespace Httx.Requests.Attributes {
+  [AttributeUsage(AttributeTargets.Class)]
+  public class AwaiterAttribute : Attribute {
+    public AwaiterAttribute(Type awaiterType) => AwaiterType = awaiterType;
+    public Type AwaiterType { get; }
   }
 }
