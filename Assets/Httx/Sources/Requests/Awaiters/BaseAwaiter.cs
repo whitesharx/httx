@@ -19,11 +19,44 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
-  public abstract class BaseAwaiter<T> : IAwaiter<T> {
-    public abstract void OnCompleted(Action continuation);
-    public abstract bool IsCompleted { get; }
-    public abstract T GetResult();
+  public class BaseAwaiter<T> : IAwaiter<T> {
+    private readonly IRequest inputRequest;
+    private bool isAwaken;
+
+    public BaseAwaiter(IRequest request) {
+      Debug.Log("BaseAwaiter:Construct::" + request);
+      inputRequest = request;
+    }
+
+    public void OnCompleted(Action continuation) {
+      Debug.Log("BaseAwaiter:OnCompleted");
+    }
+
+    public bool IsCompleted {
+      get {
+
+        Debug.Log("BaseAwaiter:IsCompleted");
+        // if not awaken, awake
+
+
+        return false;
+      }
+    }
+
+    public T GetResult() {
+      Debug.Log("BaseAwaiter:GetResult");
+
+      return default;
+    }
+
+    // public abstract void Awake(IRequest request);
+
+
+    // public abstract T OnResult(IRequest request, UnityWebRequestAsyncOperation result);
+
   }
 }

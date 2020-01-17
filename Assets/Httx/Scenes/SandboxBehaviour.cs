@@ -18,6 +18,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using Httx.Requests.Types;
+using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -64,6 +66,6 @@ public class SandboxBehaviour : MonoBehaviour {
     //
     // Debug.Log("result: " + result);
 
-
+    var result = await new Get(new Text("http://time.jsontest.com"));
   }
 }

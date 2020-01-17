@@ -22,9 +22,9 @@ using System;
 using UnityEngine;
 
 namespace Httx.Requests.Awaiters {
-  public class UnityWebRequestAssetBundleAwaiter : BaseAwaiter<AssetBundle> {
-    public override void OnCompleted(Action continuation) => throw new NotImplementedException();
-    public override bool IsCompleted { get; }
-    public override AssetBundle GetResult() => throw new NotImplementedException();
-  }
+  // public class UnityWebRequestAssetBundleAwaiter : BaseAwaiter<AssetBundle> {
+  //   public override void OnCompleted(Action continuation) => throw new NotImplementedException();
+  //   public override bool IsCompleted { get; }
+  //   public override AssetBundle GetResult() => throw new NotImplementedException();
+  // }
 }

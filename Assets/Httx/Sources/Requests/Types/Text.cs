@@ -10,12 +10,13 @@ using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
-  [Awaiter(typeof(UnityWebRequestAwaiter))]
-  [Mapper(typeof(Utf8TextMapper))]
-  public class Text : Request{
+  // [Awaiter(typeof(UnityWebRequestAwaiter))]
+  [Awaiter(typeof(BaseAwaiter<object>))]
+  // [Mapper(typeof(Utf8TextMapper))]
+  public class Text : Request {
     public Text(string url, string body = null) : base(null) {
       Url = url;
-      Body = string.IsNullOrEmpty(body) ? null : GetMapper<string, string>().From(body);
+      // Body = string.IsNullOrEmpty(body) ? null : GetMapper<string, string>().From(body);
     }
 
     public override string Url { get; }

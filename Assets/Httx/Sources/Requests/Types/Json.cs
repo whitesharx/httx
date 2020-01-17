@@ -9,11 +9,11 @@ using Httx.Attributes;
 using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
-  [Mapper(typeof(Utf8JsonUtilityMapper<,>))]
+  // [Mapper(typeof(Utf8JsonUtilityMapper<,>))]
   public class Json<T> : Request {
     public Json(string url, T body = default) : base(null) {
       Url = url;
-      Body = Equals(body, default(T)) ? default : GetMapper<T, object>().From(body);
+      // Body = Equals(body, default(T)) ? default : GetMapper<T, object>().From(body);
     }
 
     public override string Url { get; }

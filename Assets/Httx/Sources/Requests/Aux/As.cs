@@ -32,6 +32,7 @@ namespace Httx.Requests.Aux {
     public IEnumerable<byte> Body => request.Body;
     public IDictionary<string, object> Headers => request.Headers;
 
+    // return mapper awaiter with proper map func
     public IAwaiter<T> GetAwaiter() => throw new System.NotImplementedException();
   }
 }

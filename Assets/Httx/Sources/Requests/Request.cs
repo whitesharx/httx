@@ -26,6 +26,7 @@ using Httx.Attributes;
 using Httx.Extensions;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
+using UnityEngine;
 
 namespace Httx.Requests {
   public class Request : IRequest, IAwaitable<object> {
@@ -60,25 +61,25 @@ namespace Httx.Requests {
 
 
     // ???
-    protected IMapper<A, B> GetMapper<A, B>() {
-      var mapperType = LeftToRight(false).Select(r => {
-        var attribute = r.GetType().GetCustomAttribute<MapperAttribute>();
-        return attribute?.MapperType;
-      }).First(a => null != a);
-
-      var args = mapperType.GetGenericArguments();
-
-      if (0 == args.Length) {
-        return (IMapper<A, B>) Activator.CreateInstance(mapperType);
-      }
-
-      if (1 == args.Length) {
-        return (IMapper<A, B>) Activator.CreateInstance(mapperType.MakeGenericType(typeof(A)));
-      }
-
-      var t = mapperType.MakeGenericType(typeof(A), typeof(B));
-      return (IMapper<A, B>) Activator.CreateInstance(t);
-    }
+    // protected IMapper<A, B> GetMapper<A, B>() {
+    //   var mapperType = LeftToRight(false).Select(r => {
+    //     var attribute = r.GetType().GetCustomAttribute<MapperAttribute>();
+    //     return attribute?.MapperType;
+    //   }).First(a => null != a);
+    //
+    //   var args = mapperType.GetGenericArguments();
+    //
+    //   if (0 == args.Length) {
+    //     return (IMapper<A, B>) Activator.CreateInstance(mapperType);
+    //   }
+    //
+    //   if (1 == args.Length) {
+    //     return (IMapper<A, B>) Activator.CreateInstance(mapperType.MakeGenericType(typeof(A)));
+    //   }
+    //
+    //   var t = mapperType.MakeGenericType(typeof(A), typeof(B));
+    //   return (IMapper<A, B>) Activator.CreateInstance(t);
+    // }
 
 
 
