@@ -12,22 +12,22 @@ namespace Httx.Requests.Awaiters {
     public UnityWebRequestAwaiter(IRequest request) : base(request) { }
 
     public override UnityWebRequestAsyncOperation Awake(IRequest request) {
-      var verb = request.Verb;
-      var url = request.Url;
-      var headers = request.Headers;
-      var body = request.Body?.ToArray();
+      var verb = request.ResolveVerb();
+      var url = request.ResolveUrl();
+      var headers = request.ResolveHeaders()?.ToList();
+      var body = request.ResolveBody().ToArray();
 
       var requestImpl = new UnityWebRequest(url, verb) {
         downloadHandler = new DownloadHandlerBuffer()
       };
 
-      // if (null != headers && 0 != headers.Count) {
-      //   foreach (var p in headers) {
-      //     requestImpl.SetRequestHeader(p.Key, p.Value?.ToString());
-      //   }
-      // }
+      if (null != headers && 0 != headers.Count) {
+        foreach (var p in headers) {
+          requestImpl.SetRequestHeader(p.Key, p.Value?.ToString());
+        }
+      }
 
-      if (null != body && 0 != body.Length) {
+      if (0 != body.Length) {
         requestImpl.uploadHandler = new UploadHandlerRaw(body);
       }
 
