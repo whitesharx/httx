@@ -24,6 +24,6 @@ using Httx.Requests.Extensions;
 namespace Httx.Requests.Aux {
   public class As<TResult> : BaseRequest, IAwaitable<TResult> {
     public As(IRequest next) : base(next) { }
-    public IAwaiter<TResult> GetAwaiter() => Next.ResolveAwaiter<TResult>();
+    public IAwaiter<TResult> GetAwaiter() => this.ResolveAwaiter<TResult>();
   }
 }

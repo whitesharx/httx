@@ -30,22 +30,10 @@ public class SandboxBehaviour : MonoBehaviour {
   [UsedImplicitly]
   private async void Start() {
     // Must be conf: Context, IProgress
-    // var result = await new Get(new Text("http://time.jsontest.com")).Map<string>();
-    //
-    // Debug.Log("result: " + result);
 
-    // var result = await new Get(new Text("http://time.jsontest.com"));
+    var result = await new Get<string>(new Text("http://time.jsontest.com"));
 
-    //
-    // var t2 = typeof(Utf8JsonUtilityMapper<,>);
-    // // var gt2 = t2.MakeGenericType(typeof(object), typeof(byte[]));
-    // // var r2 = (IResultMapper<byte[]>) Activator.CreateInstance(gt2);
-    //
-    //
-    // Debug.Log(t2.GetGenericArguments().Length);
-
-
-    var result = await new As<string>(new Get(new Text("http://time.jsontest.com")));
+    // var result = await new As<string>(new Get(new Text("http://time.jsontest.com")));
     Debug.Log($"Result: {result}");
 
   }

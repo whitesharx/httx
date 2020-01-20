@@ -28,6 +28,7 @@ namespace Httx.Requests.Verbs {
   }
 
   public class Get<TResult> : As<TResult> {
-    public Get(IRequest request) : base(request) { }
+    public Get(IRequest next) : base(next) { }
+    public override string Verb => UnityWebRequest.kHttpVerbGET;
   }
 }

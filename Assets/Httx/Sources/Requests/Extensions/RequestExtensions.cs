@@ -25,6 +25,7 @@ using System.Reflection;
 using Httx.Requests.Attributes;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
+using UnityEngine;
 
 namespace Httx.Requests.Extensions {
   public static class RequestExtensions {
@@ -117,6 +118,8 @@ namespace Httx.Requests.Extensions {
         result.Add(inner);
         inner = inner.Next;
       }
+
+      Debug.Log($"LeftToRight: {string.Join("->", result.Select(r => r.GetType().Name))}");
 
       return result;
     }
