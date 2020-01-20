@@ -31,6 +31,8 @@ namespace Httx.Requests.Awaiters {
         requestImpl.uploadHandler = new UploadHandlerRaw(body);
       }
 
+      request.Description();
+
       return requestImpl.SendWebRequest();
     }
 

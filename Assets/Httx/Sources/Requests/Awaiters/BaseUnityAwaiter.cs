@@ -34,27 +34,24 @@ namespace Httx.Requests.Awaiters {
     }
 
     public void OnCompleted(Action continuation) {
-      Debug.Log("BaseAwaiter:OnCompleted");
-
       continuationAction = asyncOperation => continuation();
       operation.completed += continuationAction;
     }
 
     public bool IsCompleted {
       get {
-        Debug.Log("BaseAwaiter:IsCompleted");
-
-        if (!isAwaken) {
-          operation = Awake(inputRequest);
+        if (isAwaken) {
+          return operation.isDone;
         }
+
+        operation = Awake(inputRequest);
+        isAwaken = true;
 
         return operation.isDone;
       }
     }
 
     public TResult GetResult() {
-      Debug.Log("BaseAwaiter:GetResult");
-
       if (!string.IsNullOrEmpty(operation.webRequest.error)) {
         throw new Exception(operation.webRequest.error);
       }

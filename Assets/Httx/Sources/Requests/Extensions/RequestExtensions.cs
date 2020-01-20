@@ -22,6 +22,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using Httx.External.MiniJSON;
 using Httx.Requests.Attributes;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
@@ -110,6 +112,39 @@ namespace Httx.Requests.Extensions {
       return (IAwaiter<TResult>) awakeConstructor?.Invoke(new object[] { request });
     }
 
+    // TEMP
+    public static string Description(this IRequest request, int bodySize = 128) {
+      var builder = new StringBuilder();
+
+      var contents = new Dictionary<string, object>();
+      contents["verb"] = request.ResolveVerb();
+      contents["url"] = request.ResolveUrl();
+      contents["request"] = LeftToRight(request).Select(r => r.GetType().Name).ToArray();
+
+      var body = request.ResolveBody();
+
+      if (null != body && 0 != body.Count()) {
+        contents["body"] = body;
+      }
+
+      var headers = request.ResolveHeaders()?.ToList();
+
+      if (null != headers && 0 != headers.Count) {
+        var headersBuffer = new Dictionary<string, object>();
+
+        foreach (var keyValue in headers) {
+          headersBuffer[keyValue.Key] = keyValue.Value;
+        }
+
+        contents["headers"] = headersBuffer;
+      }
+
+      Debug.Log(Json.Serialize(contents));
+
+
+      return builder.ToString();
+    }
+
     private static IEnumerable<IRequest> LeftToRight(IRequest request) {
       var result = new List<IRequest>();
       var inner = request;
@@ -118,8 +153,6 @@ namespace Httx.Requests.Extensions {
         result.Add(inner);
         inner = inner.Next;
       }
-
-      Debug.Log($"LeftToRight: {string.Join("->", result.Select(r => r.GetType().Name))}");
 
       return result;
     }

@@ -18,17 +18,11 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Httx.Requests.Aux;
-using UnityEngine.Networking;
+using System.Collections.Generic;
 
-namespace Httx.Requests.Verbs {
-  public class Post : BaseRequest {
-    public Post(IRequest next) : base(next) { }
-    public override string Verb => UnityWebRequest.kHttpVerbPOST;
-  }
-
-  public class Post<T> : As<T> {
-    public Post(IRequest request) : base(request) { }
-    public override string Verb => UnityWebRequest.kHttpVerbPOST;
+namespace Httx.Requests.Mappers {
+  public class NopMapper<TBody, TResult> : IMapper<TBody, TResult> {
+    public IEnumerable<byte> AsBody(TBody t) => new byte[0];
+    public TResult FromResult(object result) => (TResult) result;
   }
 }
