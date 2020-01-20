@@ -55,7 +55,14 @@ namespace Httx.Requests.Extensions {
         throw new InvalidOperationException("[resolve body mapper]: mapper of not found");
       }
 
-      var typeArgs = mapperType.GetGenericArguments()
+      var mapperArgs = mapperType.GetGenericArguments();
+      var mapperArgsCount = mapperArgs.Length;
+
+      if (0 == mapperArgsCount) {
+        return (IBodyMapper<TBody>) Activator.CreateInstance(mapperType);
+      }
+
+      var typeArgs = mapperArgs
         .Select((t, idx) => 0 == idx ? typeof(TBody) : typeof(object))
         .ToArray();
 
@@ -71,12 +78,18 @@ namespace Httx.Requests.Extensions {
         throw new InvalidOperationException("[resolve result mapper]: result of not found");
       }
 
-      var argsCount = mapperType.GetGenericArguments().Length;
-      var typeArgs = mapperType.GetGenericArguments()
-        .Select((t, idx) => argsCount - 1 == idx ? typeof(TResult) : typeof(object))
+      var mapperArgs = mapperType.GetGenericArguments();
+      var mapperArgsCount = mapperArgs.Length;
+
+      if (0 == mapperArgsCount) {
+        return (IResultMapper<TResult>) Activator.CreateInstance(mapperType);
+      }
+
+      var resultArgs = mapperArgs
+        .Select((t, idx) => mapperArgsCount - 1 == idx ? typeof(TResult) : typeof(object))
         .ToArray();
 
-      return (IResultMapper<TResult>) Activator.CreateInstance(mapperType.MakeGenericType(typeArgs));
+      return (IResultMapper<TResult>) Activator.CreateInstance(mapperType.MakeGenericType(resultArgs));
     }
 
     public static IAwaiter<TResult> ResolveAwaiter<TResult>(this IRequest request) {

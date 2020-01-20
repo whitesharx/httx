@@ -19,6 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using Httx.Requests.Aux;
 using Httx.Requests.Mappers;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
@@ -43,6 +44,9 @@ public class SandboxBehaviour : MonoBehaviour {
     //
     // Debug.Log(t2.GetGenericArguments().Length);
 
+
+    var result = await new As<string>(new Get(new Text("http://time.jsontest.com")));
+    Debug.Log($"Result: {result}");
 
   }
 }

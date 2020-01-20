@@ -18,15 +18,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections.Generic;
 using Httx.Requests.Awaiters;
+using Httx.Requests.Extensions;
 
 namespace Httx.Requests.Aux {
   public class As<TResult> : BaseRequest, IAwaitable<TResult> {
     public As(IRequest next) : base(next) { }
-
-    // return mapper awaiter with proper map func
-    public IAwaiter<TResult> GetAwaiter() => throw new System.NotImplementedException();
-
+    public IAwaiter<TResult> GetAwaiter() => Next.ResolveAwaiter<TResult>();
   }
 }

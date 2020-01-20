@@ -64,10 +64,13 @@ namespace Httx.Requests.Awaiters {
       }
 
       operation.completed -= continuationAction;
-      operation = null;
       continuationAction = null;
 
-      return OnResult(inputRequest, operation);
+      try {
+        return OnResult(inputRequest, operation);
+      } finally {
+        operation = null;
+      }
     }
 
     public abstract UnityWebRequestAsyncOperation Awake(IRequest request);
