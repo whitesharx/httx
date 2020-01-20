@@ -11,7 +11,7 @@ using Httx.Requests.Extensions;
 using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
-  [Awaiter(typeof(UnityWebRequestAwaiter))]
+  [Awaiter(typeof(UnityWebRequestAwaiter<>))]
   [Mapper(typeof(Utf8TextMapper))]
   public class Text : BaseRequest {
     public Text(string url, string body = null) : base(null) {

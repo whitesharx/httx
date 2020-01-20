@@ -18,8 +18,11 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Httx.Requests.Attributes;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
 
@@ -44,19 +47,53 @@ namespace Httx.Requests.Extensions {
     }
 
     public static IBodyMapper<TBody> ResolveBodyMapper<TBody>(this IRequest request) {
-      return null;
+      var mapperType = LeftToRight(request)
+        .Select(r => r.GetType().GetCustomAttribute<MapperAttribute>()?.MapperType)
+        .FirstOrDefault(t => null != t);
+
+      if (null == mapperType) {
+        throw new InvalidOperationException("[resolve body mapper]: mapper of not found");
+      }
+
+      var typeArgs = mapperType.GetGenericArguments()
+        .Select((t, idx) => 0 == idx ? typeof(TBody) : typeof(object))
+        .ToArray();
+
+      return (IBodyMapper<TBody>) Activator.CreateInstance(mapperType.MakeGenericType(typeArgs));
     }
 
     public static IResultMapper<TResult> ResolveResultMapper<TResult>(this IRequest request) {
-      return null;
+      var mapperType = LeftToRight(request)
+        .Select(r => r.GetType().GetCustomAttribute<MapperAttribute>()?.MapperType)
+        .FirstOrDefault(t => null != t);
+
+      if (null == mapperType) {
+        throw new InvalidOperationException("[resolve result mapper]: result of not found");
+      }
+
+      var argsCount = mapperType.GetGenericArguments().Length;
+      var typeArgs = mapperType.GetGenericArguments()
+        .Select((t, idx) => argsCount - 1 == idx ? typeof(TResult) : typeof(object))
+        .ToArray();
+
+      return (IResultMapper<TResult>) Activator.CreateInstance(mapperType.MakeGenericType(typeArgs));
     }
 
     public static IAwaiter<TResult> ResolveAwaiter<TResult>(this IRequest request) {
-      return null;
-    }
+      var awaiterType = LeftToRight(request).Select(r => {
+        var attribute = r.GetType().GetCustomAttribute<AwaiterAttribute>();
+        return attribute?.AwaiterType;
+      }).FirstOrDefault(t => null != t);
 
-    public static object ResolveAwaiterUnsafe(this IRequest request) {
-      return null;
+      if (null == awaiterType) {
+        throw new InvalidOperationException("[resolve awaiter]: awaiter not found");
+      }
+
+      var resultType = awaiterType.ContainsGenericParameters ?
+        awaiterType.MakeGenericType(typeof(TResult)) : awaiterType;
+
+      var awakeConstructor = resultType.GetConstructor(new[] { typeof(IRequest) });
+      return (IAwaiter<TResult>) awakeConstructor?.Invoke(new object[] { request });
     }
 
     private static IEnumerable<IRequest> LeftToRight(IRequest request) {

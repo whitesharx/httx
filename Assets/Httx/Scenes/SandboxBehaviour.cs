@@ -18,6 +18,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
+using Httx.Requests.Mappers;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
 using JetBrains.Annotations;
@@ -26,46 +28,21 @@ using UnityEngine;
 public class SandboxBehaviour : MonoBehaviour {
   [UsedImplicitly]
   private async void Start() {
-
-    // var games = await new Get<Games>(new Json<Player, Games>(url, player));
-    // var games = await new Get<Games>(new Json<Games>(url));
-
-
-    // var games = await new Post(new Json<Player, Games>(url, player));
-    // var games = await new Get(new Json<Games>(url));
-
-
-    // var games = await new Get(new Json(url)) as List<Games>;
-
-
-    // var r = await Cache(Get(Json<Games>(url))
-    // var r = await Cache(Authorize(Get(Json<Games>(url))))
-    // var response = await Cache(Authorize(Get(Json(url))))
-
-
-
-    // var response = await Post(Bearer(Json<Player>(url, player)))
-
-
-    // var response = await Post<int>(Bearer(File(url, bytes), token), progress))
-
-
-    // var assetBundle = await Get<AssetBundle>(Bundle(url), progress))
-    // AssetBundle assetBundle = Get(Bundle(url), progress)
-
-    // var texture = await Cache(Get(Texture(url))).Map<Texture2D>();
-    // var texture = await As<Texture2D>(Cache(Get(Texture(url))));
-
-
-    // var texture = await As<Texture2D>Cache(Get(Texture(url))))
-
-
-
     // Must be conf: Context, IProgress
     // var result = await new Get(new Text("http://time.jsontest.com")).Map<string>();
     //
     // Debug.Log("result: " + result);
 
     // var result = await new Get(new Text("http://time.jsontest.com"));
+
+    //
+    // var t2 = typeof(Utf8JsonUtilityMapper<,>);
+    // // var gt2 = t2.MakeGenericType(typeof(object), typeof(byte[]));
+    // // var r2 = (IResultMapper<byte[]>) Activator.CreateInstance(gt2);
+    //
+    //
+    // Debug.Log(t2.GetGenericArguments().Length);
+
+
   }
 }

@@ -5,9 +5,13 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Httx.Requests.Attributes;
+using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
+  [Awaiter(typeof(UnityWebRequestAwaiter<string>))]
+  [Mapper(typeof(Utf8JsonUtilityMapper<,>))]
   public class Json<T> : BaseRequest {
     public Json(string url, T body = default) : base(null) {
       Url = url;

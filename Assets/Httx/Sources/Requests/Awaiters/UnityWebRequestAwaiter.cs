@@ -41,8 +41,4 @@ namespace Httx.Requests.Awaiters {
       return request.ResolveResultMapper<TResult>().FromResult(bytes);
     }
   }
-
-  public class UnityWebRequestAwaiter : UnityWebRequestAwaiter<byte[]> {
-    public UnityWebRequestAwaiter(IRequest request) : base(request) { }
-  }
 }
