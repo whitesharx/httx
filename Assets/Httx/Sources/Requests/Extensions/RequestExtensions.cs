@@ -27,7 +27,6 @@ using Httx.External.MiniJSON;
 using Httx.Requests.Attributes;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
-using UnityEngine;
 
 namespace Httx.Requests.Extensions {
   public static class RequestExtensions {
@@ -112,37 +111,37 @@ namespace Httx.Requests.Extensions {
       return (IAwaiter<TResult>) awakeConstructor?.Invoke(new object[] { request });
     }
 
-    // TEMP
-    public static string Description(this IRequest request, int bodySize = 128) {
-      var builder = new StringBuilder();
+    public static string AsJson(this IRequest request, int bodySize = 256) {
+      var jsonObject = new Dictionary<string, object>();
 
-      var contents = new Dictionary<string, object>();
-      contents["verb"] = request.ResolveVerb();
-      contents["url"] = request.ResolveUrl();
-      contents["request"] = LeftToRight(request).Select(r => r.GetType().Name).ToArray();
+      jsonObject["verb"] = request.ResolveVerb();
+      jsonObject["url"] = request.ResolveUrl();
+      jsonObject["request"] = LeftToRight(request).Select(r => r.GetType().Name).ToArray();
 
-      var body = request.ResolveBody();
+      var body = request.ResolveBody()?.ToArray();
 
-      if (null != body && 0 != body.Count()) {
-        contents["body"] = body;
+      if (null != body && 0 != body.Length) {
+        var postfix = body.Length > bodySize ? "..." : string.Empty;
+        var bodyContent = Encoding.UTF8.GetString(body.Take(bodySize).ToArray());
+
+        jsonObject["body"] = $"{bodyContent}{postfix}";
       }
 
-      var headers = request.ResolveHeaders()?.ToList();
+      var headers = request.ResolveHeaders()?.ToArray();
 
-      if (null != headers && 0 != headers.Count) {
-        var headersBuffer = new Dictionary<string, object>();
-
-        foreach (var keyValue in headers) {
-          headersBuffer[keyValue.Key] = keyValue.Value;
-        }
-
-        contents["headers"] = headersBuffer;
+      if (null == headers || 0 == headers.Length) {
+        return Json.Serialize(jsonObject);
       }
 
-      Debug.Log(Json.Serialize(contents));
+      var headersBuffer = new Dictionary<string, object>();
 
+      foreach (var keyValue in headers) {
+        headersBuffer[keyValue.Key] = keyValue.Value;
+      }
 
-      return builder.ToString();
+      jsonObject["headers"] = headersBuffer;
+
+      return Json.Serialize(jsonObject);
     }
 
     private static IEnumerable<IRequest> LeftToRight(IRequest request) {

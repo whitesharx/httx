@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2020 Sergey Ivonchik
+// Copyright (c) 2020 Sergey Ivonchik
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,25 +18,20 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
-using Httx.Requests.Aux;
+using Httx.Requests.Attributes;
+using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
-using Httx.Requests.Types;
-using Httx.Requests.Verbs;
-using JetBrains.Annotations;
-using UnityEngine;
+using UnityEngine.Networking;
 
-public class SandboxBehaviour : MonoBehaviour {
-  [UsedImplicitly]
-  private async void Start() {
-    // Must be conf: Context, IProgress
+namespace Httx.Requests.Aux {
+  [Awaiter(typeof(UnityWebRequestAwaiter<>))]
+  [Mapper(typeof(ContentLengthMapper))]
+  public class Length : As<long> {
+    public Length(string url) : base(null) {
+      Url = url;
+    }
 
-    var result = await new Get<string>(new Text("http://time.jsontest.com"));
-
-    // var result = await new As<string>(new Get(new Text("http://time.jsontest.com")));
-    Debug.Log($"Result: {result}");
-    
-    // https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle
-
+    public override string Url { get; }
+    public override string Verb => UnityWebRequest.kHttpVerbHEAD;
   }
 }

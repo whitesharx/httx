@@ -5,6 +5,7 @@
 
 using System.Linq;
 using Httx.Requests.Extensions;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
@@ -31,14 +32,19 @@ namespace Httx.Requests.Awaiters {
         requestImpl.uploadHandler = new UploadHandlerRaw(body);
       }
 
-      request.Description();
-
+      Debug.Log(request.AsJson());
       return requestImpl.SendWebRequest();
     }
 
     public override TResult OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
+      Debug.Log(operation.AsJson());
+
       var requestImpl = operation.webRequest;
       var bytes = requestImpl.downloadHandler.data;
+
+      if (null == bytes || 0 == bytes.Length) {
+        return request.ResolveResultMapper<TResult>().FromResult(requestImpl.GetResponseHeaders());
+      }
 
       return request.ResolveResultMapper<TResult>().FromResult(bytes);
     }

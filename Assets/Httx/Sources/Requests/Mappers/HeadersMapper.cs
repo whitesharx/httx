@@ -18,8 +18,16 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Requests.Aux {
-  public class Size { // Head<byte>
-    
+using System.Collections.Generic;
+
+namespace Httx.Requests.Mappers {
+  public class HeadersMapper : IResultMapper<IEnumerable<KeyValuePair<string, string>>> {
+    public IEnumerable<KeyValuePair<string, string>> FromResult(object result) {
+      if (result is Dictionary<string, string> headers) {
+        return headers;
+      }
+
+      return null;
+    }
   }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2020 Sergey Ivonchik
+// Copyright (c) 2020 Sergey Ivonchik
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,25 +18,19 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
-using Httx.Requests.Aux;
-using Httx.Requests.Mappers;
-using Httx.Requests.Types;
-using Httx.Requests.Verbs;
-using JetBrains.Annotations;
-using UnityEngine;
+using System.Collections.Generic;
 
-public class SandboxBehaviour : MonoBehaviour {
-  [UsedImplicitly]
-  private async void Start() {
-    // Must be conf: Context, IProgress
+namespace Httx.Requests.Mappers {
+  public class ContentLengthMapper : IResultMapper<long> {
+    public long FromResult(object result) {
+      if (!(result is Dictionary<string, string> headers)) {
+        return 0;
+      }
 
-    var result = await new Get<string>(new Text("http://time.jsontest.com"));
+      headers.TryGetValue("Content-Length", out var contentSize);
 
-    // var result = await new As<string>(new Get(new Text("http://time.jsontest.com")));
-    Debug.Log($"Result: {result}");
-    
-    // https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle
-
+      long.TryParse(contentSize, out var contentSizeValue);
+      return contentSizeValue;
+    }
   }
 }
