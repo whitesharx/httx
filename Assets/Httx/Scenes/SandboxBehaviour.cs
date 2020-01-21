@@ -19,6 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Linq;
 using Httx.Requests.Aux;
 using Httx.Requests.Mappers;
 using Httx.Requests.Types;
@@ -31,11 +32,15 @@ public class SandboxBehaviour : MonoBehaviour {
   private async void Start() {
     // Must be conf: Context, IProgress
 
-    var result = await new Get<string>(new Text("http://time.jsontest.com"));
+    var r1 = await new Get<string>(new Text("http://time.jsontest.com"));
+    var r2 = await new Head("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
+    var r3 = await new Length("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
+
+
 
     // var result = await new As<string>(new Get(new Text("http://time.jsontest.com")));
-    Debug.Log($"Result: {result}");
-    
+    // Debug.Log($"Result: {result}");
+
     // https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle
 
   }
