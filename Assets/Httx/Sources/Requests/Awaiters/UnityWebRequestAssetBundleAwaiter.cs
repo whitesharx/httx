@@ -18,6 +18,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
 using UnityEngine;
@@ -34,8 +35,22 @@ namespace Httx.Requests.Awaiters {
 
       Debug.Log(request.AsJson());
 
+      var crc = ResolveCrc(headers);
+      var version = ResolveVersion(headers);
+      var hash = ResolveHash(headers);
+
+      var handler = new DownloadHandlerAssetBundle(url, crc);
+
+      if (0 != version) {
+        handler = new DownloadHandlerAssetBundle(url, version, crc);
+      }
+
+      if (default != hash) {
+        handler = new DownloadHandlerAssetBundle(url, hash, crc);
+      }
+
       var requestImpl = new UnityWebRequest(url, verb) {
-        downloadHandler = new DownloadHandlerAssetBundle(url, 0)
+        downloadHandler = handler
       };
 
       if (null != headers && 0 != headers.Count) {
@@ -52,6 +67,21 @@ namespace Httx.Requests.Awaiters {
 
       var handler = (DownloadHandlerAssetBundle) operation.webRequest.downloadHandler;
       return handler.assetBundle;
+    }
+
+    private static uint ResolveCrc(IEnumerable<KeyValuePair<string, object>> headers) {
+      var crc = headers?.FirstOrDefault(h => h.Key == InternalHeaders.AssetBundleCrc).Value;
+      return (uint?) crc ?? 0;
+    }
+
+    private static uint ResolveVersion(IEnumerable<KeyValuePair<string, object>> headers) {
+      var version = headers?.FirstOrDefault(h => h.Key == InternalHeaders.AssetBundleVersion).Value;
+      return (uint?) version ?? 0;
+    }
+
+    private static Hash128 ResolveHash(IEnumerable<KeyValuePair<string, object>> headers) {
+      var hash = headers?.FirstOrDefault(h => h.Key == InternalHeaders.AssetBundleHash).Value;
+      return (Hash128?) hash ?? default;
     }
   }
 }
