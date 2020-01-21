@@ -29,6 +29,20 @@ using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Extensions {
+  public static class InternalHeaders {
+    private const string Prefix = "X-Httx-";
+
+    public const string ProgressObject = Prefix + "Progress-Object";
+    public const string FilePath = Prefix + "File-Path";
+    public const string AssetBundleCrc = Prefix + "AssetBundle-Crc";
+    public const string AssetBundleHash = Prefix + "AssetBundle-Hash";
+    public const string AssetBundleVersion = Prefix + "AssetBundle-Verison";
+
+    public static bool IsInternalHeader(this KeyValuePair<string, object> header) {
+      return !string.IsNullOrEmpty(header.Key) && header.Key.StartsWith(Prefix);
+    }
+  }
+
   public static class RequestExtensions {
     public static string ResolveVerb(this IRequest request) {
       return LeftToRight(request).Select(r => r.Verb).First(verb => !string.IsNullOrEmpty(verb));

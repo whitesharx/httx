@@ -52,6 +52,7 @@ namespace Httx.Requests.Awaiters {
     }
 
     public TResult GetResult() {
+      // TODO: Exceptions
       if (!string.IsNullOrEmpty(operation.webRequest.error)) {
         throw new Exception(operation.webRequest.error);
       }

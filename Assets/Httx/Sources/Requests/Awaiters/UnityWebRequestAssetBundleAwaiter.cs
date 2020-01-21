@@ -18,13 +18,40 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
+using System.Linq;
+using Httx.Requests.Extensions;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
-  // public class UnityWebRequestAssetBundleAwaiter : BaseAwaiter<AssetBundle> {
-  //   public override void OnCompleted(Action continuation) => throw new NotImplementedException();
-  //   public override bool IsCompleted { get; }
-  //   public override AssetBundle GetResult() => throw new NotImplementedException();
-  // }
+  public class UnityWebRequestAssetBundleAwaiter : BaseUnityAwaiter<AssetBundle> {
+    public UnityWebRequestAssetBundleAwaiter(IRequest request) : base(request) { }
+
+    public override UnityWebRequestAsyncOperation Awake(IRequest request) {
+      var verb = request.ResolveVerb();
+      var url = request.ResolveUrl();
+      var headers = request.ResolveHeaders()?.ToList();
+
+      Debug.Log(request.AsJson());
+
+      var requestImpl = new UnityWebRequest(url, verb) {
+        downloadHandler = new DownloadHandlerAssetBundle(url, 0)
+      };
+
+      if (null != headers && 0 != headers.Count) {
+        foreach (var p in headers.Where(p => !p.IsInternalHeader())) {
+          requestImpl.SetRequestHeader(p.Key, p.Value?.ToString());
+        }
+      }
+
+      return requestImpl.SendWebRequest();
+    }
+
+    public override AssetBundle OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
+      Debug.Log(operation.AsJson());
+
+      var handler = (DownloadHandlerAssetBundle) operation.webRequest.downloadHandler;
+      return handler.assetBundle;
+    }
+  }
 }

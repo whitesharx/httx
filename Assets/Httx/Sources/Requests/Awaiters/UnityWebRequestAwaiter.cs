@@ -18,12 +18,14 @@ namespace Httx.Requests.Awaiters {
       var headers = request.ResolveHeaders()?.ToList();
       var body = request.ResolveBody()?.ToArray();
 
+      Debug.Log(request.AsJson());
+
       var requestImpl = new UnityWebRequest(url, verb) {
         downloadHandler = new DownloadHandlerBuffer()
       };
 
       if (null != headers && 0 != headers.Count) {
-        foreach (var p in headers) {
+        foreach (var p in headers.Where(p => !p.IsInternalHeader())) {
           requestImpl.SetRequestHeader(p.Key, p.Value?.ToString());
         }
       }
@@ -32,7 +34,6 @@ namespace Httx.Requests.Awaiters {
         requestImpl.uploadHandler = new UploadHandlerRaw(body);
       }
 
-      Debug.Log(request.AsJson());
       return requestImpl.SendWebRequest();
     }
 

@@ -18,8 +18,13 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Requests.Types {
-  public class Code { // Get<int>, Post<int> etc.?
+using UnityEngine;
+using UnityEngine.Networking;
 
+namespace Httx.Requests.Awaiters {
+  public class UnityWebRequestTextureAwaiter : BaseUnityAwaiter<Texture2D> {
+    public UnityWebRequestTextureAwaiter(IRequest request) : base(request) { }
+    public override UnityWebRequestAsyncOperation Awake(IRequest request) => throw new System.NotImplementedException();
+    public override Texture2D OnResult(IRequest request, UnityWebRequestAsyncOperation operation) => throw new System.NotImplementedException();
   }
 }
