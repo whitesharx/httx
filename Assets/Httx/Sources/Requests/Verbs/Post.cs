@@ -26,9 +26,4 @@ namespace Httx.Requests.Verbs {
     public Post(IRequest next) : base(next) { }
     public override string Verb => UnityWebRequest.kHttpVerbPOST;
   }
-
-  public class Post<T> : As<T> {
-    public Post(IRequest request) : base(request) { }
-    public override string Verb => UnityWebRequest.kHttpVerbPOST;
-  }
 }

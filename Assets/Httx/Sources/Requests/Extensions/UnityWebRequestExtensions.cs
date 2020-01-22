@@ -19,6 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Collections.Generic;
+using System.Linq;
 using Httx.External.MiniJSON;
 using UnityEngine.Networking;
 
@@ -49,7 +50,7 @@ namespace Httx.Requests.Extensions {
           return Json.Serialize(jsonObject);
         case DownloadHandlerBuffer buffer when !string.IsNullOrEmpty(buffer.text): {
           var postfix = buffer.text.Length > bodySize ? "..." : string.Empty;
-          jsonObject["body"] = $"{buffer.text}{postfix}";
+          jsonObject["body"] = $"{buffer.text.Take(bodySize)}{postfix}";
           break;
         }
         case DownloadHandlerAssetBundle bundle when null != bundle.assetBundle:

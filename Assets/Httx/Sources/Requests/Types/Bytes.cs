@@ -18,8 +18,36 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Requests.Types {
-  public class Bytes {
+using System.Collections.Generic;
+using System.Linq;
+using Httx.Requests.Attributes;
+using Httx.Requests.Awaiters;
+using Httx.Requests.Mappers;
 
+namespace Httx.Requests.Types {
+  [Awaiter(typeof(UnityWebRequestAwaiter<>))]
+  [Mapper(typeof(NopMapper<,>))]
+  public class Bytes : BaseRequest {
+    public Bytes(string url, IEnumerable<byte> body = null) : base(null) {
+      Url = url;
+      Body = body;
+    }
+
+    public override string Url { get; }
+    public override IEnumerable<byte> Body { get; }
+
+    public override IEnumerable<KeyValuePair<string, object>> Headers {
+      get {
+        var headers = new Dictionary<string, object> {
+          { "Accept", "application/octet-stream" }
+        };
+
+        if (null != Body && 0 != Body.Count()) {
+          headers.Add("Content-Type", "application/octet-stream");
+        }
+
+        return headers;
+      }
+    }
   }
 }

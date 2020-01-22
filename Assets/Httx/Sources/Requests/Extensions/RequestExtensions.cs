@@ -45,15 +45,15 @@ namespace Httx.Requests.Extensions {
 
   public static class RequestExtensions {
     public static string ResolveVerb(this IRequest request) {
-      return LeftToRight(request).Select(r => r.Verb).First(verb => !string.IsNullOrEmpty(verb));
+      return LeftToRight(request).Select(r => r.Verb).Last(verb => !string.IsNullOrEmpty(verb));
     }
 
     public static string ResolveUrl(this IRequest request) {
-      return LeftToRight(request).Select(r => r.Url).First(url => !string.IsNullOrEmpty(url));
+      return LeftToRight(request).Select(r => r.Url).Last(url => !string.IsNullOrEmpty(url));
     }
 
     public static IEnumerable<byte> ResolveBody(this IRequest request) {
-      return LeftToRight(request).Select(r => r.Body).FirstOrDefault(body => null != body && 0 != body.Count());
+      return LeftToRight(request).Select(r => r.Body).LastOrDefault(body => null != body && 0 != body.Count());
     }
 
     public static IEnumerable<KeyValuePair<string, object>> ResolveHeaders(this IRequest request) {

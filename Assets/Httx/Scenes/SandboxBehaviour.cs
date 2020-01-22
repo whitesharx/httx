@@ -19,22 +19,37 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Aux;
 using Httx.Requests.Mappers;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
+using Httx.Utils;
 using JetBrains.Annotations;
 using UnityEngine;
 
-public class SandboxBehaviour : MonoBehaviour {
+public class Reporter : IProgress<float> {
+  public void Report(float value) => Debug.Log($"Reporter({value})");
+}
+
+public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
+
+
   [UsedImplicitly]
   private async void Start() {
-    // Must be conf: Context, IProgress
 
-    var r1 = await new Get<string>(new Text("http://time.jsontest.com"));
-    var r2 = await new Head("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
-    var r3 = await new Length("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
+
+
+    var url = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
+    var r1 = await new As<byte[]>(new Get(new Bytes(url), this));
+
+    var r2 = await new As<byte[]>(new Get(new Bytes(url), new Reporter()));
+
+    Debug.Log("r1: " + r1.Length);
+
+    // var r2 = await new Head("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
+    // var r3 = await new Length("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
 
 
 
@@ -44,4 +59,6 @@ public class SandboxBehaviour : MonoBehaviour {
     // https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle
 
   }
+
+  public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");
 }

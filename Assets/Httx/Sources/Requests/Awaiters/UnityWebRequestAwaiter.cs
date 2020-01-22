@@ -3,13 +3,18 @@
 // Proprietary and confidential.
 //
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
+using Httx.Utils;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
   public class UnityWebRequestAwaiter<TResult> : BaseUnityAwaiter<TResult> {
+    private string requestId;
+
     public UnityWebRequestAwaiter(IRequest request) : base(request) { }
 
     public override UnityWebRequestAsyncOperation Awake(IRequest request) {
@@ -34,11 +39,26 @@ namespace Httx.Requests.Awaiters {
         requestImpl.uploadHandler = new UploadHandlerRaw(body);
       }
 
+      var pRef = ResolveProgress(headers);
+
+      if (null == pRef) {
+        return requestImpl.SendWebRequest();
+      }
+
+      requestId = Guid.NewGuid().ToString();
+
+      var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, requestImpl);
+      UnityWebRequestReporter.AddReporterRef(requestId, wrapper);
+
       return requestImpl.SendWebRequest();
     }
 
     public override TResult OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
       Debug.Log(operation.AsJson());
+
+      if (!string.IsNullOrEmpty(requestId)) {
+        UnityWebRequestReporter.RemoveReporterRef(requestId);
+      }
 
       var requestImpl = operation.webRequest;
       var bytes = requestImpl.downloadHandler.data;
@@ -48,6 +68,11 @@ namespace Httx.Requests.Awaiters {
       }
 
       return request.ResolveResultMapper<TResult>().FromResult(bytes);
+    }
+
+    private WeakReference<IProgress<float>> ResolveProgress(IEnumerable<KeyValuePair<string, object>> headers) {
+      var pRef = headers.FirstOrDefault(h => h.Key == InternalHeaders.ProgressObject).Value;
+      return pRef as WeakReference<IProgress<float>>;
     }
   }
 }

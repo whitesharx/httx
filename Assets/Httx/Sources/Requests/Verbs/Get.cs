@@ -18,17 +18,31 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Httx.Requests.Aux;
+using System;
+using System.Collections.Generic;
+using Httx.Requests.Extensions;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Verbs {
   public class Get : BaseRequest {
-    public Get(IRequest next) : base(next) { }
-    public override string Verb => UnityWebRequest.kHttpVerbGET;
-  }
+    private readonly WeakReference<IProgress<float>> progressRef;
 
-  public class Get<TResult> : As<TResult> {
-    public Get(IRequest next) : base(next) { }
+    public Get(IRequest next, IProgress<float> progress = null) : base(next) {
+      progressRef = null != progress ? new WeakReference<IProgress<float>>(progress) : null;
+    }
+
     public override string Verb => UnityWebRequest.kHttpVerbGET;
+
+    public override IEnumerable<KeyValuePair<string, object>> Headers {
+      get {
+        if (null != progressRef) {
+          return new Dictionary<string, object> {
+            [InternalHeaders.ProgressObject] = progressRef
+          };
+        }
+
+        return null;
+      }
+    }
   }
 }

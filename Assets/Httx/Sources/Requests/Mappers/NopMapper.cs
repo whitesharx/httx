@@ -22,7 +22,7 @@ using System.Collections.Generic;
 
 namespace Httx.Requests.Mappers {
   public class NopMapper<TBody, TResult> : IMapper<TBody, TResult> {
-    public IEnumerable<byte> AsBody(TBody t) => new byte[0];
-    public TResult FromResult(object result) => (TResult) result;
+    public IEnumerable<byte> AsBody(TBody t) => null != t ? (IEnumerable<byte>) t : null;
+    public TResult FromResult(object result) => null != result ? (TResult) result : default;
   }
 }
