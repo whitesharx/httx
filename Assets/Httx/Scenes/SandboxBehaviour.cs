@@ -34,19 +34,13 @@ public class Reporter : IProgress<float> {
 }
 
 public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
-
-
   [UsedImplicitly]
-  private async void Start() {
-
-
-
+  private void Start() {
     var url = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
-    var r1 = await new As<byte[]>(new Get(new Bytes(url), this));
 
-    var r2 = await new As<byte[]>(new Get(new Bytes(url), new Reporter()));
+    StartRequest1(url);
+    StartRequest2(url);
 
-    Debug.Log("r1: " + r1.Length);
 
     // var r2 = await new Head("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
     // var r3 = await new Length("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
@@ -61,4 +55,14 @@ public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   }
 
   public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");
+
+  private async void StartRequest1(string url) {
+    var r1 = await new As<byte[]>(new Get(new Bytes(url), this));
+    Debug.Log("r1-complete: " + r1.Length);
+  }
+
+  private async void StartRequest2(string url) {
+    var r2 = await new As<byte[]>(new Get(new Bytes(url), new Reporter()));
+    Debug.Log("r2-complete: " + r2.Length);
+  }
 }
