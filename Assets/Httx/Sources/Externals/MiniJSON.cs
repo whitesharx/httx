@@ -36,7 +36,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Httx.External.MiniJSON {
+namespace Httx.Externals.MiniJSON {
     // Example usage:
     //
     //  using UnityEngine;

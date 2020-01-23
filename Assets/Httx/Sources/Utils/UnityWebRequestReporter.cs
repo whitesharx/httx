@@ -87,6 +87,10 @@ namespace Httx.Utils {
         p.Value.ProgressRef.TryGetTarget(out var progress);
 
         var request = p.Value?.Request;
+        
+        // XXX: Basically, it's not very good strategy. But just
+        // for the sake of simplicity, let's try how this approach
+        // will be valid for most use cases.
         var progressValue = null != request?.uploadHandler
           ? request.uploadProgress : request?.downloadProgress;
 

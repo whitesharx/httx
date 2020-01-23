@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Httx.External.MiniJSON;
+using Httx.Externals.MiniJSON;
 using Httx.Requests.Attributes;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;

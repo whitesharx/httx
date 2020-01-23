@@ -70,7 +70,7 @@ namespace Httx.Requests.Awaiters {
       return request.ResolveResultMapper<TResult>().FromResult(bytes);
     }
 
-    private WeakReference<IProgress<float>> ResolveProgress(IEnumerable<KeyValuePair<string, object>> headers) {
+    private static WeakReference<IProgress<float>> ResolveProgress(IEnumerable<KeyValuePair<string, object>> headers) {
       var pRef = headers.FirstOrDefault(h => h.Key == InternalHeaders.ProgressObject).Value;
       return pRef as WeakReference<IProgress<float>>;
     }

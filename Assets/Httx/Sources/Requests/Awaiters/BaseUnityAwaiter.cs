@@ -19,6 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using Httx.Requests.Extensions;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -52,9 +53,10 @@ namespace Httx.Requests.Awaiters {
     }
 
     public TResult GetResult() {
-      // TODO: Exceptions
-      if (!string.IsNullOrEmpty(operation.webRequest.error)) {
-        throw new Exception(operation.webRequest.error);
+      var e = operation.webRequest.AsException();
+
+      if (null != e) {
+        throw e;
       }
 
       if (null == continuationAction) {

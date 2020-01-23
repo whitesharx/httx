@@ -18,10 +18,21 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using UnityEngine;
+using System;
+using System.Collections.Generic;
 
-namespace Httx {
-  public class Registry : MonoBehaviour{
+namespace Httx.Requests.Exceptions {
+  public class HttpException : Exception {
+    public HttpException(long code, string message,
+      IEnumerable<KeyValuePair<string, string>> headers, IEnumerable<byte> body) : base(message) {
 
+      Code = code;
+      Headers = headers;
+      Body = body;
+    }
+
+    public long Code { get; }
+    public IEnumerable<KeyValuePair<string, string>> Headers { get; }
+    public IEnumerable<byte> Body { get; }
   }
 }

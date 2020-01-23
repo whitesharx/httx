@@ -18,17 +18,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx {
-  public class Context { // implements IRequest?
-    // urls
-    // headers
-    // timeouts
+using System;
 
-    // caches size, cache folder?
-
-    // success codes
-    // result mapping / strategy mapping / ext mapping
-
-    // authorization func?
+namespace Httx.Requests.Exceptions {
+  public class HttpSerializationException : Exception {
+    public HttpSerializationException(string msg, Exception ex) : base(msg, ex) { }
   }
 }

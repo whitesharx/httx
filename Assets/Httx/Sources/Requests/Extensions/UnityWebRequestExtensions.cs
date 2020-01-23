@@ -20,11 +20,25 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Httx.External.MiniJSON;
+using Httx.Externals.MiniJSON;
+using Httx.Requests.Exceptions;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Extensions {
   public static class UnityWebRequestExtensions {
+    public static HttpException AsException(this UnityWebRequest request) {
+      if (!request.isHttpError && !request.isNetworkError) {
+        return null;
+      }
+
+      var code = request.responseCode;
+      var msg = request.error;
+      var headers = request.GetResponseHeaders();
+      var body = request.downloadHandler?.data ?? new byte[] { };
+
+      return new HttpException(code, msg, headers, body);
+    }
+
     public static string AsJson(this UnityWebRequestAsyncOperation operation, int bodySize = 256) {
       var jsonObject = new Dictionary<string, object>();
 
