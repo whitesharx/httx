@@ -18,17 +18,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections.Generic;
+using Httx.Requests.Attributes;
+using Httx.Requests.Mappers;
 
-namespace Httx.Requests.Aux {
-  public class Bearer : BaseRequest {
-    private readonly string token;
-
-    public Bearer(IRequest next, string authToken) : base(next) {
-      token = authToken;
-    }
-
-    public override IEnumerable<KeyValuePair<string, object>> Headers =>
-      new Dictionary<string, object> { ["Authorization"] = $"Bearer {token}" };
+namespace Httx.Requests.Decorators {
+  [Mapper(typeof(ResponseCodeMapper))]
+  public class Code : BaseRequest { // IAwaitable<int>, X-Httx-ResponseCodeOnly
+    public Code(IRequest next) : base(next) { }
   }
 }

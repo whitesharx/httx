@@ -18,8 +18,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Requests.Aux {
-  public class Cache {
-    // TODO: Implement
+using Httx.Requests.Awaiters;
+using Httx.Requests.Extensions;
+
+namespace Httx.Requests.Decorators {
+  public class As<TResult> : BaseRequest, IAwaitable<TResult> {
+    public As(IRequest next) : base(next) { }
+    public IAwaiter<TResult> GetAwaiter() => this.ResolveAwaiter<TResult>();
   }
 }

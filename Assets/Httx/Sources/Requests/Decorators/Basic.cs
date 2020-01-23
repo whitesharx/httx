@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Httx.Requests.Aux {
+namespace Httx.Requests.Decorators {
   public class Basic : BaseRequest {
     private readonly string token;
 

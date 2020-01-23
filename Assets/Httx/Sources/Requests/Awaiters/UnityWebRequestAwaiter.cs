@@ -64,6 +64,7 @@ namespace Httx.Requests.Awaiters {
       var bytes = requestImpl.downloadHandler.data;
 
       if (null == bytes || 0 == bytes.Length) {
+        // TODO: Put whole request
         return request.ResolveResultMapper<TResult>().FromResult(requestImpl.GetResponseHeaders());
       }
 

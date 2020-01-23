@@ -21,7 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Httx.Requests.Aux;
+using Httx.Requests.Decorators;
 using Httx.Requests.Mappers;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;

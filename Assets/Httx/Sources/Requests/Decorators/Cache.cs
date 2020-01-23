@@ -18,12 +18,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Httx.Requests.Decorators;
-using UnityEngine.Networking;
-
-namespace Httx.Requests.Verbs {
-  public class Post : BaseRequest {
-    public Post(IRequest next) : base(next) { }
-    public override string Verb => UnityWebRequest.kHttpVerbPOST;
+namespace Httx.Requests.Decorators {
+  public class Cache {
+    // TODO: Implement
   }
 }
