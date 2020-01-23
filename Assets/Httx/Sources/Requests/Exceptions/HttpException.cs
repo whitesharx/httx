@@ -20,6 +20,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Httx.Externals.MiniJSON;
 
 namespace Httx.Requests.Exceptions {
   public class HttpException : Exception {
@@ -34,5 +37,27 @@ namespace Httx.Requests.Exceptions {
     public long Code { get; }
     public IEnumerable<KeyValuePair<string, string>> Headers { get; }
     public IEnumerable<byte> Body { get; }
+  }
+
+  public static class HttpExceptionExtensions {
+    public static string AsJson(this HttpException e) {
+      var result = new Dictionary<string, object>();
+
+      result["code"] = e.Code;
+
+      if (!string.IsNullOrEmpty(e.Message)) {
+        result["message"] = e.Message;
+      }
+
+      if (null != e.Headers && 0 != e.Headers.Count()) {
+        result["headers"] = e.Headers;
+      }
+
+      if (null != e.Body && 0 != e.Body.Count()) {
+        result["body"] = Encoding.UTF8.GetString(e.Body.ToArray());
+      }
+
+      return Json.Serialize(result);
+    }
   }
 }

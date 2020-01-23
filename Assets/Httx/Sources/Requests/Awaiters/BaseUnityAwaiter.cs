@@ -19,6 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using Httx.Requests.Exceptions;
 using Httx.Requests.Extensions;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -56,6 +57,7 @@ namespace Httx.Requests.Awaiters {
       var e = operation.webRequest.AsException();
 
       if (null != e) {
+        Debug.Log(e.AsJson());
         throw e;
       }
 
