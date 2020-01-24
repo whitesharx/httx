@@ -19,30 +19,11 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.Collections.Generic;
-using Httx.Requests.Extensions;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Verbs {
-  public class Get : BaseRequest {
-    private readonly WeakReference<IProgress<float>> progressRef;
-
-    public Get(IRequest next, IProgress<float> progress = null) : base(next) {
-      progressRef = null != progress ? new WeakReference<IProgress<float>>(progress) : null;
-    }
-
+  public class Get : Verb {
+    public Get(IRequest next, IProgress<float> progress = null) : base(next, progress) { }
     public override string Verb => UnityWebRequest.kHttpVerbGET;
-
-    public override IEnumerable<KeyValuePair<string, object>> Headers {
-      get {
-        if (null != progressRef) {
-          return new Dictionary<string, object> {
-            [InternalHeaders.ProgressObject] = progressRef
-          };
-        }
-
-        return null;
-      }
-    }
   }
 }

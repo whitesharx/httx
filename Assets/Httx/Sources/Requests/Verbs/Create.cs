@@ -22,8 +22,8 @@ using System;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Verbs {
-  public class Put : Verb {
-    public Put(IRequest next, IProgress<float> progress = null) : base(next, progress) { }
-    public override string Verb => UnityWebRequest.kHttpVerbPUT;
+  public class Create : Verb {
+    public Create(IRequest next, IProgress<float> progress = null) : base(next, progress) { }
+    public override string Verb => UnityWebRequest.kHttpVerbCREATE;
   }
 }

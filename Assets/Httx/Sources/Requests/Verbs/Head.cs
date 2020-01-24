@@ -14,10 +14,7 @@ namespace Httx.Requests.Verbs {
   [Awaiter(typeof(UnityWebRequestAwaiter<>))]
   [Mapper(typeof(HeadersMapper))]
   public class Head : As<IEnumerable<KeyValuePair<string, string>>> {
-    public Head(string url) : base(null) {
-      Url = url;
-    }
-
+    public Head(string url) : base(null) { Url = url; }
     public override string Url { get; }
     public override string Verb => UnityWebRequest.kHttpVerbHEAD;
   }
