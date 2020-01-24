@@ -14,6 +14,7 @@ using UnityEngine.Networking;
 namespace Httx.Requests.Awaiters {
   public class UnityWebRequestAwaiter<TResult> : BaseUnityAwaiter<TResult> {
     private string requestId;
+    private bool isResponseCodeOnly;
 
     public UnityWebRequestAwaiter(IRequest request) : base(request) { }
 
@@ -39,6 +40,7 @@ namespace Httx.Requests.Awaiters {
         requestImpl.uploadHandler = new UploadHandlerRaw(body);
       }
 
+      isResponseCodeOnly = ResolveResponseCodeOnly(headers);
       var pRef = ResolveProgress(headers);
 
       if (null == pRef) {
@@ -61,19 +63,30 @@ namespace Httx.Requests.Awaiters {
       }
 
       var requestImpl = operation.webRequest;
-      var bytes = requestImpl.downloadHandler.data;
 
-      if (null == bytes || 0 == bytes.Length) {
-        // TODO: Put whole request
-        return request.ResolveResultMapper<TResult>().FromResult(requestImpl.GetResponseHeaders());
+      if (isResponseCodeOnly) {
+        var result = (int) requestImpl.responseCode;
+        return (TResult) (object)result;
       }
 
-      return request.ResolveResultMapper<TResult>().FromResult(bytes);
+      var bytes = requestImpl.downloadHandler.data;
+
+      if (null != bytes && 0 != bytes.Length) {
+        return request.ResolveResultMapper<TResult>().FromResult(bytes);
+      }
+
+      var headers = requestImpl.GetResponseHeaders();
+      return request.ResolveResultMapper<TResult>().FromResult(headers);
     }
 
     private static WeakReference<IProgress<float>> ResolveProgress(IEnumerable<KeyValuePair<string, object>> headers) {
       var pRef = headers.FirstOrDefault(h => h.Key == InternalHeaders.ProgressObject).Value;
       return pRef as WeakReference<IProgress<float>>;
+    }
+
+    private static bool ResolveResponseCodeOnly(IEnumerable<KeyValuePair<string, object>> headers) {
+      var value = headers.FirstOrDefault(h => h.Key == InternalHeaders.ResponseCodeOnly).Value;
+      return value as bool? ?? false;
     }
   }
 }

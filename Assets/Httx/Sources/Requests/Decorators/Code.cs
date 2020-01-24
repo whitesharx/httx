@@ -18,12 +18,17 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Httx.Requests.Attributes;
-using Httx.Requests.Mappers;
+using System.Collections.Generic;
+using Httx.Requests.Extensions;
 
 namespace Httx.Requests.Decorators {
-  [Mapper(typeof(ResponseCodeMapper))]
-  public class Code : BaseRequest { // IAwaitable<int>, X-Httx-ResponseCodeOnly
+  public class Code : BaseRequest {
     public Code(IRequest next) : base(next) { }
+
+    public override IEnumerable<KeyValuePair<string, object>> Headers =>
+      new Dictionary<string, object> {
+        ["Accept"] = "*/*",
+        [InternalHeaders.ResponseCodeOnly] = true
+      };
   }
 }

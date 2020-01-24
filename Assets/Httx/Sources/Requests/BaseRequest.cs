@@ -12,7 +12,7 @@ namespace Httx.Requests {
     }
 
     public IRequest Next { get; }
-    public virtual string Verb => Next?.Url;
+    public virtual string Verb => Next?.Verb;
     public virtual string Url => Next?.Url;
     public virtual IEnumerable<byte> Body => Next?.Body;
     public virtual IEnumerable<KeyValuePair<string, object>> Headers => Next?.Headers;

@@ -35,11 +35,15 @@ public class Reporter : IProgress<float> {
 
 public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   [UsedImplicitly]
-  private void Start() {
+  private async void Start() {
     var url = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
 
-    StartRequest1(url);
-    StartRequest2(url);
+    var result = await new As<string>(new Get(new Text("https://google.com")));
+
+    Debug.Log(result);
+
+    // StartRequest1(url);
+    // StartRequest2(url);
 
 
     // var r2 = await new Head("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");

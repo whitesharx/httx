@@ -34,6 +34,7 @@ namespace Httx.Requests.Extensions {
 
     public const string ProgressObject = Prefix + "Progress-Object";
     public const string FilePath = Prefix + "File-Path";
+    public const string ResponseCodeOnly = Prefix + "ResponseCodeOnly";
     public const string AssetBundleCrc = Prefix + "AssetBundle-Crc";
     public const string AssetBundleHash = Prefix + "AssetBundle-Hash";
     public const string AssetBundleVersion = Prefix + "AssetBundle-Verison";
@@ -65,7 +66,7 @@ namespace Httx.Requests.Extensions {
     public static IBodyMapper<TBody> ResolveBodyMapper<TBody>(this IRequest request) {
       var mapperType = LeftToRight(request)
         .Select(r => r.GetType().GetCustomAttribute<MapperAttribute>()?.MapperType)
-        .FirstOrDefault(t => null != t);
+        .LastOrDefault(t => null != t);
 
       if (null == mapperType) {
         throw new InvalidOperationException("[resolve body mapper]: mapper of not found");
