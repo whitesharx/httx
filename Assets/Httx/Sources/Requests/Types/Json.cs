@@ -12,10 +12,10 @@ using Httx.Requests.Mappers;
 namespace Httx.Requests.Types {
   [Awaiter(typeof(UnityWebRequestAwaiter<>))]
   [Mapper(typeof(Utf8JsonUtilityMapper<,>))]
-  public class Json<T> : BaseRequest {
-    public Json(string url, T body = default) : base(null) {
+  public class Json<TBody> : BaseRequest {
+    public Json(string url, TBody body = default) : base(null) {
       Url = url;
-      Body = Equals(body, default(T)) ? default : new Utf8JsonUtilityMapper<T>().AsBody(body);
+      Body = Equals(body, default(TBody)) ? default : new Utf8JsonUtilityMapper<TBody>().AsBody(body);
     }
 
     public override string Url { get; }

@@ -3,8 +3,26 @@
 // Proprietary and confidential.
 //
 
-namespace Httx.Requests.Types {
-  public class Texture {
+using System.Collections.Generic;
+using Httx.Requests.Attributes;
+using Httx.Requests.Awaiters;
+using Httx.Requests.Extensions;
 
+namespace Httx.Requests.Types {
+  [Awaiter(typeof(UnityWebRequestTextureAwaiter))]
+  public class Texture : BaseRequest {
+    private readonly bool readable;
+
+    public Texture(string url, bool isReadable = false) : base(null) {
+      Url = url;
+      readable = isReadable;
+    }
+
+    public override string Url { get; }
+
+    public override IEnumerable<KeyValuePair<string, object>> Headers =>
+      new Dictionary<string, object> {
+        [InternalHeaders.TextureReadable] = readable
+      };
   }
 }

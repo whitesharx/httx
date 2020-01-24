@@ -3,7 +3,6 @@
 // Proprietary and confidential.
 //
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
@@ -13,7 +12,6 @@ using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
   public class UnityWebRequestAwaiter<TResult> : BaseUnityAwaiter<TResult> {
-    private string requestId;
     private bool isResponseCodeOnly;
 
     public UnityWebRequestAwaiter(IRequest request) : base(request) { }
@@ -30,11 +28,7 @@ namespace Httx.Requests.Awaiters {
         downloadHandler = new DownloadHandlerBuffer()
       };
 
-      if (null != headers && 0 != headers.Count) {
-        foreach (var p in headers.Where(p => !p.IsInternalHeader())) {
-          requestImpl.SetRequestHeader(p.Key, p.Value?.ToString());
-        }
-      }
+      SetRequestHeaders(requestImpl, headers);
 
       if (null != body && 0 != body.Length) {
         requestImpl.uploadHandler = new UploadHandlerRaw(body);
@@ -47,20 +41,15 @@ namespace Httx.Requests.Awaiters {
         return requestImpl.SendWebRequest();
       }
 
-      requestId = Guid.NewGuid().ToString();
-
       var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, requestImpl);
-      UnityWebRequestReporter.AddReporterRef(requestId, wrapper);
+      UnityWebRequestReporter.AddReporterRef(RequestId, wrapper);
 
       return requestImpl.SendWebRequest();
     }
 
     public override TResult OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
       Debug.Log(operation.AsJson());
-
-      if (!string.IsNullOrEmpty(requestId)) {
-        UnityWebRequestReporter.RemoveReporterRef(requestId);
-      }
+      UnityWebRequestReporter.RemoveReporterRef(RequestId);
 
       var requestImpl = operation.webRequest;
 
@@ -79,13 +68,8 @@ namespace Httx.Requests.Awaiters {
       return request.ResolveResultMapper<TResult>().FromResult(headers);
     }
 
-    private static WeakReference<IProgress<float>> ResolveProgress(IEnumerable<KeyValuePair<string, object>> headers) {
-      var pRef = headers.FirstOrDefault(h => h.Key == InternalHeaders.ProgressObject).Value;
-      return pRef as WeakReference<IProgress<float>>;
-    }
-
     private static bool ResolveResponseCodeOnly(IEnumerable<KeyValuePair<string, object>> headers) {
-      var value = headers.FirstOrDefault(h => h.Key == InternalHeaders.ResponseCodeOnly).Value;
+      var value = headers?.FirstOrDefault(h => h.Key == InternalHeaders.ResponseCodeOnly).Value;
       return value as bool? ?? false;
     }
   }

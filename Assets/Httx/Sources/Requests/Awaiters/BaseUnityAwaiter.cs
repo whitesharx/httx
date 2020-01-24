@@ -19,6 +19,8 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Httx.Requests.Exceptions;
 using Httx.Requests.Extensions;
 using UnityEngine;
@@ -46,6 +48,7 @@ namespace Httx.Requests.Awaiters {
           return operation.isDone;
         }
 
+        RequestId = Guid.NewGuid().ToString();
         operation = Awake(inputRequest);
         isAwaken = true;
 
@@ -71,8 +74,26 @@ namespace Httx.Requests.Awaiters {
       try {
         return OnResult(inputRequest, operation);
       } finally {
+        operation.webRequest.Dispose();
         operation = null;
       }
+    }
+
+    protected string RequestId { get; private set; }
+
+    protected static void SetRequestHeaders(UnityWebRequest request, List<KeyValuePair<string, object>> headers) {
+      if (null == headers || 0 == headers.Count) {
+        return;
+      }
+
+      foreach (var p in headers.Where(p => !p.IsInternalHeader())) {
+        request.SetRequestHeader(p.Key, p.Value?.ToString());
+      }
+    }
+
+    protected static WeakReference<IProgress<float>> ResolveProgress(IEnumerable<KeyValuePair<string, object>> headers) {
+      var pRef = headers?.FirstOrDefault(h => h.Key == InternalHeaders.ProgressObject).Value;
+      return pRef as WeakReference<IProgress<float>>;
     }
 
     public abstract UnityWebRequestAsyncOperation Awake(IRequest request);

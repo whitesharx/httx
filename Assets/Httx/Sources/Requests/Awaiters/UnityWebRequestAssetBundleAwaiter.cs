@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
+using Httx.Utils;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -53,17 +54,23 @@ namespace Httx.Requests.Awaiters {
         downloadHandler = handler
       };
 
-      if (null != headers && 0 != headers.Count) {
-        foreach (var p in headers.Where(p => !p.IsInternalHeader())) {
-          requestImpl.SetRequestHeader(p.Key, p.Value?.ToString());
-        }
+      SetRequestHeaders(requestImpl, headers);
+
+      var pRef = ResolveProgress(headers);
+
+      if (null == pRef) {
+        return requestImpl.SendWebRequest();
       }
+
+      var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, requestImpl);
+      UnityWebRequestReporter.AddReporterRef(RequestId, wrapper);
 
       return requestImpl.SendWebRequest();
     }
 
     public override AssetBundle OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
       Debug.Log(operation.AsJson());
+      UnityWebRequestReporter.RemoveReporterRef(RequestId);
 
       var handler = (DownloadHandlerAssetBundle) operation.webRequest.downloadHandler;
       return handler.assetBundle;

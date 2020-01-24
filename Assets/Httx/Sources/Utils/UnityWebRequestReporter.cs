@@ -78,6 +78,10 @@ namespace Httx.Utils {
     }
 
     public static void RemoveReporterRef(string pRefId) {
+      if (!Reporters.ContainsKey(pRefId)) {
+        return;
+      }
+
       Reporters[pRefId] = null;
       Reporters.Remove(pRefId);
     }
@@ -87,7 +91,7 @@ namespace Httx.Utils {
         p.Value.ProgressRef.TryGetTarget(out var progress);
 
         var request = p.Value?.Request;
-        
+
         // XXX: Basically, it's not very good strategy. But just
         // for the sake of simplicity, let's try how this approach
         // will be valid for most use cases.

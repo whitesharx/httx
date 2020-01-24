@@ -18,13 +18,53 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System.Collections.Generic;
+using System.Linq;
+using Httx.Requests.Extensions;
+using Httx.Utils;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
   public class UnityWebRequestTextureAwaiter : BaseUnityAwaiter<Texture2D> {
     public UnityWebRequestTextureAwaiter(IRequest request) : base(request) { }
-    public override UnityWebRequestAsyncOperation Awake(IRequest request) => throw new System.NotImplementedException();
-    public override Texture2D OnResult(IRequest request, UnityWebRequestAsyncOperation operation) => throw new System.NotImplementedException();
+
+    public override UnityWebRequestAsyncOperation Awake(IRequest request) {
+      var verb = request.ResolveVerb();
+      var url = request.ResolveUrl();
+      var headers = request.ResolveHeaders()?.ToList();
+
+      Debug.Log(request.AsJson());
+
+      var requestImpl = new UnityWebRequest(url, verb) {
+        downloadHandler = new DownloadHandlerTexture(ResolveReadable(headers))
+      };
+
+      SetRequestHeaders(requestImpl, headers);
+
+      var pRef = ResolveProgress(headers);
+
+      if (null == pRef) {
+        return requestImpl.SendWebRequest();
+      }
+
+      var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, requestImpl);
+      UnityWebRequestReporter.AddReporterRef(RequestId, wrapper);
+
+      return requestImpl.SendWebRequest();
+    }
+
+    public override Texture2D OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
+      Debug.Log(operation.AsJson());
+      UnityWebRequestReporter.RemoveReporterRef(RequestId);
+
+      var handler = (DownloadHandlerTexture) operation.webRequest.downloadHandler;
+      return handler.texture;
+    }
+
+    private static bool ResolveReadable(IEnumerable<KeyValuePair<string, object>> headers) {
+      var value = headers?.FirstOrDefault(h => h.Key == InternalHeaders.TextureReadable).Value;
+      return value as bool? ?? false;
+    }
   }
 }

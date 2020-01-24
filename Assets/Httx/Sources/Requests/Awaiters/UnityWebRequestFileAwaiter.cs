@@ -18,8 +18,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Requests.Decorators {
-  public class Cache {
-    // TODO: Implement (Disk, Memory)
+namespace Httx.Requests.Awaiters {
+  public class UnityWebRequestFileAwaiter {
+
   }
 }

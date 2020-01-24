@@ -33,7 +33,10 @@ namespace Httx.Requests.Extensions {
     private const string Prefix = "X-Httx-";
 
     public const string ProgressObject = Prefix + "Progress-Object";
+    public const string TextureReadable = Prefix + "Texture-NonReadable";
     public const string FilePath = Prefix + "File-Path";
+    public const string FileAppend = Prefix + "File-Append";
+    public const string FileRemoveOnAbort = Prefix + "File-RemoveOnAbort";
     public const string ResponseCodeOnly = Prefix + "ResponseCodeOnly";
     public const string AssetBundleCrc = Prefix + "AssetBundle-Crc";
     public const string AssetBundleHash = Prefix + "AssetBundle-Hash";
