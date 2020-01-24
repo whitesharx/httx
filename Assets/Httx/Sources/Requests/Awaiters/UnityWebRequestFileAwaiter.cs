@@ -18,8 +18,64 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Requests.Awaiters {
-  public class UnityWebRequestFileAwaiter {
+using System.Collections.Generic;
+using System.Linq;
+using Httx.Requests.Extensions;
+using Httx.Utils;
+using UnityEngine.Networking;
 
+namespace Httx.Requests.Awaiters {
+  public class UnityWebRequestFileAwaiter : BaseUnityAwaiter<int> {
+    private string inputPath;
+
+    public UnityWebRequestFileAwaiter(IRequest request) : base(request) { }
+
+    public override UnityWebRequestAsyncOperation Awake(IRequest request) {
+      var verb = request.ResolveVerb();
+      var url = request.ResolveUrl();
+      var headers = request.ResolveHeaders()?.ToList();
+
+      var requestImpl = new UnityWebRequest(url, verb);
+
+
+
+
+
+
+
+      SetRequestHeaders(requestImpl, headers);
+
+      var pRef = ResolveProgress(headers);
+
+      if (null == pRef) {
+        return requestImpl.SendWebRequest();
+      }
+
+      var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, requestImpl);
+      UnityWebRequestReporter.AddReporterRef(RequestId, wrapper);
+
+      return requestImpl.SendWebRequest();
+    }
+
+    public override int OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
+      UnityWebRequestReporter.RemoveReporterRef(RequestId);
+
+      return (int) operation.webRequest.responseCode;
+    }
+
+    private static string ResolvePath(IEnumerable<KeyValuePair<string, object>> headers) {
+      var value = headers?.FirstOrDefault(h => h.Key == InternalHeaders.FilePath).Value;
+      return value as string;
+    }
+
+    private static bool ResolveAppend(IEnumerable<KeyValuePair<string, object>> headers) {
+      var value = headers?.FirstOrDefault(h => h.Key == InternalHeaders.FileAppend).Value;
+      return value as bool? ?? false;
+    }
+
+    private static bool ResolveRemoveOnAbort(IEnumerable<KeyValuePair<string, object>> headers) {
+      var value = headers?.FirstOrDefault(h => h.Key == InternalHeaders.FileRemoveOnAbort).Value;
+      return value as bool? ?? false;
+    }
   }
 }

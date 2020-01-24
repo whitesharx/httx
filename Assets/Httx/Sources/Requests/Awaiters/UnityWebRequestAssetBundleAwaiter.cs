@@ -34,8 +34,6 @@ namespace Httx.Requests.Awaiters {
       var url = request.ResolveUrl();
       var headers = request.ResolveHeaders()?.ToList();
 
-      Debug.Log(request.AsJson());
-
       var crc = ResolveCrc(headers);
       var version = ResolveVersion(headers);
       var hash = ResolveHash(headers);
@@ -56,6 +54,7 @@ namespace Httx.Requests.Awaiters {
 
       SetRequestHeaders(requestImpl, headers);
 
+      // TODO: Refactor
       var pRef = ResolveProgress(headers);
 
       if (null == pRef) {
@@ -69,7 +68,6 @@ namespace Httx.Requests.Awaiters {
     }
 
     public override AssetBundle OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
-      Debug.Log(operation.AsJson());
       UnityWebRequestReporter.RemoveReporterRef(RequestId);
 
       var handler = (DownloadHandlerAssetBundle) operation.webRequest.downloadHandler;

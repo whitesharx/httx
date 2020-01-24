@@ -34,8 +34,6 @@ namespace Httx.Requests.Awaiters {
       var url = request.ResolveUrl();
       var headers = request.ResolveHeaders()?.ToList();
 
-      Debug.Log(request.AsJson());
-
       var requestImpl = new UnityWebRequest(url, verb) {
         downloadHandler = new DownloadHandlerTexture(ResolveReadable(headers))
       };
@@ -55,7 +53,6 @@ namespace Httx.Requests.Awaiters {
     }
 
     public override Texture2D OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
-      Debug.Log(operation.AsJson());
       UnityWebRequestReporter.RemoveReporterRef(RequestId);
 
       var handler = (DownloadHandlerTexture) operation.webRequest.downloadHandler;

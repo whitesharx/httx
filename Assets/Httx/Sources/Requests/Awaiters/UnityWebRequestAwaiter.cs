@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
 using Httx.Utils;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
@@ -21,8 +20,6 @@ namespace Httx.Requests.Awaiters {
       var url = request.ResolveUrl();
       var headers = request.ResolveHeaders()?.ToList();
       var body = request.ResolveBody()?.ToArray();
-
-      Debug.Log(request.AsJson());
 
       var requestImpl = new UnityWebRequest(url, verb) {
         downloadHandler = new DownloadHandlerBuffer()
@@ -48,7 +45,6 @@ namespace Httx.Requests.Awaiters {
     }
 
     public override TResult OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
-      Debug.Log(operation.AsJson());
       UnityWebRequestReporter.RemoveReporterRef(RequestId);
 
       var requestImpl = operation.webRequest;

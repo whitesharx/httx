@@ -48,6 +48,8 @@ namespace Httx.Requests.Awaiters {
           return operation.isDone;
         }
 
+        Debug.Log(inputRequest.AsJson());
+
         RequestId = Guid.NewGuid().ToString();
         operation = Awake(inputRequest);
         isAwaken = true;
@@ -65,6 +67,7 @@ namespace Httx.Requests.Awaiters {
       }
 
       if (null == continuationAction) {
+        Debug.Log(operation.AsJson());
         return OnResult(inputRequest, operation);
       }
 
