@@ -21,7 +21,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
-using Httx.Utils;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -38,23 +37,10 @@ namespace Httx.Requests.Awaiters {
         downloadHandler = new DownloadHandlerTexture(ResolveReadable(headers))
       };
 
-      SetRequestHeaders(requestImpl, headers);
-
-      var pRef = ResolveProgress(headers);
-
-      if (null == pRef) {
-        return requestImpl.SendWebRequest();
-      }
-
-      var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, requestImpl);
-      UnityWebRequestReporter.AddReporterRef(RequestId, wrapper);
-
-      return requestImpl.SendWebRequest();
+      return SendWithProgress(requestImpl.AppendHeaders(headers), headers);
     }
 
     public override Texture2D OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
-      UnityWebRequestReporter.RemoveReporterRef(RequestId);
-
       var handler = (DownloadHandlerTexture) operation.webRequest.downloadHandler;
       return handler.texture;
     }

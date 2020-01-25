@@ -6,7 +6,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
-using Httx.Utils;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
@@ -25,28 +24,16 @@ namespace Httx.Requests.Awaiters {
         downloadHandler = new DownloadHandlerBuffer()
       };
 
-      SetRequestHeaders(requestImpl, headers);
-
       if (null != body && 0 != body.Length) {
         requestImpl.uploadHandler = new UploadHandlerRaw(body);
       }
 
       isResponseCodeOnly = ResolveResponseCodeOnly(headers);
-      var pRef = ResolveProgress(headers);
 
-      if (null == pRef) {
-        return requestImpl.SendWebRequest();
-      }
-
-      var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, requestImpl);
-      UnityWebRequestReporter.AddReporterRef(RequestId, wrapper);
-
-      return requestImpl.SendWebRequest();
+      return SendWithProgress(requestImpl.AppendHeaders(headers), headers);
     }
 
     public override TResult OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
-      UnityWebRequestReporter.RemoveReporterRef(RequestId);
-
       var requestImpl = operation.webRequest;
 
       if (isResponseCodeOnly) {

@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Exceptions;
 using Httx.Requests.Extensions;
+using Httx.Utils;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -75,6 +76,7 @@ namespace Httx.Requests.Awaiters {
       continuationAction = null;
 
       try {
+        UnityWebRequestReporter.RemoveReporterRef(RequestId);
         return OnResult(inputRequest, operation);
       } finally {
         operation.webRequest.Dispose();
@@ -84,14 +86,19 @@ namespace Httx.Requests.Awaiters {
 
     protected string RequestId { get; private set; }
 
-    protected static void SetRequestHeaders(UnityWebRequest request, List<KeyValuePair<string, object>> headers) {
-      if (null == headers || 0 == headers.Count) {
-        return;
+    protected UnityWebRequestAsyncOperation SendWithProgress(
+      UnityWebRequest request, IEnumerable<KeyValuePair<string, object>> internalHeaders) {
+
+      var pRef = ResolveProgress(internalHeaders);
+
+      if (null == pRef) {
+        return request.SendWebRequest();
       }
 
-      foreach (var p in headers.Where(p => !p.IsInternalHeader())) {
-        request.SetRequestHeader(p.Key, p.Value?.ToString());
-      }
+      var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, request);
+      UnityWebRequestReporter.AddReporterRef(RequestId, wrapper);
+
+      return request.SendWebRequest();
     }
 
     protected static WeakReference<IProgress<float>> ResolveProgress(IEnumerable<KeyValuePair<string, object>> headers) {

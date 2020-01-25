@@ -87,5 +87,17 @@ namespace Httx.Requests.Extensions {
 
       return Json.Serialize(jsonObject);
     }
+
+    public static UnityWebRequest AppendHeaders(this UnityWebRequest request, List<KeyValuePair<string, object>> headers) {
+      if (null == headers || 0 == headers.Count) {
+        return request;
+      }
+
+      foreach (var p in headers.Where(p => !p.IsInternalHeader())) {
+        request.SetRequestHeader(p.Key, p.Value?.ToString());
+      }
+
+      return request;
+    }
   }
 }

@@ -21,7 +21,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
-using Httx.Utils;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
@@ -37,29 +36,12 @@ namespace Httx.Requests.Awaiters {
 
       var requestImpl = new UnityWebRequest(url, verb);
 
+      // TODO: Implement
 
-
-
-
-
-
-      SetRequestHeaders(requestImpl, headers);
-
-      var pRef = ResolveProgress(headers);
-
-      if (null == pRef) {
-        return requestImpl.SendWebRequest();
-      }
-
-      var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, requestImpl);
-      UnityWebRequestReporter.AddReporterRef(RequestId, wrapper);
-
-      return requestImpl.SendWebRequest();
+      return SendWithProgress(requestImpl.AppendHeaders(headers), headers);
     }
 
     public override int OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
-      UnityWebRequestReporter.RemoveReporterRef(RequestId);
-
       return (int) operation.webRequest.responseCode;
     }
 
