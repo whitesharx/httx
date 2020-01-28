@@ -19,54 +19,45 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Decorators;
-using Httx.Requests.Mappers;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
-using Httx.Utils;
 using JetBrains.Annotations;
 using UnityEngine;
 
-public class Reporter : IProgress<float> {
-  public void Report(float value) => Debug.Log($"Reporter({value})");
-}
-
-public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
+class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   [UsedImplicitly]
   private async void Start() {
-    var url = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
 
-    var result = await new As<string>(new Get(new Text("https://google.com")));
-
-    Debug.Log(result);
-
-    // StartRequest1(url);
-    // StartRequest2(url);
-
+    //
+    // var result = await new As<string>(new Get(new Text("https://google.com")));
 
     // var r2 = await new Head("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
     // var r3 = await new Length("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
 
-
-
     // var result = await new As<string>(new Get(new Text("http://time.jsontest.com")));
     // Debug.Log($"Result: {result}");
 
-    // https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle
+    // var url = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
+    // var assetBundle = await new As<AssetBundle>(new Get(new Bundle(url), this));
+    // var manifest = assetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
+    //
+    // Debug.Log($"AssetBundle: {assetBundle} Manifest: {manifest}");
+
+
+    // var fileUrl = "file:///Users/selfsx/Downloads/iOS.manifest";
+    // var fileUrl = "file:///Users/selfsx/Downloads/scene_1.apple-bundle";
+    // var fileUrl = "file:///Users/selfsx/Downloads/iOS";
+    //
+    // var result = await new As<AssetBundle>(new Get(new Bundle(fileUrl)));
+    //
+    // result.GetAllAssetNames().ToList().ForEach(asset => {
+    //   Debug.Log($"Result: {asset}");
+    // });
+
 
   }
 
   public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");
-
-  private async void StartRequest1(string url) {
-    var r1 = await new As<byte[]>(new Get(new Bytes(url), this));
-    Debug.Log("r1-complete: " + r1.Length);
-  }
-
-  private async void StartRequest2(string url) {
-    var r2 = await new As<byte[]>(new Get(new Bytes(url), new Reporter()));
-    Debug.Log("r2-complete: " + r2.Length);
-  }
 }
