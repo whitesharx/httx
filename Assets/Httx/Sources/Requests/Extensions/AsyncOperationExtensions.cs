@@ -18,9 +18,17 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Cache {
-  public class DirectoryCache {
-    public DirectoryCache(string path) => Path = path;
-    public string Path { get; }
+using UnityEngine;
+using UnityEngine.Networking;
+
+namespace Httx.Requests.Extensions {
+  public static class AsyncOperationExtensions {
+    public static UnityWebRequest WebRequestUnsafe(this AsyncOperation operation) {
+      if (operation is UnityWebRequestAsyncOperation result) {
+        return result.webRequest;
+      }
+
+      return null;
+    }
   }
 }

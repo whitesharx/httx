@@ -18,9 +18,18 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Cache {
-  public class DirectoryCache {
-    public DirectoryCache(string path) => Path = path;
-    public string Path { get; }
+using System.Collections.Generic;
+using Httx.Requests.Attributes;
+using Httx.Requests.Awaiters;
+using Httx.Requests.Extensions;
+
+namespace Httx.Requests.Types {
+  // [Awaiter(typeof(UnityWebRequestAssetBundleAwaiter))]
+  public class Manifest : BaseRequest {
+    public Manifest(string url) : base(null) => Url = url;
+    public override string Url { get; }
+
+    public override IEnumerable<KeyValuePair<string, object>> Headers =>
+      new Dictionary<string, object> { [InternalHeaders.AssetBundleLoadManifest] = true };
   }
 }
