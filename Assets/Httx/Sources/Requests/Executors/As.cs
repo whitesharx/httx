@@ -18,20 +18,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Httx.Requests.Attributes;
 using Httx.Requests.Awaiters;
-using Httx.Requests.Mappers;
-using UnityEngine.Networking;
+using Httx.Requests.Extensions;
 
-namespace Httx.Requests.Decorators {
-  [Awaiter(typeof(UnityWebRequestAwaiter<>))]
-  [Mapper(typeof(ContentLengthMapper))]
-  public class Length : As<long> {
-    public Length(string url) : base(null) {
-      Url = url;
-    }
-
-    public override string Url { get; }
-    public override string Verb => UnityWebRequest.kHttpVerbHEAD;
+namespace Httx.Requests.Executors {
+  public class As<TResult> : BaseRequest, IAwaitable<TResult> {
+    public As(IRequest next) : base(next) { }
+    public IAwaiter<TResult> GetAwaiter() => this.ResolveAwaiter<TResult>();
   }
 }

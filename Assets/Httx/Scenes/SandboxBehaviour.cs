@@ -20,6 +20,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using Httx.Requests.Decorators;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
@@ -29,8 +30,6 @@ using UnityEngine;
 class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   [UsedImplicitly]
   private async void Start() {
-
-    //
     // var result = await new As<string>(new Get(new Text("https://google.com")));
 
     // var r2 = await new Head("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
@@ -45,7 +44,6 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     //
     // Debug.Log($"AssetBundle: {assetBundle} Manifest: {manifest}");
 
-
     // var fileUrl = "file:///Users/selfsx/Downloads/iOS.manifest";
     // var fileUrl = "file:///Users/selfsx/Downloads/scene_1.apple-bundle";
     // var fileUrl = "file:///Users/selfsx/Downloads/iOS";
@@ -56,7 +54,8 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     //   Debug.Log($"Result: {asset}");
     // });
 
-
+    var context = SynchronizationContext.Current;
+    Debug.Log(context.GetType());
   }
 
   public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");

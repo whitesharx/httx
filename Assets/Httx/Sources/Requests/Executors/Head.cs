@@ -10,7 +10,7 @@ using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
 using UnityEngine.Networking;
 
-namespace Httx.Requests.Verbs {
+namespace Httx.Requests.Executors {
   [Awaiter(typeof(UnityWebRequestAwaiter<>))]
   [Mapper(typeof(HeadersMapper))]
   public class Head : As<IEnumerable<KeyValuePair<string, string>>> {
