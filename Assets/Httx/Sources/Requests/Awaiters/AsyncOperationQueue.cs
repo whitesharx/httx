@@ -20,20 +20,37 @@
 
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Httx.Requests.Awaiters {
-  public class AsyncOperationSeq : IAsyncOperation {
-    private readonly Queue<Func<IAsyncOperation>> operationsQueue;
+  public class AsyncOperationQueue : IAsyncOperation {
+    private readonly Queue<Func<IAsyncOperation, IAsyncOperation>> operationsQueue;
+    private IAsyncOperation currentOperation;
 
-    public AsyncOperationSeq(params Func<IAsyncOperation>[] operations) {
-      operationsQueue = new Queue<Func<IAsyncOperation>>(operations);
+    public AsyncOperationQueue(params Func<IAsyncOperation, IAsyncOperation>[] operations) {
+      operationsQueue = new Queue<Func<IAsyncOperation, IAsyncOperation>>(operations);
+      ExecuteNext(null);
     }
 
-    public object Result { get; }
-    public bool Done { get; }
-    public float Progress { get; }
+    public object Result { get; private set; }
+
+    public bool Done { get; private set; }
+
+    public float Progress => currentOperation?.Progress ?? 1.0f;
 
     public event Action OnComplete;
+
+    private void ExecuteNext(IAsyncOperation previous) {
+      if (0 == operationsQueue.Count) {
+        Result = currentOperation.Result;
+        Done = true;
+        OnComplete?.Invoke();
+      }
+
+      var nextOperationFunc = operationsQueue.Dequeue();
+      var nextOperation = nextOperationFunc(previous);
+      nextOperation.OnComplete += () => ExecuteNext(currentOperation);
+
+      currentOperation = nextOperation;
+    }
   }
 }

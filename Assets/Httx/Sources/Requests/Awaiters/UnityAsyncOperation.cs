@@ -24,11 +24,10 @@ using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
   public class UnityAsyncOperation : IAsyncOperation {
-    private readonly AsyncOperation impl;
+    private readonly AsyncOperation operation;
 
-    // TODO: Func<AsyncOperation> ???
-    public UnityAsyncOperation(AsyncOperation operation) {
-      impl = operation;
+    public UnityAsyncOperation(Func<AsyncOperation> operationFunc) {
+      operation = operationFunc();
       operation.completed += o => OnComplete?.Invoke();
     }
 
@@ -36,11 +35,11 @@ namespace Httx.Requests.Awaiters {
 
     public object Result {
       get {
-        if (impl is UnityWebRequestAsyncOperation webRequestOp) {
+        if (operation is UnityWebRequestAsyncOperation webRequestOp) {
           return webRequestOp.webRequest;
         }
 
-        if (impl is AssetBundleRequest bundleRequestOp) {
+        if (operation is AssetBundleRequest bundleRequestOp) {
           return bundleRequestOp.asset;
         }
 
@@ -48,7 +47,7 @@ namespace Httx.Requests.Awaiters {
       }
     }
 
-    public bool Done => impl.isDone;
-    public float Progress => impl.progress;
+    public bool Done => operation.isDone;
+    public float Progress => operation.progress;
   }
 }
