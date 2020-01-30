@@ -20,12 +20,15 @@
 
 using System;
 using System.Linq;
+using System.Net;
 using System.Threading;
+using Httx.Requests.Awaiters;
 using Httx.Requests.Decorators;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Networking;
 
 class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   [UsedImplicitly]
@@ -54,8 +57,22 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     //   Debug.Log($"Result: {asset}");
     // });
 
-    var context = SynchronizationContext.Current;
-    Debug.Log(context.GetType());
+    var fileUrl = "file:///Users/selfsx/Downloads/iOS";
+
+    var op1 = new Func<IAsyncOperation, IAsyncOperation>(previousOrNull =>
+      new UnityAsyncOperation(() => UnityWebRequestAssetBundle.GetAssetBundle(fileUrl).SendWebRequest()));
+
+    var op2 = new Func<IAsyncOperation, IAsyncOperation>(previousOrNull => {
+      var request = previousOrNull.Result as UnityWebRequest;
+      var assetBundle = ((DownloadHandlerAssetBundle) request.downloadHandler).assetBundle;
+      return new UnityAsyncOperation(() => assetBundle.LoadAllAssetsAsync());
+    });
+
+    var opQueue = new AsyncOperationQueue(op1, op2);
+    opQueue.OnComplete += () => {
+      Debug.Log($"OpQueueResult: {opQueue.Result}");
+    };
+
   }
 
   public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");

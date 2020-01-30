@@ -44,6 +44,8 @@ namespace Httx.Requests.Awaiters {
         Result = currentOperation.Result;
         Done = true;
         OnComplete?.Invoke();
+
+        return;
       }
 
       var nextOperationFunc = operationsQueue.Dequeue();
