@@ -18,7 +18,6 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
 using UnityEngine.Networking;
@@ -34,6 +33,11 @@ namespace Httx.Requests.Awaiters {
       var url = request.ResolveUrl();
       var headers = request.ResolveHeaders()?.ToList();
 
+
+      var path = headers.FetchHeader<string>(InternalHeaders.FilePath);
+      var isAppend = headers.FetchHeader<bool>(InternalHeaders.FileAppend);
+      var isRemoveOnAbort = headers.FetchHeader<bool>(InternalHeaders.FileRemoveOnAbort);
+
       var requestImpl = new UnityWebRequest(url, verb);
 
       // TODO: Implement
@@ -44,21 +48,6 @@ namespace Httx.Requests.Awaiters {
     public override int Map(IRequest request, IAsyncOperation operation) {
       var webRequest = (UnityWebRequest) operation.Result;
       return (int) webRequest.responseCode;
-    }
-
-    private static string ResolvePath(IEnumerable<KeyValuePair<string, object>> headers) {
-      var value = headers?.FirstOrDefault(h => h.Key == InternalHeaders.FilePath).Value;
-      return value as string;
-    }
-
-    private static bool ResolveAppend(IEnumerable<KeyValuePair<string, object>> headers) {
-      var value = headers?.FirstOrDefault(h => h.Key == InternalHeaders.FileAppend).Value;
-      return value as bool? ?? false;
-    }
-
-    private static bool ResolveRemoveOnAbort(IEnumerable<KeyValuePair<string, object>> headers) {
-      var value = headers?.FirstOrDefault(h => h.Key == InternalHeaders.FileRemoveOnAbort).Value;
-      return value as bool? ?? false;
     }
   }
 }

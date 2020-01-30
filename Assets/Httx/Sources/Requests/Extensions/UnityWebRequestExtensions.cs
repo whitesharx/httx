@@ -39,13 +39,13 @@ namespace Httx.Requests.Extensions {
       return new HttpException(code, msg, headers, body);
     }
 
-    public static string AsJson(this UnityWebRequestAsyncOperation operation, int bodySize = 256) {
+    public static string AsJson(this UnityWebRequest request, int bodySize = 256) {
       var jsonObject = new Dictionary<string, object>();
 
-      var code = operation.webRequest.responseCode;
-      var error = operation.webRequest.error;
-      var headers = operation.webRequest.GetResponseHeaders();
-      var handler = operation.webRequest.downloadHandler;
+      var code = request.responseCode;
+      var error = request.error;
+      var headers = request.GetResponseHeaders();
+      var handler = request.downloadHandler;
 
       if (0 != code) {
         jsonObject["code"] = code;

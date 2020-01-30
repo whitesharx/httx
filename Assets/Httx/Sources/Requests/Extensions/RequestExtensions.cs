@@ -130,6 +130,11 @@ namespace Httx.Requests.Extensions {
       return (IAwaiter<TResult>) awakeConstructor?.Invoke(new object[] { request });
     }
 
+    public static T FetchHeader<T>(this IEnumerable<KeyValuePair<string, object>> headers, string key, T defaultValue = default) {
+      var value = headers?.FirstOrDefault(h => h.Key == key).Value;
+      return default != value ? (T) value : defaultValue;
+    }
+
     public static string AsJson(this IRequest request, int bodySize = 256) {
       var jsonObject = new Dictionary<string, object>();
 

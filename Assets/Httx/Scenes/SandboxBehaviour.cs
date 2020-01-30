@@ -24,6 +24,7 @@ using System.Net;
 using System.Threading;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Decorators;
+using Httx.Requests.Executors;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
 using JetBrains.Annotations;
@@ -38,8 +39,8 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     // var r2 = await new Head("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
     // var r3 = await new Length("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
 
-    // var result = await new As<string>(new Get(new Text("http://time.jsontest.com")));
-    // Debug.Log($"Result: {result}");
+    var result = await new As<string>(new Get(new Text("http://time.jsontest.com")));
+    Debug.Log($"Result: {result}");
 
     // var url = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
     // var assetBundle = await new As<AssetBundle>(new Get(new Bundle(url), this));

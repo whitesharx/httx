@@ -3,7 +3,6 @@
 // Proprietary and confidential.
 //
 
-using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
 using UnityEngine.Networking;
@@ -28,7 +27,7 @@ namespace Httx.Requests.Awaiters {
         requestImpl.uploadHandler = new UploadHandlerRaw(body);
       }
 
-      isResponseCodeOnly = ResolveResponseCodeOnly(headers);
+      isResponseCodeOnly = headers.FetchHeader<bool>(InternalHeaders.ResponseCodeOnly);
 
       return new UnityAsyncOperation(() => Send(requestImpl, headers));
     }
@@ -49,11 +48,6 @@ namespace Httx.Requests.Awaiters {
 
       var headers = requestImpl.GetResponseHeaders();
       return request.ResolveResultMapper<TResult>().FromResult(headers);
-    }
-
-    private static bool ResolveResponseCodeOnly(IEnumerable<KeyValuePair<string, object>> headers) {
-      var value = headers?.FirstOrDefault(h => h.Key == InternalHeaders.ResponseCodeOnly).Value;
-      return value as bool? ?? false;
     }
   }
 }

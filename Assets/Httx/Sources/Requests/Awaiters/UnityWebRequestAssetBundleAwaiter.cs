@@ -18,7 +18,6 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
 using UnityEngine;
@@ -33,9 +32,9 @@ namespace Httx.Requests.Awaiters {
       var url = request.ResolveUrl();
       var headers = request.ResolveHeaders()?.ToList();
 
-      var crc = ResolveCrc(headers);
-      var version = ResolveVersion(headers);
-      var hash = ResolveHash(headers);
+      var crc = headers.FetchHeader<uint>(InternalHeaders.AssetBundleCrc);
+      var version = headers.FetchHeader<uint>(InternalHeaders.AssetBundleVersion);
+      var hash = headers.FetchHeader<Hash128>(InternalHeaders.AssetBundleHash);
 
       var handler = new DownloadHandlerAssetBundle(url, crc);
 
@@ -59,21 +58,6 @@ namespace Httx.Requests.Awaiters {
       var handler = (DownloadHandlerAssetBundle) webRequest.downloadHandler;
 
       return handler.assetBundle;
-    }
-
-    private static uint ResolveCrc(IEnumerable<KeyValuePair<string, object>> headers) {
-      var crc = headers?.FirstOrDefault(h => h.Key == InternalHeaders.AssetBundleCrc).Value;
-      return (uint?) crc ?? 0;
-    }
-
-    private static uint ResolveVersion(IEnumerable<KeyValuePair<string, object>> headers) {
-      var version = headers?.FirstOrDefault(h => h.Key == InternalHeaders.AssetBundleVersion).Value;
-      return (uint?) version ?? 0;
-    }
-
-    private static Hash128 ResolveHash(IEnumerable<KeyValuePair<string, object>> headers) {
-      var hash = headers?.FirstOrDefault(h => h.Key == InternalHeaders.AssetBundleHash).Value;
-      return (Hash128?) hash ?? default;
     }
   }
 }

@@ -18,7 +18,6 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections.Generic;
 using System.Linq;
 using Httx.Requests.Extensions;
 using UnityEngine;
@@ -32,9 +31,10 @@ namespace Httx.Requests.Awaiters {
       var verb = request.ResolveVerb();
       var url = request.ResolveUrl();
       var headers = request.ResolveHeaders()?.ToList();
+      var isReadable = headers.FetchHeader<bool>(InternalHeaders.TextureReadable);
 
       var requestImpl = new UnityWebRequest(url, verb) {
-        downloadHandler = new DownloadHandlerTexture(ResolveReadable(headers))
+        downloadHandler = new DownloadHandlerTexture(isReadable)
       };
 
       return new UnityAsyncOperation(() => Send(requestImpl, headers));
@@ -45,11 +45,6 @@ namespace Httx.Requests.Awaiters {
       var handler = (DownloadHandlerTexture) webRequest.downloadHandler;
 
       return handler.texture;
-    }
-
-    private static bool ResolveReadable(IEnumerable<KeyValuePair<string, object>> headers) {
-      var value = headers?.FirstOrDefault(h => h.Key == InternalHeaders.TextureReadable).Value;
-      return value as bool? ?? false;
     }
   }
 }

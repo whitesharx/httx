@@ -61,15 +61,19 @@ namespace Httx.Requests.Awaiters {
     }
 
     public TResult GetResult() {
-      // var e = operation.webRequest.AsException();
-      //
-      // if (null != e) {
-      //   Debug.Log(e.AsJson());
-      //   throw e;
-      // }
+      var requestOpt = operation.Result as UnityWebRequest;
+      var e = requestOpt?.AsException();
+
+      if (null != e) {
+        Debug.Log(e.AsJson());
+        throw e;
+      }
 
       if (null == continuationAction) {
-        // Debug.Log(operation.AsJson());
+        if (null != requestOpt) {
+          Debug.Log(requestOpt.AsJson());
+        }
+
         return Map(inputRequest, operation);
       }
 
@@ -80,7 +84,7 @@ namespace Httx.Requests.Awaiters {
         UnityWebRequestReporter.RemoveReporterRef(requestId);
         return Map(inputRequest, operation);
       } finally {
-        // operation.webRequest.Dispose();
+        requestOpt?.Dispose();
         operation = null;
       }
     }
@@ -88,7 +92,9 @@ namespace Httx.Requests.Awaiters {
     public abstract IAsyncOperation Awake(IRequest request);
     public abstract TResult Map(IRequest request, IAsyncOperation operation);
 
-    protected UnityWebRequestAsyncOperation Send(UnityWebRequest request, IEnumerable<KeyValuePair<string, object>> headers) {
+    protected UnityWebRequestAsyncOperation Send(UnityWebRequest request,
+      IEnumerable<KeyValuePair<string, object>> headers) {
+
       var hx = headers?.ToList() ?? new List<KeyValuePair<string, object>>();
       var pRef = ResolveProgress(hx);
 
