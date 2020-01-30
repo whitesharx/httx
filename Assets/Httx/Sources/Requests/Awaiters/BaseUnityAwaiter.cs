@@ -30,83 +30,81 @@ using UnityEngine.Networking;
 namespace Httx.Requests.Awaiters {
   public abstract class BaseUnityAwaiter<TResult> : IAwaiter<TResult> {
     private readonly IRequest inputRequest;
-    private UnityWebRequestAsyncOperation operation;
-    private Action<AsyncOperation> continuationAction;
+    private IAsyncOperation operation;
+    private Action continuationAction;
     private bool isAwaken;
+    private string requestId;
 
     public BaseUnityAwaiter(IRequest request) {
       inputRequest = request;
     }
 
     public void OnCompleted(Action continuation) {
-      continuationAction = asyncOperation => continuation();
-      operation.completed += continuationAction;
+      continuationAction = continuation;
+      operation.OnComplete += continuationAction;
     }
 
     public bool IsCompleted {
       get {
         if (isAwaken) {
-          return operation.isDone;
+          return operation.Done;
         }
 
         Debug.Log(inputRequest.AsJson());
 
-        RequestId = Guid.NewGuid().ToString();
+        requestId = Guid.NewGuid().ToString();
         operation = Awake(inputRequest);
         isAwaken = true;
 
-        return operation.isDone;
+        return operation.Done;
       }
     }
 
     public TResult GetResult() {
-      var e = operation.webRequest.AsException();
-
-      if (null != e) {
-        Debug.Log(e.AsJson());
-        throw e;
-      }
+      // var e = operation.webRequest.AsException();
+      //
+      // if (null != e) {
+      //   Debug.Log(e.AsJson());
+      //   throw e;
+      // }
 
       if (null == continuationAction) {
-        Debug.Log(operation.AsJson());
-        return OnResult(inputRequest, operation);
+        // Debug.Log(operation.AsJson());
+        return Map(inputRequest, operation);
       }
 
-      operation.completed -= continuationAction;
+      operation.OnComplete -= continuationAction;
       continuationAction = null;
 
       try {
-        UnityWebRequestReporter.RemoveReporterRef(RequestId);
-        return OnResult(inputRequest, operation);
+        UnityWebRequestReporter.RemoveReporterRef(requestId);
+        return Map(inputRequest, operation);
       } finally {
-        operation.webRequest.Dispose();
+        // operation.webRequest.Dispose();
         operation = null;
       }
     }
 
-    protected string RequestId { get; private set; }
+    public abstract IAsyncOperation Awake(IRequest request);
+    public abstract TResult Map(IRequest request, IAsyncOperation operation);
 
-    protected UnityWebRequestAsyncOperation SendWithProgress(
-      UnityWebRequest request, IEnumerable<KeyValuePair<string, object>> internalHeaders) {
-
-      var pRef = ResolveProgress(internalHeaders);
+    protected UnityWebRequestAsyncOperation Send(UnityWebRequest request, IEnumerable<KeyValuePair<string, object>> headers) {
+      var hx = headers?.ToList() ?? new List<KeyValuePair<string, object>>();
+      var pRef = ResolveProgress(hx);
 
       if (null == pRef) {
-        return request.SendWebRequest();
+        return request.AppendHeaders(hx).SendWebRequest();
       }
 
       var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, request);
-      UnityWebRequestReporter.AddReporterRef(RequestId, wrapper);
+      UnityWebRequestReporter.AddReporterRef(requestId, wrapper);
 
       return request.SendWebRequest();
     }
 
-    protected static WeakReference<IProgress<float>> ResolveProgress(IEnumerable<KeyValuePair<string, object>> headers) {
+    private static WeakReference<IProgress<float>> ResolveProgress(IEnumerable<KeyValuePair<string, object>> headers) {
       var pRef = headers?.FirstOrDefault(h => h.Key == InternalHeaders.ProgressObject).Value;
       return pRef as WeakReference<IProgress<float>>;
     }
-
-    public abstract UnityWebRequestAsyncOperation Awake(IRequest request);
-    public abstract TResult OnResult(IRequest request, UnityWebRequestAsyncOperation operation);
   }
 }

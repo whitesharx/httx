@@ -29,7 +29,7 @@ namespace Httx.Requests.Awaiters {
 
     public UnityWebRequestFileAwaiter(IRequest request) : base(request) { }
 
-    public override UnityWebRequestAsyncOperation Awake(IRequest request) {
+    public override IAsyncOperation Awake(IRequest request) {
       var verb = request.ResolveVerb();
       var url = request.ResolveUrl();
       var headers = request.ResolveHeaders()?.ToList();
@@ -38,11 +38,12 @@ namespace Httx.Requests.Awaiters {
 
       // TODO: Implement
 
-      return SendWithProgress(requestImpl.AppendHeaders(headers), headers);
+      return new UnityAsyncOperation(() => Send(requestImpl, headers));
     }
 
-    public override int OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
-      return (int) operation.webRequest.responseCode;
+    public override int Map(IRequest request, IAsyncOperation operation) {
+      var webRequest = (UnityWebRequest) operation.Result;
+      return (int) webRequest.responseCode;
     }
 
     private static string ResolvePath(IEnumerable<KeyValuePair<string, object>> headers) {

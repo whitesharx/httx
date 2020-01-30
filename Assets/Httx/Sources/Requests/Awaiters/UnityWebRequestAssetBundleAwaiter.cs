@@ -28,7 +28,7 @@ namespace Httx.Requests.Awaiters {
   public class UnityWebRequestAssetBundleAwaiter : BaseUnityAwaiter<AssetBundle> {
     public UnityWebRequestAssetBundleAwaiter(IRequest request) : base(request) { }
 
-    public override UnityWebRequestAsyncOperation Awake(IRequest request) {
+    public override IAsyncOperation Awake(IRequest request) {
       var verb = request.ResolveVerb();
       var url = request.ResolveUrl();
       var headers = request.ResolveHeaders()?.ToList();
@@ -51,11 +51,13 @@ namespace Httx.Requests.Awaiters {
         downloadHandler = handler
       };
 
-      return SendWithProgress(requestImpl.AppendHeaders(headers), headers);
+      return new UnityAsyncOperation(() => Send(requestImpl, headers));
     }
 
-    public override AssetBundle OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
-      var handler = (DownloadHandlerAssetBundle) operation.webRequest.downloadHandler;
+    public override AssetBundle Map(IRequest request, IAsyncOperation operation) {
+      var webRequest = (UnityWebRequest) operation.Result;
+      var handler = (DownloadHandlerAssetBundle) webRequest.downloadHandler;
+
       return handler.assetBundle;
     }
 

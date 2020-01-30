@@ -14,7 +14,7 @@ namespace Httx.Requests.Awaiters {
 
     public UnityWebRequestAwaiter(IRequest request) : base(request) { }
 
-    public override UnityWebRequestAsyncOperation Awake(IRequest request) {
+    public override IAsyncOperation Awake(IRequest request) {
       var verb = request.ResolveVerb();
       var url = request.ResolveUrl();
       var headers = request.ResolveHeaders()?.ToList();
@@ -30,11 +30,11 @@ namespace Httx.Requests.Awaiters {
 
       isResponseCodeOnly = ResolveResponseCodeOnly(headers);
 
-      return SendWithProgress(requestImpl.AppendHeaders(headers), headers);
+      return new UnityAsyncOperation(() => Send(requestImpl, headers));
     }
 
-    public override TResult OnResult(IRequest request, UnityWebRequestAsyncOperation operation) {
-      var requestImpl = operation.webRequest;
+    public override TResult Map(IRequest request, IAsyncOperation operation) {
+      var requestImpl = (UnityWebRequest) operation.Result;
 
       if (isResponseCodeOnly) {
         var result = (int) requestImpl.responseCode;

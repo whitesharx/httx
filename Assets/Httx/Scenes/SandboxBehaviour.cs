@@ -57,21 +57,21 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     //   Debug.Log($"Result: {asset}");
     // });
 
-    var fileUrl = "file:///Users/selfsx/Downloads/iOS";
-
-    var op1 = new Func<IAsyncOperation, IAsyncOperation>(previousOrNull =>
-      new UnityAsyncOperation(() => UnityWebRequestAssetBundle.GetAssetBundle(fileUrl).SendWebRequest()));
-
-    var op2 = new Func<IAsyncOperation, IAsyncOperation>(previousOrNull => {
-      var request = previousOrNull.Result as UnityWebRequest;
-      var assetBundle = ((DownloadHandlerAssetBundle) request.downloadHandler).assetBundle;
-      return new UnityAsyncOperation(() => assetBundle.LoadAllAssetsAsync());
-    });
-
-    var opQueue = new AsyncOperationQueue(op1, op2);
-    opQueue.OnComplete += () => {
-      Debug.Log($"OpQueueResult: {opQueue.Result}");
-    };
+    // var fileUrl = "file:///Users/selfsx/Downloads/iOS";
+    //
+    // var op1 = new Func<IAsyncOperation, IAsyncOperation>(previousOrNull =>
+    //   new UnityAsyncOperation(() => UnityWebRequestAssetBundle.GetAssetBundle(fileUrl).SendWebRequest()));
+    //
+    // var op2 = new Func<IAsyncOperation, IAsyncOperation>(previousOrNull => {
+    //   var request = previousOrNull.Result as UnityWebRequest;
+    //   var assetBundle = ((DownloadHandlerAssetBundle) request.downloadHandler).assetBundle;
+    //   return new UnityAsyncOperation(() => assetBundle.LoadAllAssetsAsync());
+    // });
+    //
+    // var opQueue = new AsyncOperationQueue(op1, op2);
+    // opQueue.OnComplete += () => {
+    //   Debug.Log($"OpQueueResult: {opQueue.Result}");
+    // };
 
   }
 
