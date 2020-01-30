@@ -39,8 +39,8 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     // var r2 = await new Head("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
     // var r3 = await new Length("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
 
-    var result = await new As<string>(new Get(new Text("http://time.jsontest.com")));
-    Debug.Log($"Result: {result}");
+    var jsonTextResult = await new As<string>(new Get(new Text("http://time.jsontest.com")));
+    Debug.Log($"JsonResult: {jsonTextResult}");
 
     // var url = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
     // var assetBundle = await new As<AssetBundle>(new Get(new Bundle(url), this));
@@ -58,22 +58,16 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     //   Debug.Log($"Result: {asset}");
     // });
 
-    // var fileUrl = "file:///Users/selfsx/Downloads/iOS";
-    //
-    // var op1 = new Func<IAsyncOperation, IAsyncOperation>(previousOrNull =>
-    //   new UnityAsyncOperation(() => UnityWebRequestAssetBundle.GetAssetBundle(fileUrl).SendWebRequest()));
-    //
-    // var op2 = new Func<IAsyncOperation, IAsyncOperation>(previousOrNull => {
-    //   var request = previousOrNull.Result as UnityWebRequest;
-    //   var assetBundle = ((DownloadHandlerAssetBundle) request.downloadHandler).assetBundle;
-    //   return new UnityAsyncOperation(() => assetBundle.LoadAllAssetsAsync());
-    // });
-    //
-    // var opQueue = new AsyncOperationQueue(op1, op2);
-    // opQueue.OnComplete += () => {
-    //   Debug.Log($"OpQueueResult: {opQueue.Result}");
-    // };
 
+    var fileUrl = "file:///Users/selfsx/Downloads/iOS";
+
+    var bundleResult = await new As<AssetBundle>(new Get(new Bundle(fileUrl)));
+    Debug.Log($"BundleResult: {bundleResult}");
+
+    bundleResult.Unload(true);
+
+    var manifestResult = await new As<AssetBundleManifest>(new Get(new Manifest(fileUrl)));
+    Debug.Log($"ManifestResult: {manifestResult}");
   }
 
   public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");

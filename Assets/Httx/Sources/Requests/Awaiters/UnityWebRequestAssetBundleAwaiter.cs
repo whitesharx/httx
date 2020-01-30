@@ -18,13 +18,16 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.Linq;
 using Httx.Requests.Extensions;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
-  public class UnityWebRequestAssetBundleAwaiter : BaseUnityAwaiter<AssetBundle> {
+  public class UnityWebRequestAssetBundleAwaiter<TResult> : BaseUnityAwaiter<TResult> {
+    private const string ManifestAsset = "assetbundlemanifest";
+
     public UnityWebRequestAssetBundleAwaiter(IRequest request) : base(request) { }
 
     public override IAsyncOperation Awake(IRequest request) {
@@ -50,14 +53,44 @@ namespace Httx.Requests.Awaiters {
         downloadHandler = handler
       };
 
-      return new UnityAsyncOperation(() => Send(requestImpl, headers));
+      var isManifestRequest = headers.FetchHeader<bool>(InternalHeaders.AssetBundleLoadManifest);
+      var requestOperation = new Func<IAsyncOperation, IAsyncOperation>(_ =>
+        new UnityAsyncOperation(() => Send(requestImpl, headers)));
+
+      if (!isManifestRequest) {
+        return requestOperation(null);
+      }
+
+      var manifestOperation = new Func<IAsyncOperation, IAsyncOperation>(previous => {
+        var bundle = MapAssetBundle(previous);
+        return new UnityAsyncOperation(() =>
+          bundle.LoadAssetAsync<AssetBundleManifest>(ManifestAsset));
+      });
+
+      return new AsyncOperationQueue(requestOperation, manifestOperation);
     }
 
-    public override AssetBundle Map(IRequest request, IAsyncOperation operation) {
+    public override TResult Map(IRequest request, IAsyncOperation operation) {
+      if (typeof(TResult) == typeof(AssetBundle)) {
+        return (TResult) (object) MapAssetBundle(operation);
+      }
+
+      if (typeof(TResult) == typeof(AssetBundleManifest)) {
+        return (TResult) (object) MapAssetBundleManifest(operation);
+      }
+
+      return default;
+    }
+
+    private AssetBundle MapAssetBundle(IAsyncOperation operation) {
       var webRequest = (UnityWebRequest) operation.Result;
       var handler = (DownloadHandlerAssetBundle) webRequest.downloadHandler;
 
       return handler.assetBundle;
+    }
+
+    private AssetBundleManifest MapAssetBundleManifest(IAsyncOperation operation) {
+      return operation.Result as AssetBundleManifest;
     }
   }
 }

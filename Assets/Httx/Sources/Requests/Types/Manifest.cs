@@ -24,7 +24,7 @@ using Httx.Requests.Awaiters;
 using Httx.Requests.Extensions;
 
 namespace Httx.Requests.Types {
-  // [Awaiter(typeof(UnityWebRequestAssetBundleAwaiter))]
+  [Awaiter(typeof(UnityWebRequestAssetBundleAwaiter<>))]
   public class Manifest : BaseRequest {
     public Manifest(string url) : base(null) => Url = url;
     public override string Url { get; }

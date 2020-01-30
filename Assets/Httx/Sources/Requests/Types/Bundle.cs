@@ -25,7 +25,7 @@ using Httx.Requests.Extensions;
 using UnityEngine;
 
 namespace Httx.Requests.Types {
-  [Awaiter(typeof(UnityWebRequestAssetBundleAwaiter))]
+  [Awaiter(typeof(UnityWebRequestAssetBundleAwaiter<>))]
   public class Bundle : BaseRequest {
     private readonly uint crc;
     private readonly uint version;
