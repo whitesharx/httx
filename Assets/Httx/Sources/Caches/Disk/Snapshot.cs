@@ -18,9 +18,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Caches {
-  public class DirectoryCache {
-    public DirectoryCache(string path) => Path = path;
-    public string Path { get; }
+namespace Httx.Caches.Disk {
+  public class Snapshot {
+
   }
 }
