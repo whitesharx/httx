@@ -51,7 +51,7 @@ namespace Httx.Caches {
     private Dictionary<string, LinkedListNode<Item<T>>> cacheImpl =
       new Dictionary<string, LinkedListNode<Item<T>>>();
 
-    private LinkedList<Item<T>> lruImpl =
+    private LinkedList<Item<T>> lruPolicy =
       new LinkedList<Item<T>>();
 
     public MemoryCache(int size, int defaultTtl = int.MaxValue, int collectFrequency = 0) {
@@ -74,7 +74,7 @@ namespace Httx.Caches {
         var itemTtl = 0 != collectFrequency ? ttl : int.MaxValue;
         var node = new LinkedListNode<Item<T>>(new Item<T>(key, value, itemTtl));
 
-        lruImpl.AddLast(node);
+        lruPolicy.AddLast(node);
         cacheImpl[key] = node;
       }
     }
@@ -89,8 +89,8 @@ namespace Httx.Caches {
           var item = node.Value;
 
           if (!item.Expired) {
-            lruImpl.Remove(node);
-            lruImpl.AddLast(node);
+            lruPolicy.Remove(node);
+            lruPolicy.AddLast(node);
 
             return item.Value;
           }
@@ -109,7 +109,7 @@ namespace Httx.Caches {
         var collectedCacheImpl = new Dictionary<string, LinkedListNode<Item<T>>>();
         var collectedLruImpl = new LinkedList<Item<T>>();
 
-        foreach (var lruItem in lruImpl.Where(lruItem => !lruItem.Expired)) {
+        foreach (var lruItem in lruPolicy.Where(lruItem => !lruItem.Expired)) {
           collectedLruImpl.AddLast(lruItem);
         }
 
@@ -118,7 +118,7 @@ namespace Httx.Caches {
         }
 
         cacheImpl = collectedCacheImpl;
-        lruImpl = collectedLruImpl;
+        lruPolicy = collectedLruImpl;
 
         collectAfter = collectFrequency;
       }
@@ -127,9 +127,9 @@ namespace Httx.Caches {
     }
 
     private void RemoveFirst() {
-      var firstNode = lruImpl.First;
+      var firstNode = lruPolicy.First;
 
-      lruImpl.RemoveFirst();
+      lruPolicy.RemoveFirst();
       cacheImpl.Remove(firstNode.Value.Key);
     }
   }
