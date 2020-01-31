@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Httx.Utils;
 
-namespace Httx.Cache {
+namespace Httx.Caches {
   internal class Item<T> {
     public Item(string key, T value, int ttl, long createdAt) {
       Key = key;

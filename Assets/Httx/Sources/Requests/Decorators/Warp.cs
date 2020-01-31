@@ -18,8 +18,18 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Cache {
-  public interface ICache<T> {
-    long Size { get; }
+using System.Collections.Generic;
+using Httx.Requests.Extensions;
+
+namespace Httx.Requests.Decorators {
+  public class Warp : BaseRequest {
+    private readonly Context contextOverride;
+
+    public Warp(IRequest next, Context context) : base(next) {
+      contextOverride = context;
+    }
+
+    public override IEnumerable<KeyValuePair<string, object>> Headers =>
+      new Dictionary<string, object> { [InternalHeaders.ContextOverride] = contextOverride };
   }
 }

@@ -32,6 +32,7 @@ namespace Httx.Requests.Extensions {
   public static class InternalHeaders {
     private const string Prefix = "X-Httx-";
 
+    public const string ContextOverride = Prefix + "Context-Override";
     public const string ProgressObject = Prefix + "Progress-Object";
     public const string TextureReadable = Prefix + "Texture-NonReadable";
     public const string FilePath = Prefix + "File-Path";

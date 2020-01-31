@@ -96,7 +96,7 @@ namespace Httx.Requests.Awaiters {
       IEnumerable<KeyValuePair<string, object>> headers) {
 
       var hx = headers?.ToList() ?? new List<KeyValuePair<string, object>>();
-      var pRef = ResolveProgress(hx);
+      var pRef = hx.FetchHeader<WeakReference<IProgress<float>>>(InternalHeaders.ProgressObject);
 
       if (null == pRef) {
         return request.AppendHeaders(hx).SendWebRequest();
@@ -106,11 +106,6 @@ namespace Httx.Requests.Awaiters {
       UnityWebRequestReporter.AddReporterRef(requestId, wrapper);
 
       return request.SendWebRequest();
-    }
-
-    private static WeakReference<IProgress<float>> ResolveProgress(IEnumerable<KeyValuePair<string, object>> headers) {
-      var pRef = headers?.FirstOrDefault(h => h.Key == InternalHeaders.ProgressObject).Value;
-      return pRef as WeakReference<IProgress<float>>;
     }
   }
 }
