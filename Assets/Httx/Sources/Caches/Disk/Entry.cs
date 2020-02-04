@@ -80,5 +80,8 @@ namespace Httx.Caches.Disk {
 
     /** The ongoing edit or null if this entry is not being edited. */
     public Editor CurrentEditor { get; set; }
+
+    public string Key => key;
+    public bool Readable => readable;
   }
 }

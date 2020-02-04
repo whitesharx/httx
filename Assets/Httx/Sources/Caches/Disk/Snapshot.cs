@@ -18,8 +18,62 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Httx.Caches.Disk {
-  public class Snapshot {
+using System;
+using System.IO;
 
+namespace Httx.Caches.Disk {
+  /// <summary>
+  /// A snapshot of the values for an entry.
+  /// </summary>
+  public class Snapshot : IDisposable {
+    private readonly string key;
+    private readonly long sequenceNumber;
+    private readonly Stream[] ins;
+    private readonly long[] lengths;
+
+    public Snapshot(string key, long sequenceNumber, Stream[] ins, long[] lengths) {
+      this.key = key;
+      this.sequenceNumber = sequenceNumber;
+      this.ins = ins;
+      this.lengths = lengths;
+    }
+
+    /// <summary>
+    /// Returns an editor for this snapshot's entry, or null if either the
+    /// entry has changed since this snapshot was created or if another edit
+    /// is in progress.
+    /// </summary>
+    public Editor Edit() {
+      // return DiskLruCache.this.edit(key, sequenceNumber);
+      return null;
+    }
+
+    /// <summary>
+    /// Returns the unbuffered stream with the value for index.
+    /// </summary>
+    public Stream GetInputStream(int index) {
+      return ins[index];
+    }
+
+    /// <summary>
+    /// Returns the string value for index
+    /// </summary>
+    public string GetString(int index) {
+      return new StreamReader(GetInputStream(index)).ReadToEnd();
+    }
+
+    /// <summary>
+    /// Returns the byte length of the value for index
+    /// </summary>
+    public long GetLength(int index) {
+      return lengths[index];
+    }
+
+    public void Dispose() {
+      foreach (var s in ins) {
+        // Util.closeQuietly(in);
+        s.Dispose();
+      }
+    }
   }
 }

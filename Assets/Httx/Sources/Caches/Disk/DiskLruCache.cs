@@ -18,6 +18,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System.IO;
+using System.Runtime.CompilerServices;
+
 namespace Httx.Caches.Disk {
   /// <summary>
   /// Port of Disk LRU Cache from Android (c) Project
@@ -26,6 +29,25 @@ namespace Httx.Caches.Disk {
   /// <seealso cref="http://bit.ly/2S5O2px"/>
   /// </summary>
   public class DiskLruCache {
+  
 
+
+
+
+
+
+
+    public int ValueCount { get; }
+    public DirectoryInfo Directory { get; }
+
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public bool Remove(string key) {
+      return true;
+    }
+
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void CompleteEdit(Editor editor, bool success) {
+
+    }
   }
 }
