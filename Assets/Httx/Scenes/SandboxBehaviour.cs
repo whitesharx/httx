@@ -22,6 +22,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using Httx.Caches.Collections;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
@@ -39,8 +40,8 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     // var r2 = await new Head("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
     // var r3 = await new Length("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
 
-    var jsonTextResult = await new As<string>(new Get(new Text("http://time.jsontest.com")));
-    Debug.Log($"JsonResult: {jsonTextResult}");
+    // var jsonTextResult = await new As<string>(new Get(new Text("http://time.jsontest.com")));
+    // Debug.Log($"JsonResult: {jsonTextResult}");
 
     // var url = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
     // var assetBundle = await new As<AssetBundle>(new Get(new Bundle(url), this));
@@ -59,15 +60,15 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     // });
 
 
-    var fileUrl = "file:///Users/selfsx/Downloads/iOS";
-
-    var bundleResult = await new As<AssetBundle>(new Get(new Bundle(fileUrl)));
-    Debug.Log($"BundleResult: {bundleResult}");
-
-    bundleResult.Unload(true);
-
-    var manifestResult = await new As<AssetBundleManifest>(new Get(new Manifest(fileUrl)));
-    Debug.Log($"ManifestResult: {manifestResult}");
+    // var fileUrl = "file:///Users/selfsx/Downloads/iOS";
+    //
+    // var bundleResult = await new As<AssetBundle>(new Get(new Bundle(fileUrl)));
+    // Debug.Log($"BundleResult: {bundleResult}");
+    //
+    // bundleResult.Unload(true);
+    //
+    // var manifestResult = await new As<AssetBundleManifest>(new Get(new Manifest(fileUrl)));
+    // Debug.Log($"ManifestResult: {manifestResult}");
   }
 
   public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");

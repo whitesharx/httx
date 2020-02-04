@@ -18,8 +18,67 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
+using System.IO;
+using System.Text;
+
 namespace Httx.Caches.Disk {
   public class Entry {
+    private readonly string key;
 
+    /** Lengths of this entry's files. */
+    private readonly long[] lengths;
+
+    /** True if this entry has ever been published. */
+    private bool readable;
+
+    /** The sequence number of the most recently committed edit to this entry. */
+    private long sequenceNumber;
+
+    private readonly int valueCount;
+    private readonly DirectoryInfo directory;
+
+    public Entry(string key, DirectoryInfo directory, int valueCount) {
+      this.key = key;
+      this.directory = directory;
+      this.valueCount = valueCount;
+
+      lengths = new long[valueCount];
+    }
+
+    public string GetLengths() {
+      var result = new StringBuilder();
+
+      foreach (var size in lengths) {
+        result.Append(' ').Append(size);
+      }
+
+      return result.ToString();
+    }
+
+    public void SetLengths(string[] strings) {
+      if (strings.Length != valueCount) {
+        throw new IOException($"unexpected journal line: [{string.Join(", ", strings)}]");
+      }
+
+      try {
+        for (var i = 0; i < strings.Length; i++) {
+          lengths[i] = long.Parse(strings[i]);
+        }
+      } catch (FormatException) {
+        throw new IOException($"unexpected journal line: [{string.Join(", ", strings)}]");
+      }
+    }
+
+    public FileInfo GetCleanFile(int i) {
+      return new FileInfo(Path.Combine(directory.FullName, $"{key}.{i}"));
+    }
+
+    public FileInfo GetDirtyFile(int i) {
+      return new FileInfo(Path.Combine(directory.FullName, $"{key}.tmp.{i}"));
+    }
+
+    /** The ongoing edit or null if this entry is not being edited. */
+    public Editor CurrentEditor { get; set; }
   }
 }
