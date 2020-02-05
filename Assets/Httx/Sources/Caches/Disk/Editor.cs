@@ -162,5 +162,6 @@ namespace Httx.Caches.Disk {
     // TODO: FaultHidingOutputStream
 
     public Entry Entry => entry;
+    public bool[] Written => written;
   }
 }

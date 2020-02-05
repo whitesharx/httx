@@ -368,32 +368,151 @@ namespace Httx.Caches.Disk {
       // time, every index must have a value.
       if (success && !entry.Readable) {
         for (var i = 0; i < ValueCount; i++) {
-          // if (!editor.wri)
+          if (!editor.Written[i]) {
+            editor.Abort();
+            throw new InvalidOperationException($"newly created entry didn't create value for index {i}");
+          }
+
+          if (!entry.GetDirtyFile(i).Exists) {
+            editor.Abort();
+            return;
+          }
         }
       }
 
+      for (var i = 0; i < ValueCount; i++) {
+        var dirty = entry.GetDirtyFile(i);
 
+        if (success) {
+          if (dirty.Exists) {
+            var clean = entry.GetCleanFile(i);
+            File.Move(dirty.FullName, clean.FullName);
+
+            var oldLength = entry.Lengths[i];
+            var newLength = clean.Length;
+
+            entry.Lengths[i] = newLength;
+            size = size - oldLength + newLength;
+          }
+        } else {
+          DeleteIfExists(dirty);
+        }
+      }
+
+      redundantOpCount++;
+      entry.CurrentEditor = null;
+
+      // Original: if (entry.readable | success)
+      if (entry.Readable || success) {
+        entry.Readable = true;
+        // Original: journalWriter.write(CLEAN + ' ' + entry.key + entry.getLengths() + '\n');
+        journalWriter.WriteLine($"{CleanFlag} {entry.Key} {entry.GetLengths()}");
+
+        if (success) {
+          entry.SequenceNumber = nextSequenceNumber++;
+        }
+      } else {
+        lruEntries.Remove(entry.Key);
+        journalWriter.WriteLine($"{RemoveFlag} {entry.Key}");
+      }
+
+      journalWriter.Flush();
+
+      if (size > maxSize || JournalRebuildRequired()) {
+        // TODO: executorService.submit(cleanupCallable);
+      }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
+    /// <summary>
+    /// Drops the entry for key if it exists and can be removed. Entries
+    /// actively being edited cannot be removed. Returns true if an entry was removed.
+    /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
     public bool Remove(string key) {
+      CheckNotClosed();
+      ValidateKey(key);
+
+      lruEntries.TryGetValue(key, out var entry);
+
+      if (null == entry || null != entry.CurrentEditor) {
+        return false;
+      }
+
+      for (var i = 0; i < ValueCount; i++) {
+        var file = entry.GetCleanFile(i);
+
+        if (file.Exists) {
+          try {
+            file.Delete();
+          } catch (Exception) {
+            throw new IOException($"failed to delete {file}");
+          }
+        }
+
+        size -= entry.Lengths[i];
+        entry.Lengths[i] = 0;
+      }
+
+      redundantOpCount++;
+      journalWriter.WriteLine($"{RemoveFlag} {key}");
+      lruEntries.Remove(key);
+
+      if (JournalRebuildRequired()) {
+        // TODO: executorService.submit(cleanupCallable);
+      }
+
       return true;
     }
 
+    /// <summary>
+    /// Force buffered operations to the filesystem.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void Flush() {
+      CheckNotClosed();
+      TrimToSize();
+      journalWriter.Flush();
+    }
 
+    /// <summary>
+    /// Closes this cache. Stored values will remain on the filesystem.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void Close() {
+      if (null == journalWriter) {
+        return; // Already closed.
+      }
 
+      var entries = lruEntries.Values.ToList();
+
+      foreach (var entry in entries) {
+        entry.CurrentEditor?.Abort();
+      }
+
+      TrimToSize();
+
+      journalWriter.Close();
+      journalWriter = null;
+    }
+
+    /// <summary>
+    /// Closes the cache and deletes all of its stored values. This will delete
+    /// all files in the cache directory including files that weren't created by
+    /// the cache.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void Delete() {
+      Close();
+      Directory.Delete(true);
+    }
+
+    /// <summary>
+    /// Returns true if this cache has been closed.
+    /// </summary>
+    public bool Closed {
+      [MethodImpl(MethodImplOptions.Synchronized)]
+      get => null != journalWriter;
+    }
 
     public int ValueCount { get; }
 
@@ -455,6 +574,12 @@ namespace Httx.Caches.Disk {
 
       return redundantOpCount >= redundantOpCompactThreshold
         && redundantOpCount >= lruEntries.Count;
+    }
+
+    private void TrimToSize() {
+      while (size > maxSize) {
+        Remove(lruEntries.First().Key);
+      }
     }
 
     private static void DeleteIfExists(FileInfo file) {
