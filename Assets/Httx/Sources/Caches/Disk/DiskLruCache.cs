@@ -249,7 +249,7 @@ namespace Httx.Caches.Disk {
           if (null != entry.CurrentEditor) {
             writer.WriteLine($"{DirtyFlag} {entry.Key}");
           } else {
-            writer.WriteLine($"{CleanFlag} {entry.Key} {entry.GetLengths()}");
+            writer.WriteLine($"{CleanFlag} {entry.Key}{entry.GetLengths()}");
           }
         }
       }
@@ -405,8 +405,7 @@ namespace Httx.Caches.Disk {
       // Original: if (entry.readable | success)
       if (entry.Readable || success) {
         entry.Readable = true;
-        // Original: journalWriter.write(CLEAN + ' ' + entry.key + entry.getLengths() + '\n');
-        journalWriter.WriteLine($"{CleanFlag} {entry.Key} {entry.GetLengths()}");
+        journalWriter.WriteLine($"{CleanFlag} {entry.Key}{entry.GetLengths()}");
 
         if (success) {
           entry.SequenceNumber = nextSequenceNumber++;
