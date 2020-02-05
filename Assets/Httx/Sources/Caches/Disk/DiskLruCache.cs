@@ -18,9 +18,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using Httx.Caches.Collections;
 
 namespace Httx.Caches.Disk {
   /// <summary>
@@ -53,6 +56,9 @@ namespace Httx.Caches.Disk {
     private long size;
     private StreamWriter journalWriter;
     private int redundantOpCount;
+
+    private readonly LinkedDictionary<string, Entry> lruEntries =
+      new LinkedDictionary<string, Entry>();
 
     /// <summary>
     /// To differentiate between old and current snapshots, each entry is given
@@ -131,10 +137,186 @@ namespace Httx.Caches.Disk {
         }
 
         var lineCount = 0;
-        
 
+        while (true) {
+          try {
+            ReadJournalLine(reader.ReadLine());
+            lineCount++;
+          } catch (Exception endOfJournal) {
+            break;
+          }
+        }
 
+        redundantOpCount = lineCount - lruEntries.Count;
+
+        // XXX: Original, reader.hasUnterminatedLine()
+        // If we ended on a truncated line, rebuild the journal before appending to it.
+
+        journalWriter = new StreamWriter(journalFile.OpenWrite());
       }
+    }
+
+    private void ReadJournalLine(string line) {
+      var firstSpace = line.IndexOf(' ');
+
+      if (firstSpace == -1) {
+        throw new IOException($"unexpected journal line: {line}");
+      }
+
+      var keyBegin = firstSpace + 1;
+      var secondSpace = line.IndexOf(' ', keyBegin);
+
+      string key;
+
+      if (secondSpace == -1) {
+        key = line.Substring(keyBegin);
+
+        if (firstSpace == RemoveFlag.Length && line.StartsWith(RemoveFlag)) {
+          lruEntries.Remove(key);
+          return;
+        }
+      } else {
+        key = line.Substring(keyBegin, secondSpace);
+      }
+
+      lruEntries.TryGetValue(key, out var entry);
+
+      if (null == entry) {
+        entry = new Entry(key, Directory, ValueCount);
+        lruEntries[key] = entry;
+      }
+
+      if (secondSpace != -1 && firstSpace == CleanFlag.Length && line.StartsWith(CleanFlag)) {
+        var parts = line.Substring(secondSpace + 1).Split(' ');
+
+        entry.Readable = true;
+        entry.CurrentEditor = null;
+        entry.SetLengths(parts);
+      } else if (secondSpace != -1 && firstSpace == DirtyFlag.Length && line.StartsWith(DirtyFlag)) {
+        entry.CurrentEditor = new Editor(entry, this);
+      } else if (secondSpace != -1 && firstSpace == ReadFlag.Length && line.StartsWith(ReadFlag)) {
+        // This work was already done by calling lruEntries.get().
+      } else {
+        throw new IOException($"unexpected journal line: {line}");
+      }
+    }
+
+    /// <summary>
+    /// Computes the initial size and collects garbage as a part of opening the
+    /// cache. Dirty entries are assumed to be inconsistent and will be deleted.
+    /// </summary>
+    private void ProcessJournal() {
+      DeleteIfExists(journalFileTmp);
+
+      var entries = lruEntries.Values.ToList();
+
+      foreach (var entry in entries) {
+        if (null == entry.CurrentEditor) {
+          for (var i = 0; i < ValueCount; i++) {
+            size += entry.Lengths[i];
+          }
+        } else {
+          entry.CurrentEditor = null;
+
+          for (var i = 0; i < ValueCount; i++) {
+            DeleteIfExists(entry.GetCleanFile(i));
+            DeleteIfExists(entry.GetDirtyFile(i));
+          }
+
+          // XXX: i.remove();
+          lruEntries.Remove(entry.Key);
+        }
+      }
+    }
+
+    /// <summary>
+    /// Creates a new journal that omits redundant information. This replaces the
+    /// current journal if it exists.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    private void RebuildJournal() {
+      journalWriter?.Close();
+
+      using (var writer = new StreamWriter(journalFileTmp.OpenWrite())) {
+        writer.WriteLine(Magic);
+        writer.WriteLine(Version1);
+        writer.WriteLine(appVersion.ToString());
+        writer.WriteLine(ValueCount.ToString());
+        writer.WriteLine();
+        writer.WriteLine();
+
+        foreach (var entry in lruEntries.Values) {
+          if (null != entry.CurrentEditor) {
+            writer.WriteLine($"{DirtyFlag} {entry.Key}");
+          } else {
+            writer.WriteLine($"{CleanFlag} {entry.Key} {entry.GetLengths()}");
+          }
+        }
+      }
+
+      if (journalFile.Exists) {
+        RenameTo(journalFile, journalFileBackup, true);
+      }
+
+      RenameTo(journalFileTmp, journalFile, false);
+      journalFileBackup.Delete();
+
+      journalWriter = new StreamWriter(journalFile.OpenWrite());
+    }
+
+
+    /// <summary>
+    /// Returns a snapshot of the entry named {@code key}, or null if it doesn't
+    /// exist is not currently readable. If a value is returned, it is moved to
+    /// the head of the LRU queue.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public Snapshot Get(string key) {
+      CheckNotClosed();
+      ValidateKey(key);
+
+      lruEntries.TryGetValue(key, out var entry);
+
+      if (null == entry) {
+        return null;
+      }
+
+      if (!entry.Readable) {
+        return null;
+      }
+
+      // Open all streams eagerly to guarantee that we see a single published
+      // snapshot. If we opened streams lazily then the streams could come
+      // from different edits.
+      var ins = new Stream[ValueCount];
+
+      try {
+        for (var i = 0; i < ValueCount; i++) {
+          ins[i] = entry.GetCleanFile(i).OpenRead();
+        }
+      } catch (Exception e) when (e is DirectoryNotFoundException || e is UnauthorizedAccessException) {
+        // A file must have been deleted manually!
+
+        for (var i = 0; i < ValueCount; i++) {
+          if (null != ins[i]) {
+            ins[i].Close();
+          } else {
+            break;
+          }
+        }
+
+        return null;
+      }
+
+      redundantOpCount++;
+      journalWriter.WriteLine($"{ReadFlag} {key}");
+
+      if (JournalRebuildRequired()) {
+        // TODO: CleanUp
+        // executorService.submit(cleanupCallable);
+      }
+
+      return new Snapshot(key, entry.SequenceNumber, ins, entry.Lengths);
     }
 
 
@@ -146,8 +328,15 @@ namespace Httx.Caches.Disk {
 
 
 
-    public int ValueCount { get; }
-    public DirectoryInfo Directory { get; }
+
+
+
+
+
+
+
+
+
 
     [MethodImpl(MethodImplOptions.Synchronized)]
     public bool Remove(string key) {
@@ -158,5 +347,51 @@ namespace Httx.Caches.Disk {
     public void CompleteEdit(Editor editor, bool success) {
 
     }
+
+
+    public int ValueCount { get; }
+    public DirectoryInfo Directory { get; }
+
+    private void CheckNotClosed() {
+      if (null == journalWriter) {
+        throw new InvalidOperationException("cache is closed");
+      }
+    }
+
+    private void ValidateKey(string key) {
+      var match = LegalKeyPattern.Match(key);
+
+      if (!match.Success) {
+        throw new InvalidOperationException($"keys must match regex {StringKeyPattern}: {key}");
+      }
+    }
+
+    /// <summary>
+    /// We only rebuild the journal when it will halve the size of the journal
+    /// and eliminate at least 2000 ops.
+    /// </summary>
+    private bool JournalRebuildRequired() {
+      const int redundantOpCompactThreshold = 2000;
+
+      return redundantOpCount >= redundantOpCompactThreshold
+        && redundantOpCount >= lruEntries.Count;
+    }
+
+    private static void DeleteIfExists(FileInfo file) {
+      if (file.Exists) {
+        file.Delete();
+      }
+    }
+
+    private static void RenameTo(FileInfo from, FileInfo to, bool deleteDestination) {
+      if (deleteDestination) {
+        DeleteIfExists(to);
+      }
+
+      File.Move(from.FullName, to.FullName);
+    }
+
+
+
   }
 }

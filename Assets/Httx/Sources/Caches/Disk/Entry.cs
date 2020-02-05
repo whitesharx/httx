@@ -29,9 +29,6 @@ namespace Httx.Caches.Disk {
     /** Lengths of this entry's files. */
     private readonly long[] lengths;
 
-    /** True if this entry has ever been published. */
-    private bool readable;
-
     /** The sequence number of the most recently committed edit to this entry. */
     private long sequenceNumber;
 
@@ -82,6 +79,12 @@ namespace Httx.Caches.Disk {
     public Editor CurrentEditor { get; set; }
 
     public string Key => key;
-    public bool Readable => readable;
+
+    public long[] Lengths => lengths;
+
+    /** True if this entry has ever been published. */
+    public bool Readable { get; set; }
+
+    public long SequenceNumber => sequenceNumber;
   }
 }
