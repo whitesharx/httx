@@ -321,10 +321,59 @@ namespace Httx.Caches.Disk {
 
 
 
+    /// <summary>
+    /// Returns an editor for the entry named {@code key}, or null if another
+    /// edit is in progress.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public Editor Edit(string key, long expectedSequenceNumber = AnySequenceNumber) {
+      CheckNotClosed();
+      ValidateKey(key);
+
+      lruEntries.TryGetValue(key, out var entry);
+
+      if (expectedSequenceNumber != AnySequenceNumber
+        && (null == entry || entry.SequenceNumber != expectedSequenceNumber)) {
+        return null; // Snapshot is stale.
+      }
+
+      if (null == entry) {
+        entry = new Entry(key, Directory, ValueCount);
+        lruEntries[key] = entry;
+      } else if (null != entry.CurrentEditor) {
+        return null; // Another edit is in progress.
+      }
+
+      var editor = new Editor(entry, this);
+      entry.CurrentEditor = editor;
+
+      // Flush the journal before creating files to prevent file leaks.
+      journalWriter.WriteLine($"{DirtyFlag} {key}");
+      journalWriter.Flush();
+
+      return editor;
+    }
 
 
+    // TODO: Private???
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public void CompleteEdit(Editor editor, bool success) {
+      var entry = editor.Entry;
+
+      if (entry.CurrentEditor != editor) {
+        throw new InvalidOperationException();
+      }
+
+      // If this edit is creating the entry for the first
+      // time, every index must have a value.
+      if (success && !entry.Readable) {
+        for (var i = 0; i < ValueCount; i++) {
+          // if (!editor.wri)
+        }
+      }
 
 
+    }
 
 
 
@@ -343,14 +392,45 @@ namespace Httx.Caches.Disk {
       return true;
     }
 
-    [MethodImpl(MethodImplOptions.Synchronized)]
-    public void CompleteEdit(Editor editor, bool success) {
 
-    }
 
 
     public int ValueCount { get; }
+
+    /// <summary>
+    /// Returns the directory where this cache stores its data.
+    /// </summary>
     public DirectoryInfo Directory { get; }
+
+    /// <summary>
+    /// Changes the maximum number of bytes the cache can store and queues a job
+    /// to trim the existing store, if necessary.
+    ///
+    /// Returns the maximum number of bytes that this cache should use to store
+    /// its data.
+    /// </summary>
+    public long MaxSize {
+      [MethodImpl(MethodImplOptions.Synchronized)]
+      set {
+        maxSize = value;
+
+        // TODO: Clean Up?
+        // Original: executorService.submit(cleanupCallable);
+      }
+
+      [MethodImpl(MethodImplOptions.Synchronized)]
+      get => maxSize;
+    }
+
+    /// <summary>
+    /// Returns the number of bytes currently being used to store the values in
+    /// this cache. This may be greater than the max size if a background
+    /// deletion is pending.
+    /// </summary>
+    public long Size {
+      [MethodImpl(MethodImplOptions.Synchronized)]
+      get => size;
+    }
 
     private void CheckNotClosed() {
       if (null == journalWriter) {
