@@ -33,12 +33,12 @@ namespace Httx.Caches.Disk {
   /// <seealso cref="http://bit.ly/2S5O2px"/>
   /// </summary>
   public class DiskLruCache {
-    private const string JournalFile = "journal";
-    private const string JournalFileTemp = "journal.tmp";
-    private const string JournalFileBackup = "journal.bkp";
-    private const string Magic = "libcore.io.DiskLruCache";
-    private const string Version1 = "1";
-    private const long AnySequenceNumber = -1;
+    public const string JournalFile = "journal";
+    public const string JournalFileTemp = "journal.tmp";
+    public const string JournalFileBackup = "journal.bkp";
+    public const string Magic = "libcore.io.DiskLruCache";
+    public const string Version1 = "1";
+    public const long AnySequenceNumber = -1;
 
     private const string StringKeyPattern = "[a-z0-9_-]{1,120}";
     private readonly Regex LegalKeyPattern = new Regex(StringKeyPattern);
@@ -98,7 +98,7 @@ namespace Httx.Caches.Disk {
         if (journalFile.Exists) {
           backupFile.Delete();
         } else {
-          // TODO: renameTo(backupFile, journalFile, false);
+          RenameTo(backupFile, journalFile, false);
         }
       }
 
@@ -106,16 +106,20 @@ namespace Httx.Caches.Disk {
 
       if (cache.journalFile.Exists) {
         try {
+          cache.ReadJournal();
+          cache.ProcessJournal();
 
+          return cache;
         } catch (IOException journalIsCorrupt) {
-          // TODO: cache.Delete();
+          Console.WriteLine($"{directory} is corrupt, removing: {journalIsCorrupt.Message}");
+          cache.Delete();
         }
       }
 
       // Create a new empty cache.
       System.IO.Directory.CreateDirectory(directory.FullName);
       cache = new DiskLruCache(directory, appVersion, valueCount, maxSize);
-      // TODO: cache.RebuildJournal();
+      cache.RebuildJournal();
 
       return cache;
     }
@@ -242,7 +246,6 @@ namespace Httx.Caches.Disk {
         writer.WriteLine(Version1);
         writer.WriteLine(appVersion.ToString());
         writer.WriteLine(ValueCount.ToString());
-        writer.WriteLine();
         writer.WriteLine();
 
         foreach (var entry in lruEntries.Values) {
@@ -594,8 +597,5 @@ namespace Httx.Caches.Disk {
 
       File.Move(from.FullName, to.FullName);
     }
-
-
-
   }
 }

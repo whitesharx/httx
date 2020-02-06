@@ -18,7 +18,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Httx.Caches.Disk;
 using NUnit.Framework;
 using UnityEngine;
@@ -31,12 +33,20 @@ namespace Httx.Tests {
     private DirectoryInfo directory;
     private DiskLruCache cache;
 
+    private FileInfo journalFile;
+    private FileInfo journalBackupFile;
+
     [SetUp]
     public void SetUp() {
       var cacheDirectory = Path.Combine(Application.dataPath, "../", CacheDirectory);
       var cachePath = Path.GetFullPath(cacheDirectory);
 
-      Debug.Log($"Set Up: {cachePath}");
+      journalFile = new FileInfo(Path.Combine(cachePath, DiskLruCache.JournalFile));
+      journalBackupFile = new FileInfo(Path.Combine(cachePath, DiskLruCache.JournalFileBackup));
+
+      if (Directory.Exists(cachePath)) {
+        Directory.Delete(cachePath, true);
+      }
 
       directory = new DirectoryInfo(cachePath);
       cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
@@ -48,13 +58,50 @@ namespace Httx.Tests {
     }
 
     [Test]
-    public void TestSuccess() {
-      Assert.IsTrue(true, "Test has passed. Woohooo.");
+    public void EmptyCache() {
+      cache.Close();
+      AssertJournalEquals();
     }
 
     [Test]
-    public void TestFailure() {
-      Assert.IsTrue(false, "Test has NOT passed.");
+    public void WriteAndReadEntry() {
+      var editor = cache.Edit("k1");
+      editor.Set(0, "ABC");
+      editor.Set(1, "DE");
+
+      Assert.That(editor.GetString(0), Is.Null);
+      Assert.That(editor.NewInputStream(0), Is.Null);
+      Assert.That(editor.GetString(1), Is.Null);
+      Assert.That(editor.NewInputStream(1), Is.Null);
+
+      editor.Commit();
+
+      var snapshot = cache.Get("k1");
+
+      Assert.That(snapshot.GetString(0), Is.EqualTo("ABC"));
+      Assert.That(snapshot.GetLength(0), Is.EqualTo(3));
+      Assert.That(snapshot.GetString(1), Is.EqualTo("DE"));
+      Assert.That(snapshot.GetLength(1), Is.EqualTo(2));
+    }
+
+    private void AssertJournalEquals(params string[] expectedBodyLines) {
+      var lines = new List<string> {
+        DiskLruCache.Magic,
+        DiskLruCache.Version1,
+        "100",
+        "2",
+        string.Empty
+      };
+
+      if (null != expectedBodyLines && 0 != expectedBodyLines.Length) {
+        lines.AddRange(expectedBodyLines);
+      }
+
+      Assert.That(ReadJournalLines(), Is.EqualTo(lines));
+    }
+
+    private List<string> ReadJournalLines() {
+      return File.ReadLines(journalFile.FullName).ToList();
     }
   }
 }
