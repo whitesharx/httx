@@ -23,27 +23,23 @@ using System.IO;
 using System.Text;
 
 namespace Httx.Caches.Disk {
+  // TODO: Immutabiliy, WeekRef to parent.
   public class Entry {
-    private readonly string key;
-
-    /** Lengths of this entry's files. */
-    private readonly long[] lengths;
-
     private readonly int valueCount;
     private readonly DirectoryInfo directory;
 
     public Entry(string key, DirectoryInfo directory, int valueCount) {
-      this.key = key;
+      Key = key;
       this.directory = directory;
       this.valueCount = valueCount;
 
-      lengths = new long[valueCount];
+      Lengths = new long[valueCount];
     }
 
     public string GetLengths() {
       var result = new StringBuilder();
 
-      foreach (var size in lengths) {
+      foreach (var size in Lengths) {
         result.Append(' ').Append(size);
       }
 
@@ -57,7 +53,7 @@ namespace Httx.Caches.Disk {
 
       try {
         for (var i = 0; i < strings.Length; i++) {
-          lengths[i] = long.Parse(strings[i]);
+          Lengths[i] = long.Parse(strings[i]);
         }
       } catch (FormatException) {
         throw new IOException($"unexpected journal line: [{string.Join(", ", strings)}]");
@@ -65,19 +61,20 @@ namespace Httx.Caches.Disk {
     }
 
     public FileInfo GetCleanFile(int i) {
-      return new FileInfo(Path.Combine(directory.FullName, $"{key}.{i}"));
+      return new FileInfo(Path.Combine(directory.FullName, $"{Key}.{i}"));
     }
 
     public FileInfo GetDirtyFile(int i) {
-      return new FileInfo(Path.Combine(directory.FullName, $"{key}.tmp.{i}"));
+      return new FileInfo(Path.Combine(directory.FullName, $"{Key}.tmp.{i}"));
     }
 
     /** The ongoing edit or null if this entry is not being edited. */
     public Editor CurrentEditor { get; set; }
 
-    public string Key => key;
+    public string Key { get; }
 
-    public long[] Lengths => lengths;
+    /** Lengths of this entry's files. */
+    public long[] Lengths { get; }
 
     /** True if this entry has ever been published. */
     public bool Readable { get; set; }

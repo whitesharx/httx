@@ -28,6 +28,8 @@ namespace Httx.Caches.Disk {
   public class Editor {
     private readonly Entry entry;
     private readonly bool[] written;
+
+    // TODO: WeakRef?
     private readonly DiskLruCache parent;
 
     private bool hasErrors;

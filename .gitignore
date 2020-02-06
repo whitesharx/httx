@@ -39,3 +39,4 @@ Build-*/
 UnityPackageManager/
 Assets/Plugins/Editor/JetBrains
 Logs/
+*_tests/
