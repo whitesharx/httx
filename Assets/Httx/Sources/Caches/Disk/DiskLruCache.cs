@@ -24,6 +24,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Httx.Caches.Collections;
+using UnityEngine;
 
 namespace Httx.Caches.Disk {
   /// <summary>
@@ -111,7 +112,8 @@ namespace Httx.Caches.Disk {
 
           return cache;
         } catch (IOException journalIsCorrupt) {
-          Console.WriteLine($"{directory} is corrupt, removing: {journalIsCorrupt.Message}");
+          // XXX: Remove
+          Debug.Log($"{directory} is corrupt, removing: {journalIsCorrupt.Message}");
           cache.Delete();
         }
       }
@@ -156,7 +158,7 @@ namespace Httx.Caches.Disk {
         // XXX: Original, reader.hasUnterminatedLine()
         // If we ended on a truncated line, rebuild the journal before appending to it.
 
-        journalWriter = new StreamWriter(journalFile.OpenWrite());
+        journalWriter = new StreamWriter(journalFile.Open(FileMode.Append, FileAccess.Write));
       }
     }
 
@@ -264,9 +266,8 @@ namespace Httx.Caches.Disk {
       RenameTo(journalFileTmp, journalFile, false);
       journalFileBackup.Delete();
 
-      journalWriter = new StreamWriter(journalFile.OpenWrite());
+      journalWriter = new StreamWriter(journalFile.Open(FileMode.Append, FileAccess.Write));
     }
-
 
     /// <summary>
     /// Returns a snapshot of the entry named {@code key}, or null if it doesn't

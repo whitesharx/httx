@@ -100,13 +100,13 @@ namespace Httx.Caches.Disk {
         Stream outputStream;
 
         try {
-          outputStream = dirtyFile.OpenWrite();
+          outputStream = dirtyFile.Open(FileMode.Append, FileAccess.Write);
         } catch (DirectoryNotFoundException) {
           // Attempt to recreate the cache directory.
           // directory.mkdirs(); parent.Directory...
 
           try {
-            outputStream = dirtyFile.OpenWrite();
+            outputStream = dirtyFile.Open(FileMode.Append, FileAccess.Write);
           } catch (DirectoryNotFoundException) {
             // We are unable to recover. Silently eat the writes.
             // return NULL_OUTPUT_STREAM;
