@@ -114,6 +114,7 @@ namespace Httx.Caches.Disk {
         } catch (IOException journalIsCorrupt) {
           // XXX: Remove
           Debug.Log($"{directory} is corrupt, removing: {journalIsCorrupt.Message}");
+          Debug.LogWarning(journalIsCorrupt);
           cache.Delete();
         }
       }
@@ -127,7 +128,7 @@ namespace Httx.Caches.Disk {
     }
 
     private void ReadJournal() {
-      using (var reader = new StreamReader(journalFile.OpenRead())) {
+      using (var reader = new StreamReader(journalFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite))) {
         var magic = reader.ReadLine();
         var version = reader.ReadLine();
         var appVersionString = reader.ReadLine();
@@ -159,7 +160,7 @@ namespace Httx.Caches.Disk {
       // XXX: Original, reader.hasUnterminatedLine()
       // If we ended on a truncated line, rebuild the journal before appending to it.
 
-      journalWriter = new StreamWriter(journalFile.Open(FileMode.Append, FileAccess.Write));
+      journalWriter = new StreamWriter(journalFile.Open(FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
     }
 
     private void ReadJournalLine(string line) {
@@ -244,7 +245,7 @@ namespace Httx.Caches.Disk {
     private void RebuildJournal() {
       journalWriter?.Close();
 
-      using (var writer = new StreamWriter(journalFileTmp.OpenWrite())) {
+      using (var writer = new StreamWriter(journalFileTmp.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite))) {
         writer.WriteLine(Magic);
         writer.WriteLine(Version1);
         writer.WriteLine(appVersion.ToString());
@@ -267,7 +268,7 @@ namespace Httx.Caches.Disk {
       RenameTo(journalFileTmp, journalFile, false);
       journalFileBackup.Delete();
 
-      journalWriter = new StreamWriter(journalFile.Open(FileMode.Append, FileAccess.Write));
+      journalWriter = new StreamWriter(journalFile.Open(FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
     }
 
     /// <summary>

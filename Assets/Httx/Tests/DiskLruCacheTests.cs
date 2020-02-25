@@ -18,6 +18,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -104,6 +105,47 @@ namespace Httx.Tests {
       snapshot.Dispose();
     }
 
+    [Test]
+    // [Ignore("skipping for now...")]
+    public void ReadAndWriteEntryWithoutProperClose() {
+      var creator = cache.Edit("k1");
+      creator.Set(0, "A");
+      creator.Set(1, "B");
+      creator.Commit();
+
+      // Simulate a dirty close of 'cache' by opening the cache directory again.
+      var cache2 = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+      var snapshot = cache2.Get("k1");
+
+      Assert.That(snapshot.GetString(0), Is.EqualTo("A"));
+      Assert.That(snapshot.GetLength(0), Is.EqualTo(1));
+      Assert.That(snapshot.GetString(1), Is.EqualTo("B"));
+      Assert.That(snapshot.GetLength(1), Is.EqualTo(1));
+
+      snapshot.Dispose();
+      cache2.Close();
+    }
+
+    [Test]
+    public void RevertedNewFileIsRemoveInJournal() {
+      var creator = cache.Edit("k1");
+
+      AssertJournalEquals("DIRTY k1"); // DIRTY must always be flushed.
+
+      creator.Set(0, "AB");
+      creator.Set(1, "C");
+      creator.Abort();
+
+      cache.Close();
+      AssertJournalEquals("DIRTY k1", "REMOVE k1");
+    }
+
+
+
+
+
+
+
 
 
 
@@ -125,7 +167,16 @@ namespace Httx.Tests {
     }
 
     private List<string> ReadJournalLines() {
-      return File.ReadLines(journalFile.FullName).ToList();
+      using (var reader = new StreamReader(journalFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite))) {
+        var lines = reader
+          .ReadToEnd()
+          .Split(new [] { Environment.NewLine }, StringSplitOptions.None)
+          .ToList();
+
+        lines.RemoveAt(lines.Count - 1);
+
+        return lines;
+      }
     }
   }
 }
