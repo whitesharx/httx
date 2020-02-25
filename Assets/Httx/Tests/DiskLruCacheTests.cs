@@ -91,17 +91,17 @@ namespace Httx.Tests {
       editor.Set(1, "B");
       editor.Commit();
 
-      // cache.Close();
+      cache.Close();
 
-      // cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
-      // var snapshot = cache.Get("k1");
-      //
-      // Assert.That(snapshot.GetString(0), Is.EqualTo("A"));
-      // Assert.That(snapshot.GetLength(0), Is.EqualTo(1));
-      // Assert.That(snapshot.GetString(1), Is.EqualTo("B"));
-      // Assert.That(snapshot.GetLength(1), Is.EqualTo(1));
-      //
-      // snapshot.Dispose();
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+      var snapshot = cache.Get("k1");
+
+      Assert.That(snapshot.GetString(0), Is.EqualTo("A"));
+      Assert.That(snapshot.GetLength(0), Is.EqualTo(1));
+      Assert.That(snapshot.GetString(1), Is.EqualTo("B"));
+      Assert.That(snapshot.GetLength(1), Is.EqualTo(1));
+
+      snapshot.Dispose();
     }
 
 

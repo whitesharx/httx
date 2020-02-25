@@ -154,12 +154,12 @@ namespace Httx.Caches.Disk {
         }
 
         redundantOpCount = lineCount - lruEntries.Count;
-
-        // XXX: Original, reader.hasUnterminatedLine()
-        // If we ended on a truncated line, rebuild the journal before appending to it.
-
-        journalWriter = new StreamWriter(journalFile.Open(FileMode.Append, FileAccess.Write));
       }
+
+      // XXX: Original, reader.hasUnterminatedLine()
+      // If we ended on a truncated line, rebuild the journal before appending to it.
+
+      journalWriter = new StreamWriter(journalFile.Open(FileMode.Append, FileAccess.Write));
     }
 
     private void ReadJournalLine(string line) {
@@ -182,7 +182,8 @@ namespace Httx.Caches.Disk {
           return;
         }
       } else {
-        key = line.Substring(keyBegin, secondSpace);
+        var length = secondSpace - keyBegin;
+        key = line.Substring(keyBegin, length);
       }
 
       lruEntries.TryGetValue(key, out var entry);
@@ -198,9 +199,9 @@ namespace Httx.Caches.Disk {
         entry.Readable = true;
         entry.CurrentEditor = null;
         entry.SetLengths(parts);
-      } else if (secondSpace != -1 && firstSpace == DirtyFlag.Length && line.StartsWith(DirtyFlag)) {
+      } else if (secondSpace == -1 && firstSpace == DirtyFlag.Length && line.StartsWith(DirtyFlag)) {
         entry.CurrentEditor = new Editor(entry, this);
-      } else if (secondSpace != -1 && firstSpace == ReadFlag.Length && line.StartsWith(ReadFlag)) {
+      } else if (secondSpace == -1 && firstSpace == ReadFlag.Length && line.StartsWith(ReadFlag)) {
         // This work was already done by calling lruEntries.get().
       } else {
         throw new IOException($"unexpected journal line: {line}");

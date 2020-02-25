@@ -19,10 +19,12 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using Httx.Caches.Collections;
+using Httx.Caches.Disk;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
@@ -30,9 +32,34 @@ using Httx.Requests.Types;
 using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Networking;
 
 class SandboxBehaviour : MonoBehaviour, IProgress<float> {
+  private const int AppVersion = 100;
+  private const string CacheDirectory = "__httx_cache_tests";
+
+  private DirectoryInfo directory;
+  private DiskLruCache cache;
+
+  private FileInfo journalFile;
+  private FileInfo journalBackupFile;
+
+  public void SetUp() {
+    var cacheDirectory = Path.Combine(Application.dataPath, "../", CacheDirectory);
+    var cachePath = Path.GetFullPath(cacheDirectory);
+
+    journalFile = new FileInfo(Path.Combine(cachePath, DiskLruCache.JournalFile));
+    journalBackupFile = new FileInfo(Path.Combine(cachePath, DiskLruCache.JournalFileBackup));
+
+    if (Directory.Exists(cachePath)) {
+      Directory.Delete(cachePath, true);
+    }
+
+    directory = new DirectoryInfo(cachePath);
+    cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+  }
+
   [UsedImplicitly]
   private async void Start() {
     // var result = await new As<string>(new Get(new Text("https://google.com")));
@@ -69,6 +96,31 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     //
     // var manifestResult = await new As<AssetBundleManifest>(new Get(new Manifest(fileUrl)));
     // Debug.Log($"ManifestResult: {manifestResult}");
+
+    SetUp();
+
+    var editor = cache.Edit("k1");
+    editor.Set(0, "A");
+    editor.Set(1, "B");
+    editor.Commit();
+
+    cache.Close();
+
+    cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+    var snapshot = cache.Get("k1");
+
+    Debug.Log("snapshot: " + snapshot);
+
+    //
+    // // Assert.That(snapshot.GetString(0), Is.EqualTo("A"));
+    // // Assert.That(snapshot.GetLength(0), Is.EqualTo(1));
+    // // Assert.That(snapshot.GetString(1), Is.EqualTo("B"));
+    // // Assert.That(snapshot.GetLength(1), Is.EqualTo(1));
+    //
+    // Debug.Log(snapshot.GetString(0));
+    // Debug.Log(snapshot.GetString(1));
+    //
+    // snapshot.Dispose();
   }
 
   public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");
