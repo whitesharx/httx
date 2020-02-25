@@ -127,6 +127,21 @@ namespace Httx.Tests {
     }
 
     [Test]
+    public void JournalWithEditAndPublish() {
+      var creator = cache.Edit("k1");
+
+      AssertJournalEquals("DIRTY k1"); // DIRTY must always be flushed.
+
+      creator.Set(0, "AB");
+      creator.Set(1, "C");
+      creator.Commit();
+
+      cache.Close();
+
+      AssertJournalEquals("DIRTY k1", "CLEAN k1 2 1");
+    }
+
+    [Test]
     public void RevertedNewFileIsRemoveInJournal() {
       var creator = cache.Edit("k1");
 
@@ -140,7 +155,13 @@ namespace Httx.Tests {
       AssertJournalEquals("DIRTY k1", "REMOVE k1");
     }
 
+    [Test]
+    public void unterminatedEditIsRevertedOnClose() {
+      cache.Edit("k1");
+      cache.Close();
 
+      AssertJournalEquals("DIRTY k1", "REMOVE k1");
+    }
 
 
 
