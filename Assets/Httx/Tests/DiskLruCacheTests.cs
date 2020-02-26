@@ -24,7 +24,9 @@ using System.IO;
 using System.Linq;
 using Httx.Caches.Disk;
 using NUnit.Framework;
+using UnityEditor.VersionControl;
 using UnityEngine;
+using FileMode = System.IO.FileMode;
 
 namespace Httx.Tests {
   public class DiskLruCacheTests {
@@ -272,6 +274,43 @@ namespace Httx.Tests {
       snapshot1.Dispose();
     }
 
+    [Test]
+    public void OpenWithDirtyKeyDeletesAllFilesForThatKey() {
+      cache.Close();
+
+      var cleanFile0 = GetCleanFile("k1", 0);
+      var cleanFile1 = GetCleanFile("k1", 1);
+      var dirtyFile0 = GetDirtyFile("k1", 0);
+      var dirtyFile1 = GetDirtyFile("k1", 1);
+
+      WriteFile(cleanFile0, "A");
+      WriteFile(cleanFile1, "B");
+      WriteFile(dirtyFile0, "C");
+      WriteFile(dirtyFile1, "D");
+
+      // XXX: Original: createJournal("CLEAN k1 1 1", "DIRTY   k1");
+      CreateJournal("CLEAN k1 1 1", "DIRTY k1");
+
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+
+      Assert.That(cleanFile0.Exists, Is.False);
+      Assert.That(cleanFile1.Exists, Is.False);
+      Assert.That(dirtyFile0.Exists, Is.False);
+      Assert.That(dirtyFile1.Exists, Is.False);
+
+      Assert.That(cache.Get("k1"), Is.Null);
+    }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -315,6 +354,28 @@ namespace Httx.Tests {
       }
     }
 
+    private void CreateJournal(params string[] bodyLines) {
+      CreateJournalWithHeader(DiskLruCache.Magic, DiskLruCache.Version1, "100", "2", string.Empty, bodyLines);
+    }
+
+    private void CreateJournalWithHeader(string magic, string version, string appVersion,
+      string valueCount, string blank, params string[] bodyLines) {
+
+      var stream = journalFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+
+      using (var writer = new StreamWriter(stream)) {
+        writer.WriteLine(magic);
+        writer.WriteLine(version);
+        writer.WriteLine(appVersion);
+        writer.WriteLine(valueCount);
+        writer.WriteLine(blank);
+
+        foreach (var line in bodyLines) {
+          writer.WriteLine(line);
+        }
+      }
+    }
+
     private FileInfo GetCleanFile(string key, int index) {
       return new FileInfo(Path.Combine(directory.FullName, $"{key}.{index}"));
     }
@@ -330,7 +391,7 @@ namespace Httx.Tests {
     }
 
     private static void WriteFile(FileInfo file, string content) {
-      using (var writer = new StreamWriter(file.Open(FileMode.Open, FileAccess.Write, FileShare.ReadWrite))) {
+      using (var writer = new StreamWriter(file.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))) {
         writer.Write(content);
       }
     }

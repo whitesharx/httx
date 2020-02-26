@@ -65,7 +65,7 @@ namespace Httx.Caches.Disk {
     }
 
     public FileInfo GetDirtyFile(int i) {
-      return new FileInfo(Path.Combine(directory.FullName, $"{Key}.tmp.{i}"));
+      return new FileInfo(Path.Combine(directory.FullName, $"{Key}.{i}.tmp"));
     }
 
     /** The ongoing edit or null if this entry is not being edited. */
