@@ -432,6 +432,281 @@ namespace Httx.Tests {
       });
     }
 
+    [Test]
+    public void CreateNewEntryWithTooFewValuesFails() {
+      var creator = cache.Edit("k1");
+      creator.Set(1, "A");
+
+      Assert.Catch<InvalidOperationException>(() => {
+        creator.Commit();
+      });
+
+      Assert.That(GetCleanFile("k1", 0).Exists, Is.False);
+      Assert.That(GetCleanFile("k1", 1).Exists, Is.False);
+      Assert.That(GetDirtyFile("k1", 0).Exists, Is.False);
+      Assert.That(GetDirtyFile("k1", 1).Exists, Is.False);
+
+      Assert.That(cache.Get("k1"), Is.Null);
+
+      var creator2 = cache.Edit("k1");
+      creator2.Set(0, "B");
+      creator2.Set(1, "C");
+      creator2.Commit();
+    }
+
+    [Test]
+    public void RevertWithTooFewValues() {
+      var creator = cache.Edit("k1");
+      creator.Set(1, "A");
+      creator.Abort();
+
+      Assert.That(GetCleanFile("k1", 0).Exists, Is.False);
+      Assert.That(GetCleanFile("k1", 1).Exists, Is.False);
+      Assert.That(GetDirtyFile("k1", 0).Exists, Is.False);
+      Assert.That(GetDirtyFile("k1", 1).Exists, Is.False);
+
+      Assert.That(cache.Get("k1"), Is.Null);
+    }
+
+    [Test]
+    public void UpdateExistingEntryWithTooFewValuesReusesPreviousValues() {
+      var creator = cache.Edit("k1");
+      creator.Set(0, "A");
+      creator.Set(1, "B");
+      creator.Commit();
+
+      var updater = cache.Edit("k1");
+      updater.Set(0, "C");
+      updater.Commit();
+
+      var snapshot = cache.Get("k1");
+
+      Assert.That(snapshot.GetString(0), Is.EqualTo("C"));
+      Assert.That(snapshot.GetLength(0), Is.EqualTo(1));
+      Assert.That(snapshot.GetString(1), Is.EqualTo("B"));
+      Assert.That(snapshot.GetLength(1), Is.EqualTo(1));
+
+      snapshot.Dispose();
+    }
+
+    [Test]
+    public void GrowMaxSize() {
+      cache.Close();
+      cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
+
+      Set("a", "a", "aaa"); // size 4
+      Set("b", "bb", "bbbb"); // size 6
+
+      cache.MaxSize = 20;
+
+      Set("c", "c", "c"); // size 12
+
+      Assert.That(cache.Size, Is.EqualTo(12));
+    }
+
+    [Test]
+    [Ignore("Not Implemented")]
+    public void ShrinkMaxSizeEvicts() {
+      // TODO: Implement
+    }
+
+    [Test]
+    public void EvictOnInsert() {
+      cache.Close();
+      cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
+
+      Set("a", "a", "aaa"); // size 4
+      Set("b", "bb", "bbbb"); // size 6
+      Assert.That(cache.Size, Is.EqualTo(10));
+
+      // Cause the size to grow to 12 should evict 'A'.
+      Set("c", "c", "c");
+      cache.Flush();
+      Assert.That(cache.Size, Is.EqualTo(8));
+      AssertAbsent("a");
+      AssertValue("b", "bb", "bbbb");
+      AssertValue("c", "c", "c");
+
+      // Causing the size to grow to 10 should evict nothing.
+      Set("d", "d", "d");
+      cache.Flush();
+      Assert.That(cache.Size, Is.EqualTo(10));
+      AssertAbsent("a");
+      AssertValue("b", "bb", "bbbb");
+      AssertValue("c", "c", "c");
+      AssertValue("d", "d", "d");
+
+      // Causing the size to grow to 18 should evict 'B' and 'C'.
+      Set("e", "eeee", "eeee");
+      cache.Flush();
+      Assert.That(cache.Size, Is.EqualTo(10));
+      AssertAbsent("a");
+      AssertAbsent("b");
+      AssertAbsent("c");
+      AssertValue("d", "d", "d");
+      AssertValue("e", "eeee", "eeee");
+    }
+
+    [Test]
+    public void EvictOnUpdate() {
+      cache.Close();
+      cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
+
+      Set("a", "a", "aa"); // size 3
+      Set("b", "b", "bb"); // size 3
+      Set("c", "c", "cc"); // size 3
+
+      Assert.That(cache.Size, Is.EqualTo(9));
+
+      // Causing the size to grow to 11 should evict 'A'.
+      Set("b", "b", "bbbb");
+      cache.Flush();
+
+      Assert.That(cache.Size, Is.EqualTo(8));
+
+      AssertAbsent("a");
+      AssertValue("b", "b", "bbbb");
+      AssertValue("c", "c", "cc");
+    }
+
+    [Test]
+    public void EvictionHonorsLruFromCurrentSession() {
+      cache.Close();
+      cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
+      Set("a", "a", "a");
+      Set("b", "b", "b");
+      Set("c", "c", "c");
+      Set("d", "d", "d");
+      Set("e", "e", "e");
+
+      cache.Get("b").Dispose(); // 'B' is now least recently used.
+
+      // Causing the size to grow to 12 should evict 'A'.
+      Set("f", "f", "f");
+
+      // Causing the size to grow to 12 should evict 'C'.
+      Set("g", "g", "g");
+
+      cache.Flush();
+
+      Assert.That(cache.Size, Is.EqualTo(10));
+
+      AssertAbsent("a");
+      AssertValue("b", "b", "b");
+      AssertAbsent("c");
+      AssertValue("d", "d", "d");
+      AssertValue("e", "e", "e");
+      AssertValue("f", "f", "f");
+    }
+
+    [Test]
+    public void EvictionHonorsLruFromPreviousSession() {
+      Set("a", "a", "a");
+      Set("b", "b", "b");
+      Set("c", "c", "c");
+      Set("d", "d", "d");
+      Set("e", "e", "e");
+      Set("f", "f", "f");
+
+      cache.Get("b").Dispose(); // 'B' is now least recently used.
+      Assert.That(cache.Size, Is.EqualTo(12));
+
+      cache.Flush();
+      cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
+
+      Set("g", "g", "g");
+      cache.Flush();
+
+      Assert.That(cache.Size, Is.EqualTo(10));
+
+      AssertAbsent("a");
+      AssertValue("b", "b", "b");
+      AssertAbsent("c");
+      AssertValue("d", "d", "d");
+      AssertValue("e", "e", "e");
+      AssertValue("f", "f", "f");
+      AssertValue("g", "g", "g");
+    }
+
+    [Test]
+    public void CacheSingleEntryOfSizeGreaterThanMaxSize() {
+      cache.Close();
+      cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
+      Set("a", "aaaaa", "aaaaaa"); // size=11
+      cache.Flush();
+      AssertAbsent("a");
+    }
+
+    [Test]
+    public void CacheSingleValueOfSizeGreaterThanMaxSize() {
+      cache.Close();
+      cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
+      Set("a", "aaaaaaaaaaa", "a"); // size=12
+      cache.Flush();
+      AssertAbsent("a");
+    }
+
+    [Test]
+    public void ConstructorDoesNotAllowZeroCacheSize() {
+      Assert.Catch<ArgumentException>(() => {
+        DiskLruCache.Open(directory, AppVersion, 2, 0);
+      });
+    }
+
+    [Test]
+    public void ConstructorDoesNotAllowZeroValuesPerEntry() {
+      Assert.Catch<ArgumentException>(() => {
+        DiskLruCache.Open(directory, AppVersion, 0, 10);
+      });
+    }
+
+    [Test]
+    public void RemoveAbsentElement() {
+      cache.Remove("a");
+    }
+
+    [Test]
+    public void ReadingTheSameStreamMultipleTimes() {
+      Set("a", "a", "b");
+
+      var snapshot = cache.Get("a");
+      Assert.That(snapshot.GetInputStream(0), Is.SameAs(snapshot.GetInputStream(0)));
+      snapshot.Dispose();
+    }
+
+    // [Test]
+    // public void rebuildJournalOnRepeatedReads() {
+    //   Set("a", "a", "a");
+    //   Set("b", "b", "b");
+    //
+    //   long lastJournalLength = 0;
+    //
+    //   while (true) {
+    //     var journalLength = journalFile.Length;
+    //
+    //     AssertValue("a", "a", "a");
+    //     AssertValue("b", "b", "b");
+    //
+    //     if (journalLength < lastJournalLength) {
+    //       Debug.Log($"Journal compacted from {lastJournalLength} bytes to {journalLength} bytes");
+    //       break; // Test passed!
+    //     }
+    //
+    //     lastJournalLength = journalLength;
+    //   }
+    // }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

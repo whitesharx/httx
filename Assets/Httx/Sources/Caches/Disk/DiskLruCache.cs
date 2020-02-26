@@ -87,6 +87,14 @@ namespace Httx.Caches.Disk {
     /// <param name="maxSize">the maximum number of bytes this cache should use to store</param>
     /// <returns></returns>
     public static DiskLruCache Open(DirectoryInfo directory, int appVersion, int valueCount, long maxSize) {
+      if (maxSize <= 0) {
+        throw new ArgumentException("maxSize <= 0");
+      }
+
+      if (valueCount <= 0) {
+        throw new ArgumentException("valueCount <= 0");
+      }
+
       var backupFile = new FileInfo(Path.Combine(directory.FullName, JournalFileBackup));
 
       // If a bkp file exists, use it instead.
