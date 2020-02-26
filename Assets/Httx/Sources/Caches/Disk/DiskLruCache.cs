@@ -392,6 +392,11 @@ namespace Httx.Caches.Disk {
         if (success) {
           if (dirty.Exists) {
             var clean = entry.GetCleanFile(i);
+
+            if (File.Exists(clean.FullName)) {
+              File.Delete(clean.FullName);
+            }
+
             File.Move(dirty.FullName, clean.FullName);
 
             var oldLength = entry.Lengths[i];

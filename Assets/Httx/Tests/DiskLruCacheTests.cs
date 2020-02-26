@@ -156,12 +156,127 @@ namespace Httx.Tests {
     }
 
     [Test]
-    public void unterminatedEditIsRevertedOnClose() {
+    public void UnterminatedEditIsRevertedOnClose() {
       cache.Edit("k1");
       cache.Close();
 
       AssertJournalEquals("DIRTY k1", "REMOVE k1");
     }
+
+    [Test]
+    public void JournalDoesNotIncludeReadOfYetUnpublishedValue() {
+      var creator = cache.Edit("k1");
+
+      Assert.That(cache.Get("k1"), Is.Null);
+
+      creator.Set(0, "A");
+      creator.Set(1, "BC");
+      creator.Commit();
+
+      cache.Close();
+
+      AssertJournalEquals("DIRTY k1", "CLEAN k1 1 2");
+    }
+
+    [Test]
+    public void JournalWithEditAndPublishAndRead() {
+      var k1Creator = cache.Edit("k1");
+      k1Creator.Set(0, "AB");
+      k1Creator.Set(1, "C");
+      k1Creator.Commit();
+
+      var k2Creator = cache.Edit("k2");
+      k2Creator.Set(0, "DEF");
+      k2Creator.Set(1, "G");
+      k2Creator.Commit();
+
+      var k1Snapshot = cache.Get("k1");
+      k1Snapshot.Dispose();
+
+      cache.Close();
+      AssertJournalEquals("DIRTY k1", "CLEAN k1 2 1", "DIRTY k2", "CLEAN k2 3 1", "READ k1");
+    }
+
+    [Test]
+    [Ignore("Not Implemented")]
+    public void cannotOperateOnEditAfterPublish() {
+      var editor = cache.Edit("k1");
+
+      editor.Set(0, "A");
+      editor.Set(1, "B");
+      editor.Commit();
+
+      // AssertInoperable(editor);
+    }
+
+    [Test]
+    [Ignore("Not Implemented")]
+    public void cannotOperateOnEditAfterRevert() {
+      var editor = cache.Edit("k1");
+      editor.Set(0, "A");
+      editor.Set(1, "B");
+      editor.Abort();
+
+      // AssertInoperable(editor);
+    }
+
+    [Test]
+    public void ExplicitRemoveAppliedToDiskImmediately() {
+      var editor = cache.Edit("k1");
+      editor.Set(0, "ABC");
+      editor.Set(1, "B");
+      editor.Commit();
+
+      var k1 = GetCleanFile("k1", 0);
+
+      Assert.That(ReadFile(k1), Is.EqualTo("ABC"));
+
+      cache.Remove("k1");
+
+      Assert.That(k1.Exists, Is.False);
+    }
+
+    /**
+     * Each read sees a snapshot of the file at the time read was called.
+     * This means that two reads of the same key can see different data.
+     */
+    [Test]
+    public void ReadAndWriteOverlapsMaintainConsistency() {
+      var v1Creator = cache.Edit("k1");
+      v1Creator.Set(0, "AAaa");
+      v1Creator.Set(1, "BBbb");
+      v1Creator.Commit();
+
+      var snapshot1 = cache.Get("k1");
+      var inV1 = snapshot1.GetInputStream(0);
+
+      Assert.That(inV1.ReadByte(), Is.EqualTo('A'));
+      Assert.That(inV1.ReadByte(), Is.EqualTo('A'));
+
+      var v1Updater = cache.Edit("k1");
+      v1Updater.Set(0, "CCcc");
+      v1Updater.Set(1, "DDdd");
+      v1Updater.Commit();
+
+      var snapshot2 = cache.Get("k1");
+      Assert.That(snapshot2.GetString(0), Is.EqualTo("CCcc"));
+      Assert.That(snapshot2.GetLength(0), Is.EqualTo(4));
+      Assert.That(snapshot2.GetString(1), Is.EqualTo("DDdd"));
+      Assert.That(snapshot2.GetLength(1), Is.EqualTo(4));
+      snapshot2.Dispose();
+
+      Assert.That(inV1.ReadByte(), Is.EqualTo('a'));
+      Assert.That(inV1.ReadByte(), Is.EqualTo('a'));
+      Assert.That(snapshot1.GetString(1), Is.EqualTo("BBbb"));
+      Assert.That(snapshot1.GetLength(1), Is.EqualTo(4));
+      snapshot1.Dispose();
+    }
+
+
+
+
+
+
 
 
 
@@ -197,6 +312,26 @@ namespace Httx.Tests {
         lines.RemoveAt(lines.Count - 1);
 
         return lines;
+      }
+    }
+
+    private FileInfo GetCleanFile(string key, int index) {
+      return new FileInfo(Path.Combine(directory.FullName, $"{key}.{index}"));
+    }
+
+    private FileInfo GetDirtyFile(string key, int index) {
+      return new FileInfo(Path.Combine(directory.FullName, $"{key}.{index}.tmp"));
+    }
+
+    private static string ReadFile(FileInfo file) {
+      using (var reader = new StreamReader(file.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite))) {
+        return reader.ReadToEnd();
+      }
+    }
+
+    private static void WriteFile(FileInfo file, string content) {
+      using (var writer = new StreamWriter(file.Open(FileMode.Open, FileAccess.Write, FileShare.ReadWrite))) {
+        writer.Write(content);
       }
     }
   }
