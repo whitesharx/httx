@@ -149,7 +149,7 @@ namespace Httx.Caches.Disk {
           try {
             ReadJournalLine(reader.ReadLine());
             lineCount++;
-          } catch (Exception endOfJournal) {
+          } catch (EndOfStreamException endOfJournal) {
             break;
           }
         }
@@ -164,6 +164,10 @@ namespace Httx.Caches.Disk {
     }
 
     private void ReadJournalLine(string line) {
+      if (null == line) {
+        throw new EndOfStreamException();
+      }
+
       var firstSpace = line.IndexOf(' ');
 
       if (firstSpace == -1) {

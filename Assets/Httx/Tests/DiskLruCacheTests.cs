@@ -301,15 +301,96 @@ namespace Httx.Tests {
       Assert.That(cache.Get("k1"), Is.Null);
     }
 
+    [Test]
+    public void OpenWithInvalidVersionClearsDirectory() {
+      cache.Close();
+      GenerateSomeGarbageFiles();
+      CreateJournalWithHeader(DiskLruCache.Magic, "0", "100", "2", "");
 
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
 
+      AssertGarbageFilesAllDeleted();
+    }
 
+    [Test]
+    public void OpenWithInvalidAppVersionClearsDirectory() {
+      cache.Close();
+      GenerateSomeGarbageFiles();
+      CreateJournalWithHeader(DiskLruCache.Magic, "1", "101", "2", "");
 
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
 
+      AssertGarbageFilesAllDeleted();
+    }
 
+    [Test]
+    public void OpenWithInvalidValueCountClearsDirectory() {
+      cache.Close();
+      GenerateSomeGarbageFiles();
+      CreateJournalWithHeader(DiskLruCache.Magic, "1", "100", "1", "");
 
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
 
+      AssertGarbageFilesAllDeleted();
+    }
 
+    [Test]
+    public void OpenWithInvalidBlankLineClearsDirectory() {
+      cache.Close();
+      GenerateSomeGarbageFiles();
+      CreateJournalWithHeader(DiskLruCache.Magic, "1", "100", "2", "x");
+
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+
+      AssertGarbageFilesAllDeleted();
+    }
+
+    [Test]
+    public void OpenWithInvalidJournalLineClearsDirectory() {
+      cache.Close();
+      GenerateSomeGarbageFiles();
+      CreateJournal("CLEAN k1 1 1", "BOGUS");
+
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+
+      AssertGarbageFilesAllDeleted();
+      Assert.That(cache.Get("k1"), Is.Null);
+    }
+
+    [Test]
+    public void OpenWithInvalidFileSizeClearsDirectory() {
+      cache.Close();
+      GenerateSomeGarbageFiles();
+      CreateJournal("CLEAN k1 0000x001 1");
+
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+
+      AssertGarbageFilesAllDeleted();
+      Assert.That(cache.Get("k1"), Is.Null);
+    }
+
+    [Test]
+    [Ignore("For now, reader treats truncated line as correct. Fix later?")]
+    public void OpenWithTruncatedLineDiscardsThatLine() {
+      cache.Close();
+      WriteFile(GetCleanFile("k1", 0), "A");
+      WriteFile(GetCleanFile("k1", 1), "B");
+
+      using (var writer = new StreamWriter(journalFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))) {
+        writer.Write(DiskLruCache.Magic + "\n" + DiskLruCache.Version1 + "\n100\n2\n\nCLEAN k1 1 1");
+      }
+
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+      Assert.That(cache.Get("k1"), Is.Null);
+
+      // The journal is not corrupt when editing after a truncated line.
+      Set("k1", "C", "D");
+
+      cache.Close();
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+
+      AssertValue("k1", "C", "D");
+    }
 
 
 
@@ -395,5 +476,72 @@ namespace Httx.Tests {
         writer.Write(content);
       }
     }
+
+    private void GenerateSomeGarbageFiles() {
+      var dir1 = new DirectoryInfo(Path.Combine(directory.FullName, "dir1"));
+      var dir2 = new DirectoryInfo(Path.Combine(dir1.FullName, "dir1"));
+
+      WriteFile(GetCleanFile("g1", 0), "A");
+      WriteFile(GetCleanFile("g1", 1), "B");
+      WriteFile(GetCleanFile("g2", 0), "C");
+      WriteFile(GetCleanFile("g2", 1), "D");
+      WriteFile(GetCleanFile("g2", 1), "D");
+
+      WriteFile(new FileInfo(Path.Combine(directory.FullName, "otherFile0")), "E");
+
+      Directory.CreateDirectory(dir1.FullName);
+      Directory.CreateDirectory(dir2.FullName);
+
+      WriteFile(new FileInfo(Path.Combine(dir2.FullName, "otherFile1")), "F");
+    }
+
+    private void AssertGarbageFilesAllDeleted() {
+      Assert.That(GetCleanFile("g1", 0).Exists, Is.False);
+      Assert.That(GetCleanFile("g1", 1).Exists, Is.False);
+      Assert.That(GetCleanFile("g2", 0).Exists, Is.False);
+      Assert.That(GetCleanFile("g2", 1).Exists, Is.False);
+
+      var f1 = new FileInfo(Path.Combine(directory.FullName, "otherFile0"));
+      var f2 = new FileInfo(Path.Combine(directory.FullName, "dir1"));
+
+      Assert.That(f1.Exists, Is.False);
+      Assert.That(f2.Exists, Is.False);
+    }
+
+    private void Set(string key, string value0, string value1) {
+      var editor = cache.Edit(key);
+      editor.Set(0, value0);
+      editor.Set(1, value1);
+      editor.Commit();
+    }
+
+    private void AssertAbsent(string key) {
+      var snapshot = cache.Get(key);
+
+      if (snapshot != null) {
+        snapshot.Dispose();
+        Assert.Fail();
+      }
+
+      Assert.That(GetCleanFile(key, 0).Exists, Is.False);
+      Assert.That(GetCleanFile(key, 1).Exists, Is.False);
+      Assert.That(GetDirtyFile(key, 0).Exists, Is.False);
+      Assert.That(GetDirtyFile(key, 1).Exists, Is.False);
+    }
+
+    private void AssertValue(string key, string value0, string value1) {
+      var snapshot = cache.Get(key);
+
+      Assert.That(snapshot.GetString(0), Is.EqualTo(value0));
+      Assert.That(snapshot.GetLength(0), Is.EqualTo(value0.Length));
+      Assert.That(snapshot.GetString(1), Is.EqualTo(value1));
+      Assert.That(snapshot.GetLength(1), Is.EqualTo(value1.Length));
+
+      Assert.That(GetCleanFile(key, 0).Exists, Is.True);
+      Assert.That(GetCleanFile(key, 1).Exists, Is.True);
+
+      snapshot.Dispose();
+    }
+
   }
 }
