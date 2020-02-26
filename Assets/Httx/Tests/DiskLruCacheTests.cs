@@ -392,10 +392,45 @@ namespace Httx.Tests {
       AssertValue("k1", "C", "D");
     }
 
+    [Test]
+    public void OpenWithTooManyFileSizesClearsDirectory() {
+      cache.Close();
+      GenerateSomeGarbageFiles();
+      CreateJournal("CLEAN k1 1 1 1");
 
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
 
+      AssertGarbageFilesAllDeleted();
+      Assert.That(cache.Get("k1"), Is.Null);
+    }
 
+    [Test]
+    public void KeyWithSpaceNotPermitted() {
+      Assert.Catch<InvalidOperationException>(() => {
+        cache.Edit("my key");
+      });
+    }
 
+    [Test]
+    public void KeyWithNewlineNotPermitted() {
+      Assert.Catch<InvalidOperationException>(() => {
+        cache.Edit("my\nkey");
+      });
+    }
+
+    [Test]
+    public void KeyWithCarriageReturnNotPermitted() {
+      Assert.Catch<InvalidOperationException>(() => {
+        cache.Edit("my\rkey");
+      });
+    }
+
+    [Test]
+    public void NullKeyThrows() {
+      Assert.Catch<InvalidOperationException>(() => {
+        cache.Edit(null);
+      });
+    }
 
 
 

@@ -41,9 +41,6 @@ namespace Httx.Caches.Disk {
     public const string Version1 = "1";
     public const long AnySequenceNumber = -1;
 
-    private const string StringKeyPattern = "[a-z0-9_-]{1,120}";
-    private readonly Regex LegalKeyPattern = new Regex(StringKeyPattern);
-
     private const string CleanFlag = "CLEAN";
     private const string DirtyFlag = "DIRTY";
     private const string RemoveFlag = "REMOVE";
@@ -58,6 +55,7 @@ namespace Httx.Caches.Disk {
     private StreamWriter journalWriter;
     private int redundantOpCount;
 
+    private readonly Regex legalKeyPattern = new Regex("^[a-z0-9_-]{1,120}$");
     private readonly LinkedDictionary<string, Entry> lruEntries =
       new LinkedDictionary<string, Entry>();
 
@@ -572,10 +570,14 @@ namespace Httx.Caches.Disk {
     }
 
     private void ValidateKey(string key) {
-      var match = LegalKeyPattern.Match(key);
+      try {
+        var match = legalKeyPattern.Match(key);
 
-      if (!match.Success) {
-        throw new InvalidOperationException($"keys must match regex {StringKeyPattern}: {key}");
+        if (!match.Success) {
+          throw new InvalidOperationException($"keys must match regex {legalKeyPattern}: {key}");
+        }
+      } catch (Exception e) {
+        throw new InvalidOperationException($"invalid key: {e.Message}");
       }
     }
 
