@@ -794,7 +794,36 @@ namespace Httx.Tests {
       }
     }
 
+    [Test]
+    public void RestoreBackupFile() {
+      var creator = cache.Edit("k1");
+      creator.Set(0, "ABC");
+      creator.Set(1, "DE");
+      creator.Commit();
+      cache.Close();
 
+      if (journalBackupFile.Exists) {
+        journalBackupFile.Delete();
+      }
+
+      File.Move(journalFile.FullName, journalBackupFile.FullName);
+      Assert.That(journalFile.Exists, Is.False);
+
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+
+      var snapshot = cache.Get("k1");
+
+      Assert.That(snapshot, Is.Not.Null);
+      Assert.That(snapshot.GetString(0), Is.EqualTo("ABC"));
+      Assert.That(snapshot.GetLength(0), Is.EqualTo(3));
+      Assert.That(snapshot.GetString(1), Is.EqualTo("DE"));
+      Assert.That(snapshot.GetLength(1), Is.EqualTo(2));
+
+      journalFile.Refresh();
+
+      Assert.That(journalBackupFile.Exists, Is.False);
+      Assert.That(journalFile.Exists, Is.True);
+    }
 
 
 

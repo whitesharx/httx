@@ -100,7 +100,7 @@ namespace Httx.Caches.Disk {
 
       // If a bkp file exists, use it instead.
       if (backupFile.Exists) {
-        var journalFile = new FileInfo(Path.Combine(directory.FullName, JournalFileBackup));
+        var journalFile = new FileInfo(Path.Combine(directory.FullName, JournalFile));
 
         // If journal file also exists just delete backup file.
         if (journalFile.Exists) {
