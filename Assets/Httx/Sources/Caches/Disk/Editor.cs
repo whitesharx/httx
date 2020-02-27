@@ -102,8 +102,7 @@ namespace Httx.Caches.Disk {
         try {
           outputStream = dirtyFile.Open(FileMode.Append, FileAccess.Write);
         } catch (DirectoryNotFoundException) {
-          // Attempt to recreate the cache directory.
-          // directory.mkdirs(); parent.Directory...
+          Directory.CreateDirectory(parent.Directory.FullName);
 
           try {
             outputStream = dirtyFile.Open(FileMode.Append, FileAccess.Write);

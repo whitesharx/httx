@@ -888,8 +888,98 @@ namespace Httx.Tests {
       AssertValue("a", "a", "a2");
     }
 
+    [Test]
+    public void EditSnapshotAfterChangeAborted() {
+      Set("a", "a", "a");
 
+      var snapshot = cache.Get("a");
+      var toAbort = snapshot.Edit();
+      toAbort.Set(0, "b");
+      toAbort.Abort();
 
+      var editor = snapshot.Edit();
+      editor.Set(1, "a2");
+      editor.Commit();
+
+      AssertValue("a", "a", "a2");
+    }
+
+    [Test]
+    public void EditSnapshotAfterChangeCommitted() {
+      Set("a", "a", "a");
+      var snapshot = cache.Get("a");
+      var toAbort = snapshot.Edit();
+      toAbort.Set(0, "b");
+      toAbort.Commit();
+      Assert.That(snapshot.Edit(), Is.Null);
+    }
+
+    [Test]
+    public void EditSinceEvicted() {
+      cache.Close();
+      cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
+      Set("a", "aa", "aaa"); // size 5
+      var snapshot = cache.Get("a");
+      Set("b", "bb", "bbb"); // size 5
+      Set("c", "cc", "ccc"); // size 5; will evict 'A'
+      cache.Flush();
+      Assert.That(snapshot.Edit(), Is.Null);
+    }
+
+    [Test]
+    public void EditSinceEvictedAndRecreated() {
+      cache.Close();
+      cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
+      Set("a", "aa", "aaa"); // size 5
+      var snapshot = cache.Get("a");
+      Set("b", "bb", "bbb"); // size 5
+      Set("c", "cc", "ccc"); // size 5; will evict 'A'
+      Set("a", "a", "aaaa"); // size 5; will evict 'B'
+      cache.Flush();
+      Assert.That(snapshot.Edit(), Is.Null);
+    }
+
+    [Test]
+    public void AggressiveClearingHandlesWrite() {
+      directory.Delete(true);
+
+      Set("a", "a", "a");
+      AssertValue("a", "a", "a");
+    }
+
+    [Test]
+    public void AggressiveClearingHandlesEdit() {
+      Set("a", "a", "a");
+      var a = cache.Get("a").Edit();
+      directory.Delete(true);
+      a.Set(1, "a2");
+      a.Commit();
+    }
+
+    [Test]
+    public void RemoveHandlesMissingFile() {
+      Set("a", "a", "a");
+      GetCleanFile("a", 0).Delete();
+      cache.Remove("a");
+    }
+
+    [Test]
+    public void AggressiveClearingHandlesPartialEdit() {
+      Set("a", "a", "a");
+      Set("b", "b", "b");
+      var a = cache.Get("a").Edit();
+      a.Set(0, "a1");
+      directory.Delete(true);
+      a.Set(1, "a2");
+      a.Commit();
+      Assert.That(cache.Get("a"), Is.Null);
+    }
+
+    [Test]
+    public void AggressiveClearingHandlesRead() {
+      directory.Delete(true);
+      Assert.That(cache.Get("a"), Is.Null);
+    }
 
 
 
