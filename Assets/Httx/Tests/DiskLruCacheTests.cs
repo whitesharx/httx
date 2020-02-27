@@ -66,6 +66,70 @@ namespace Httx.Tests {
     }
 
     [Test]
+    public void ValidateKey() {
+      string key;
+
+      try {
+        key = "has_space ";
+        cache.Edit(key);
+        Assert.Fail("Exepcting an IllegalArgumentException as the key was invalid.");
+      } catch (ArgumentException iae) {
+        Assert.That(iae.Message, Contains.Substring("keys must match regex"));
+      }
+
+      try {
+        key = "has_CR\r";
+        cache.Edit(key);
+        Assert.Fail("Exepcting an IllegalArgumentException as the key was invalid.");
+      } catch (ArgumentException iae) {
+        Assert.That(iae.Message, Contains.Substring("keys must match regex"));
+      }
+
+      try {
+        key = "has_LF\n";
+        cache.Edit(key);
+        Assert.Fail("Exepcting an IllegalArgumentException as the key was invalid.");
+      } catch (ArgumentException iae) {
+        Assert.That(iae.Message, Contains.Substring("keys must match regex"));
+      }
+
+      try {
+        key = "has_invalid/";
+        cache.Edit(key);
+        Assert.Fail("Exepcting an IllegalArgumentException as the key was invalid.");
+      } catch (ArgumentException iae) {
+        Assert.That(iae.Message, Contains.Substring("keys must match regex"));
+      }
+
+      try {
+        key = "has_invalid\u2603";
+        cache.Edit(key);
+        Assert.Fail("Exepcting an IllegalArgumentException as the key was invalid.");
+      } catch (ArgumentException iae) {
+        Assert.That(iae.Message, Contains.Substring("keys must match regex"));
+      }
+
+      try {
+        key = "this_is_way_too_long_this_is_way_too_long_this_is_way_too_long_"
+          + "this_is_way_too_long_this_is_way_too_long_this_is_way_too_long";
+        cache.Edit(key);
+        Assert.Fail("Exepcting an IllegalArgumentException as the key was too long.");
+      } catch (ArgumentException iae) {
+        Assert.That(iae.Message, Contains.Substring("keys must match regex"));
+      }
+
+      key = "0123456789012345678901234567890123456789012345678901234567890123456789"
+        + "01234567890123456789012345678901234567890123456789";
+      cache.Edit(key).Abort();
+
+      key = "abcdefghijklmnopqrstuvwxyz_0123456789";
+      cache.Edit(key).Abort();
+
+      key = "-20384573948576";
+      cache.Edit(key).Abort();
+    }
+
+    [Test]
     public void WriteAndReadEntry() {
       var editor = cache.Edit("k1");
       editor.Set(0, "ABC");
@@ -107,7 +171,6 @@ namespace Httx.Tests {
     }
 
     [Test]
-    // [Ignore("skipping for now...")]
     public void ReadAndWriteEntryWithoutProperClose() {
       var creator = cache.Edit("k1");
       creator.Set(0, "A");
@@ -199,26 +262,24 @@ namespace Httx.Tests {
     }
 
     [Test]
-    [Ignore("Not Implemented")]
-    public void cannotOperateOnEditAfterPublish() {
+    public void CannotOperateOnEditAfterPublish() {
       var editor = cache.Edit("k1");
 
       editor.Set(0, "A");
       editor.Set(1, "B");
       editor.Commit();
 
-      // AssertInoperable(editor);
+      AssertInoperable(editor);
     }
 
     [Test]
-    [Ignore("Not Implemented")]
-    public void cannotOperateOnEditAfterRevert() {
+    public void CannotOperateOnEditAfterRevert() {
       var editor = cache.Edit("k1");
       editor.Set(0, "A");
       editor.Set(1, "B");
       editor.Abort();
 
-      // AssertInoperable(editor);
+      AssertInoperable(editor);
     }
 
     [Test]
@@ -375,7 +436,8 @@ namespace Httx.Tests {
       WriteFile(GetCleanFile("k1", 0), "A");
       WriteFile(GetCleanFile("k1", 1), "B");
 
-      using (var writer = new StreamWriter(journalFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))) {
+      using (var writer =
+        new StreamWriter(journalFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))) {
         writer.Write(DiskLruCache.Magic + "\n" + DiskLruCache.Version1 + "\n100\n2\n\nCLEAN k1 1 1");
       }
 
@@ -405,28 +467,28 @@ namespace Httx.Tests {
 
     [Test]
     public void KeyWithSpaceNotPermitted() {
-      Assert.Catch<InvalidOperationException>(() => {
+      Assert.Catch<ArgumentException>(() => {
         cache.Edit("my key");
       });
     }
 
     [Test]
     public void KeyWithNewlineNotPermitted() {
-      Assert.Catch<InvalidOperationException>(() => {
+      Assert.Catch<ArgumentException>(() => {
         cache.Edit("my\nkey");
       });
     }
 
     [Test]
     public void KeyWithCarriageReturnNotPermitted() {
-      Assert.Catch<InvalidOperationException>(() => {
+      Assert.Catch<ArgumentException>(() => {
         cache.Edit("my\rkey");
       });
     }
 
     [Test]
     public void NullKeyThrows() {
-      Assert.Catch<InvalidOperationException>(() => {
+      Assert.Catch<ArgumentException>(() => {
         cache.Edit(null);
       });
     }
@@ -865,9 +927,7 @@ namespace Httx.Tests {
 
     [Test]
     [Ignore("Not Implemented")]
-    public void OpenCreatesDirectoryIfNecessary() {
-
-    }
+    public void OpenCreatesDirectoryIfNecessary() { }
 
     [Test]
     public void FileDeletedExternally() {
@@ -981,26 +1041,31 @@ namespace Httx.Tests {
       Assert.That(cache.Get("a"), Is.Null);
     }
 
+    private static void AssertInoperable(Editor editor) {
+      Assert.Catch<InvalidOperationException>(() => {
+        editor.GetString(0);
+      });
 
+      Assert.Catch<InvalidOperationException>(() => {
+        editor.Set(0, "A");
+      });
 
+      Assert.Catch<InvalidOperationException>(() => {
+        editor.NewInputStream(0);
+      });
 
+      Assert.Catch<InvalidOperationException>(() => {
+        editor.NewOutputStream(0);
+      });
 
+      Assert.Catch<InvalidOperationException>(() => {
+        editor.Commit();
+      });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      Assert.Catch<InvalidOperationException>(() => {
+        editor.Abort();
+      });
+    }
 
     private void AssertJournalEquals(params string[] expectedBodyLines) {
       var lines = new List<string> {
@@ -1022,7 +1087,7 @@ namespace Httx.Tests {
       using (var reader = new StreamReader(journalFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite))) {
         var lines = reader
           .ReadToEnd()
-          .Split(new [] { Environment.NewLine }, StringSplitOptions.None)
+          .Split(new[] { Environment.NewLine }, StringSplitOptions.None)
           .ToList();
 
         lines.RemoveAt(lines.Count - 1);
@@ -1037,7 +1102,6 @@ namespace Httx.Tests {
 
     private void CreateJournalWithHeader(string magic, string version, string appVersion,
       string valueCount, string blank, params string[] bodyLines) {
-
       var stream = journalFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
 
       using (var writer = new StreamWriter(stream)) {
@@ -1138,6 +1202,5 @@ namespace Httx.Tests {
 
       snapshot.Dispose();
     }
-
   }
 }

@@ -604,10 +604,10 @@ namespace Httx.Caches.Disk {
         var match = legalKeyPattern.Match(key);
 
         if (!match.Success) {
-          throw new InvalidOperationException($"keys must match regex {legalKeyPattern}: {key}");
+          throw new ArgumentException($"keys must match regex {legalKeyPattern}: {key}");
         }
       } catch (Exception e) {
-        throw new InvalidOperationException($"invalid key: {e.Message}");
+        throw new ArgumentException($"invalid key: {e.Message}");
       }
     }
 
