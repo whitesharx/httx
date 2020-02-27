@@ -44,6 +44,7 @@ namespace Httx.Caches.Disk {
     /// is in progress.
     /// </summary>
     public Editor Edit() {
+      throw new NotImplementedException();
       // return DiskLruCache.this.edit(key, sequenceNumber);
       return null;
     }

@@ -674,27 +674,35 @@ namespace Httx.Tests {
       snapshot.Dispose();
     }
 
-    // [Test]
-    // public void rebuildJournalOnRepeatedReads() {
-    //   Set("a", "a", "a");
-    //   Set("b", "b", "b");
-    //
-    //   long lastJournalLength = 0;
-    //
-    //   while (true) {
-    //     var journalLength = journalFile.Length;
-    //
-    //     AssertValue("a", "a", "a");
-    //     AssertValue("b", "b", "b");
-    //
-    //     if (journalLength < lastJournalLength) {
-    //       Debug.Log($"Journal compacted from {lastJournalLength} bytes to {journalLength} bytes");
-    //       break; // Test passed!
-    //     }
-    //
-    //     lastJournalLength = journalLength;
-    //   }
-    // }
+    [Test]
+    public void RebuildJournalOnRepeatedReads() {
+      Set("a", "a", "a");
+      Set("b", "b", "b");
+
+      long lastJournalLength = 0;
+      var maxReads = 2000;
+
+      while (true) {
+        journalFile.Refresh();
+        var journalLength = journalFile.Length;
+
+        AssertValue("a", "a", "a");
+        AssertValue("b", "b", "b");
+
+        if (journalLength < lastJournalLength) {
+          Assert.Pass($"Journal compacted from {lastJournalLength} bytes to {journalLength} bytes");
+          break;
+        }
+
+        lastJournalLength = journalLength;
+
+        maxReads--;
+
+        if (maxReads <= 0) {
+          Assert.Fail("exceeded max reads but journal was not rebuilt");
+        }
+      }
+    }
 
 
 

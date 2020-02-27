@@ -55,6 +55,7 @@ namespace Httx.Caches.Disk {
     private StreamWriter journalWriter;
     private int redundantOpCount;
 
+    private readonly object evictLock = new object();
     private readonly Regex legalKeyPattern = new Regex("^[a-z0-9_-]{1,120}$");
     private readonly LinkedDictionary<string, Entry> lruEntries =
       new LinkedDictionary<string, Entry>();
@@ -155,7 +156,7 @@ namespace Httx.Caches.Disk {
           try {
             ReadJournalLine(reader.ReadLine());
             lineCount++;
-          } catch (EndOfStreamException endOfJournal) {
+          } catch (EndOfStreamException) {
             break;
           }
         }
@@ -326,16 +327,14 @@ namespace Httx.Caches.Disk {
 
       redundantOpCount++;
       journalWriter.WriteLine($"{ReadFlag} {key}");
+      journalWriter.Flush();
 
       if (JournalRebuildRequired()) {
-        // TODO: CleanUp
-        // executorService.submit(cleanupCallable);
+        Evict();
       }
 
       return new Snapshot(key, entry.SequenceNumber, ins, entry.Lengths);
     }
-
-
 
     /// <summary>
     /// Returns an editor for the entry named {@code key}, or null if another
@@ -439,7 +438,7 @@ namespace Httx.Caches.Disk {
       journalWriter.Flush();
 
       if (size > maxSize || JournalRebuildRequired()) {
-        // TODO: executorService.submit(cleanupCallable);
+        Evict();
       }
     }
 
@@ -478,7 +477,7 @@ namespace Httx.Caches.Disk {
       lruEntries.Remove(key);
 
       if (JournalRebuildRequired()) {
-        // TODO: executorService.submit(cleanupCallable);
+        Evict();
       }
 
       return true;
@@ -541,6 +540,10 @@ namespace Httx.Caches.Disk {
     /// </summary>
     public DirectoryInfo Directory { get; }
 
+    public delegate void EvictCompleteHandler();
+
+    public event EvictCompleteHandler OnEvictComplete;
+
     /// <summary>
     /// Changes the maximum number of bytes the cache can store and queues a job
     /// to trim the existing store, if necessary.
@@ -552,9 +555,7 @@ namespace Httx.Caches.Disk {
       [MethodImpl(MethodImplOptions.Synchronized)]
       set {
         maxSize = value;
-
-        // TODO: Clean Up?
-        // Original: executorService.submit(cleanupCallable);
+        Evict();
       }
 
       [MethodImpl(MethodImplOptions.Synchronized)]
@@ -569,6 +570,28 @@ namespace Httx.Caches.Disk {
     public long Size {
       [MethodImpl(MethodImplOptions.Synchronized)]
       get => size;
+    }
+
+    /// <summary>
+    /// Original cache implementation uses a single background thread to evict entries.
+    /// Here, we simply do this synchronously to keep things clean and concise for now.
+    /// </summary>
+    public void Evict() {
+      lock (evictLock) {
+        if (null == journalWriter) {
+          return;
+        }
+
+        TrimToSize();
+
+        if (!JournalRebuildRequired()) {
+          return;
+        }
+
+        RebuildJournal();
+        redundantOpCount = 0;
+        OnEvictComplete?.Invoke();
+      }
     }
 
     private void CheckNotClosed() {
@@ -615,6 +638,11 @@ namespace Httx.Caches.Disk {
     private static void RenameTo(FileInfo from, FileInfo to, bool deleteDestination) {
       if (deleteDestination) {
         DeleteIfExists(to);
+      }
+
+      // TODO: XXX: Always forced to remove dst?
+      if (File.Exists(to.FullName)) {
+        File.Delete(to.FullName);
       }
 
       File.Move(from.FullName, to.FullName);
