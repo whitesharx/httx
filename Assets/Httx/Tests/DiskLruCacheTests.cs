@@ -695,7 +695,6 @@ namespace Httx.Tests {
         }
 
         lastJournalLength = journalLength;
-
         maxReads--;
 
         if (maxReads <= 0) {
@@ -703,6 +702,99 @@ namespace Httx.Tests {
         }
       }
     }
+
+    [Test]
+    public void RebuildJournalOnRepeatedEdits() {
+      long lastJournalLength = 0;
+      var maxWrites = 2000;
+
+      while (true) {
+        journalFile.Refresh();
+        var journalLength = journalFile.Length;
+
+        Set("a", "a", "a");
+        Set("b", "b", "b");
+
+        if (journalLength < lastJournalLength) {
+          Assert.Pass($"Journal compacted from {lastJournalLength} bytes to {journalLength} bytes");
+          break;
+        }
+
+        lastJournalLength = journalLength;
+        maxWrites--;
+
+        if (maxWrites <= 0) {
+          Assert.Fail("exceeded max writes but journal was not rebuilt");
+        }
+      }
+
+      // Sanity check that a rebuilt journal behaves normally.
+      AssertValue("a", "a", "a");
+      AssertValue("b", "b", "b");
+    }
+
+    [Test]
+    public void RebuildJournalOnRepeatedReadsWithOpenAndClose() {
+      Set("a", "a", "a");
+      Set("b", "b", "b");
+
+      long lastJournalLength = 0;
+      var maxReads = 2000;
+
+      while (true) {
+        journalFile.Refresh();
+        var journalLength = journalFile.Length;
+
+        AssertValue("a", "a", "a");
+        AssertValue("b", "b", "b");
+
+        cache.Close();
+        cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+
+        if (journalLength < lastJournalLength) {
+          Assert.Pass($"Journal compacted from {lastJournalLength} bytes to {journalLength} bytes");
+          break;
+        }
+
+        lastJournalLength = journalLength;
+        maxReads--;
+
+        if (maxReads <= 0) {
+          Assert.Fail("exceeded max reads but journal was not rebuilt");
+        }
+      }
+    }
+
+    [Test]
+    public void RebuildJournalOnRepeatedEditsWithOpenAndClose() {
+      long lastJournalLength = 0;
+      var maxWrites = 2000;
+
+      while (true) {
+        journalFile.Refresh();
+        var journalLength = journalFile.Length;
+
+        Set("a", "a", "a");
+        Set("b", "b", "b");
+
+        cache.Close();
+        cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+
+        if (journalLength < lastJournalLength) {
+          Assert.Pass($"Journal compacted from {lastJournalLength} bytes to {journalLength} bytes");
+          break;
+        }
+
+        lastJournalLength = journalLength;
+        maxWrites--;
+
+        if (maxWrites <= 0) {
+          Assert.Fail("exceeded max writes but journal was not rebuilt");
+        }
+      }
+    }
+
+
 
 
 
