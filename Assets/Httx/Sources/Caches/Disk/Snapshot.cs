@@ -30,12 +30,15 @@ namespace Httx.Caches.Disk {
     private readonly long sequenceNumber;
     private readonly Stream[] ins;
     private readonly long[] lengths;
+    private readonly WeakReference<DiskLruCache> parentRef;
 
-    public Snapshot(string key, long sequenceNumber, Stream[] ins, long[] lengths) {
+    public Snapshot(string key, long sequenceNumber, Stream[] ins, long[] lengths, DiskLruCache parent) {
       this.key = key;
       this.sequenceNumber = sequenceNumber;
       this.ins = ins;
       this.lengths = lengths;
+
+      parentRef = new WeakReference<DiskLruCache>(parent);
     }
 
     /// <summary>
@@ -44,9 +47,8 @@ namespace Httx.Caches.Disk {
     /// is in progress.
     /// </summary>
     public Editor Edit() {
-      throw new NotImplementedException();
-      // return DiskLruCache.this.edit(key, sequenceNumber);
-      return null;
+      parentRef.TryGetTarget(out var parent);
+      return parent?.Edit(key, sequenceNumber);
     }
 
     /// <summary>
@@ -72,7 +74,7 @@ namespace Httx.Caches.Disk {
 
     public void Dispose() {
       foreach (var s in ins) {
-        // Util.closeQuietly(in);
+        // XXX: Original: Util.closeQuietly(in);
         s.Dispose();
       }
     }

@@ -311,9 +311,8 @@ namespace Httx.Caches.Disk {
         for (var i = 0; i < ValueCount; i++) {
           ins[i] = entry.GetCleanFile(i).OpenRead();
         }
-      } catch (Exception e) when (e is DirectoryNotFoundException || e is UnauthorizedAccessException) {
+      } catch (FileNotFoundException) {
         // A file must have been deleted manually!
-
         for (var i = 0; i < ValueCount; i++) {
           if (null != ins[i]) {
             ins[i].Close();
@@ -333,7 +332,7 @@ namespace Httx.Caches.Disk {
         Evict();
       }
 
-      return new Snapshot(key, entry.SequenceNumber, ins, entry.Lengths);
+      return new Snapshot(key, entry.SequenceNumber, ins, entry.Lengths, this);
     }
 
     /// <summary>

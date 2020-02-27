@@ -24,7 +24,6 @@ using System.IO;
 using System.Linq;
 using Httx.Caches.Disk;
 using NUnit.Framework;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using FileMode = System.IO.FileMode;
 
@@ -824,6 +823,74 @@ namespace Httx.Tests {
       Assert.That(journalBackupFile.Exists, Is.False);
       Assert.That(journalFile.Exists, Is.True);
     }
+
+    [Test]
+    public void JournalFileIsPreferredOverBackupFile() {
+      var creator = cache.Edit("k1");
+      creator.Set(0, "ABC");
+      creator.Set(1, "DE");
+      creator.Commit();
+      cache.Flush();
+
+      File.Copy(journalFile.FullName, journalBackupFile.FullName);
+
+      creator = cache.Edit("k2");
+      creator.Set(0, "F");
+      creator.Set(1, "GH");
+      creator.Commit();
+      cache.Close();
+
+      Assert.That(journalFile.Exists, Is.True);
+      Assert.That(journalBackupFile.Exists, Is.True);
+
+      cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
+
+      var snapshotA = cache.Get("k1");
+
+      Assert.That(snapshotA.GetString(0), Is.EqualTo("ABC"));
+      Assert.That(snapshotA.GetLength(0), Is.EqualTo(3));
+      Assert.That(snapshotA.GetString(1), Is.EqualTo("DE"));
+      Assert.That(snapshotA.GetLength(1), Is.EqualTo(2));
+
+      var snapshotB = cache.Get("k2");
+
+      Assert.That(snapshotB.GetString(0), Is.EqualTo("F"));
+      Assert.That(snapshotB.GetLength(0), Is.EqualTo(1));
+      Assert.That(snapshotB.GetString(1), Is.EqualTo("GH"));
+      Assert.That(snapshotB.GetLength(1), Is.EqualTo(2));
+
+      Assert.That(journalBackupFile.Exists, Is.True);
+      Assert.That(journalFile.Exists, Is.True);
+    }
+
+    [Test]
+    [Ignore("Not Implemented")]
+    public void OpenCreatesDirectoryIfNecessary() {
+
+    }
+
+    [Test]
+    public void FileDeletedExternally() {
+      Set("a", "a", "a");
+      GetCleanFile("a", 1).Delete();
+      Assert.That(cache.Get("a"), Is.Null);
+    }
+
+    [Test]
+    public void EditSameVersion() {
+      Set("a", "a", "a");
+
+      var snapshot = cache.Get("a");
+      var editor = snapshot.Edit();
+      editor.Set(1, "a2");
+      editor.Commit();
+
+      AssertValue("a", "a", "a2");
+    }
+
+
+
+
 
 
 
