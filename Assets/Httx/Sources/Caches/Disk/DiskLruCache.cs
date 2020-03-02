@@ -28,7 +28,17 @@ using UnityEngine;
 
 namespace Httx.Caches.Disk {
   /// <summary>
-  /// Port of Disk LRU Cache from Android (c) Project
+  /// Direct port of Disk LRU Cache from Android project.
+  ///
+  /// Copyright 2012 Jake Wharton
+  /// Copyright 2011 The Android Open Source Project
+  ///
+  /// Differences:
+  ///  - Object classes separated from each other
+  ///  - Public API changed to apply to .net style
+  ///  - LinkedList replaced by custom LinkedDictionary
+  ///  - StrictLineReader replaced by standard .net *ReadLine
+  ///  - Util class replaced by standard .net handles
   ///
   /// <see cref="https://github.com/JakeWharton/DiskLruCache"/>
   /// <seealso cref="http://bit.ly/2S5O2px"/>
