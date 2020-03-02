@@ -23,23 +23,22 @@ using System.IO;
 using System.Text;
 
 namespace Httx.Caches.Disk {
-  // TODO: Immutabiliy, WeekRef to parent.
-  public class Entry {
+  public class UnsafeEntry {
     private readonly int valueCount;
     private readonly DirectoryInfo directory;
 
-    public Entry(string key, DirectoryInfo directory, int valueCount) {
-      Key = key;
+    public UnsafeEntry(string key, DirectoryInfo directory, int valueCount) {
       this.directory = directory;
       this.valueCount = valueCount;
 
-      Lengths = new long[valueCount];
+      Key = key;
+      UnsafeFileLengths = new long[valueCount];
     }
 
     public string GetLengths() {
       var result = new StringBuilder();
 
-      foreach (var size in Lengths) {
+      foreach (var size in UnsafeFileLengths) {
         result.Append(' ').Append(size);
       }
 
@@ -53,33 +52,33 @@ namespace Httx.Caches.Disk {
 
       try {
         for (var i = 0; i < strings.Length; i++) {
-          Lengths[i] = long.Parse(strings[i]);
+          UnsafeFileLengths[i] = long.Parse(strings[i]);
         }
       } catch (FormatException) {
         throw new IOException($"unexpected journal line: [{string.Join(", ", strings)}]");
       }
     }
 
-    public FileInfo GetCleanFile(int i) {
+    public FileInfo CleanFileAt(int i) {
       return new FileInfo(Path.Combine(directory.FullName, $"{Key}.{i}"));
     }
 
-    public FileInfo GetDirtyFile(int i) {
+    public FileInfo DirtyFileAt(int i) {
       return new FileInfo(Path.Combine(directory.FullName, $"{Key}.{i}.tmp"));
     }
 
-    /** The ongoing edit or null if this entry is not being edited. */
-    public Editor CurrentEditor { get; set; }
-
     public string Key { get; }
 
+    /** The ongoing edit or null if this entry is not being edited. */
+    public Editor UnsafeCurrentEditor { get; set; }
+
     /** Lengths of this entry's files. */
-    public long[] Lengths { get; }
+    public long[] UnsafeFileLengths { get; }
 
     /** True if this entry has ever been published. */
-    public bool Readable { get; set; }
+    public bool UnsafeReadable { get; set; }
 
     /** The sequence number of the most recently committed edit to this entry. */
-    public long SequenceNumber { get; set; }
+    public long UnsafeSequenceNumber { get; set; }
   }
 }

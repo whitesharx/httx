@@ -30,11 +30,11 @@ namespace Httx.Caches.Disk {
     private readonly bool[] written;
     private readonly DiskLruCache parent;
 
-    public Editor(Entry entry, DiskLruCache parent) {
+    public Editor(UnsafeEntry entry, DiskLruCache parent) {
       this.parent = parent;
 
       Entry = entry;
-      written = entry.Readable ? null : new bool[parent.ValueCount];
+      written = entry.UnsafeReadable ? null : new bool[parent.ValueCount];
     }
 
     /// <summary>
@@ -43,16 +43,16 @@ namespace Httx.Caches.Disk {
     /// </summary>
     public Stream ReaderInstanceAt(int index) {
       lock (parent) {
-        if (this != Entry.CurrentEditor) {
+        if (this != Entry.UnsafeCurrentEditor) {
           throw new InvalidOperationException();
         }
 
-        if (!Entry.Readable) {
+        if (!Entry.UnsafeReadable) {
           return null;
         }
 
         try {
-          return Entry.GetCleanFile(index).OpenRead();
+          return Entry.CleanFileAt(index).OpenRead();
         } catch (FileNotFoundException) {
           return null;
         }
@@ -83,15 +83,15 @@ namespace Httx.Caches.Disk {
       }
 
       lock (parent) {
-        if (this != Entry.CurrentEditor) {
+        if (this != Entry.UnsafeCurrentEditor) {
           throw new InvalidOperationException();
         }
 
-        if (!Entry.Readable) {
+        if (!Entry.UnsafeReadable) {
           written[index] = true;
         }
 
-        var dirtyFile = Entry.GetDirtyFile(index);
+        var dirtyFile = Entry.DirtyFileAt(index);
         Stream outputStream;
 
         try {
@@ -147,7 +147,7 @@ namespace Httx.Caches.Disk {
 
     public bool Committed { get; private set; }
 
-    public Entry Entry { get; }
+    public UnsafeEntry Entry { get; }
 
     public IEnumerable<bool> Written => written;
 

@@ -68,8 +68,8 @@ namespace Httx.Caches.Disk {
 
     private readonly object evictLock = new object();
     private readonly Regex legalKeyPattern = new Regex("^[a-z0-9_-]{1,120}$");
-    private readonly LinkedDictionary<string, Entry> lruEntries =
-      new LinkedDictionary<string, Entry>();
+    private readonly LinkedDictionary<string, UnsafeEntry> lruEntries =
+      new LinkedDictionary<string, UnsafeEntry>();
 
     /// <summary>
     /// To differentiate between old and current snapshots, each entry is given
@@ -212,18 +212,18 @@ namespace Httx.Caches.Disk {
       lruEntries.TryGetValue(key, out var entry);
 
       if (null == entry) {
-        entry = new Entry(key, Directory, ValueCount);
+        entry = new UnsafeEntry(key, Directory, ValueCount);
         lruEntries[key] = entry;
       }
 
       if (secondSpace != -1 && firstSpace == CleanFlag.Length && line.StartsWith(CleanFlag)) {
         var parts = line.Substring(secondSpace + 1).Split(' ');
 
-        entry.Readable = true;
-        entry.CurrentEditor = null;
+        entry.UnsafeReadable = true;
+        entry.UnsafeCurrentEditor = null;
         entry.SetLengths(parts);
       } else if (secondSpace == -1 && firstSpace == DirtyFlag.Length && line.StartsWith(DirtyFlag)) {
-        entry.CurrentEditor = new Editor(entry, this);
+        entry.UnsafeCurrentEditor = new Editor(entry, this);
       } else if (secondSpace == -1 && firstSpace == ReadFlag.Length && line.StartsWith(ReadFlag)) {
         // This work was already done by calling lruEntries.get().
       } else {
@@ -241,16 +241,16 @@ namespace Httx.Caches.Disk {
       var entries = lruEntries.Values.ToList();
 
       foreach (var entry in entries) {
-        if (null == entry.CurrentEditor) {
+        if (null == entry.UnsafeCurrentEditor) {
           for (var i = 0; i < ValueCount; i++) {
-            size += entry.Lengths[i];
+            size += entry.UnsafeFileLengths[i];
           }
         } else {
-          entry.CurrentEditor = null;
+          entry.UnsafeCurrentEditor = null;
 
           for (var i = 0; i < ValueCount; i++) {
-            DeleteIfExists(entry.GetCleanFile(i));
-            DeleteIfExists(entry.GetDirtyFile(i));
+            DeleteIfExists(entry.CleanFileAt(i));
+            DeleteIfExists(entry.DirtyFileAt(i));
           }
 
           // XXX: i.remove();
@@ -275,7 +275,7 @@ namespace Httx.Caches.Disk {
         writer.WriteLine();
 
         foreach (var entry in lruEntries.Values) {
-          if (null != entry.CurrentEditor) {
+          if (null != entry.UnsafeCurrentEditor) {
             writer.WriteLine($"{DirtyFlag} {entry.Key}");
           } else {
             writer.WriteLine($"{CleanFlag} {entry.Key}{entry.GetLengths()}");
@@ -309,7 +309,7 @@ namespace Httx.Caches.Disk {
         return null;
       }
 
-      if (!entry.Readable) {
+      if (!entry.UnsafeReadable) {
         return null;
       }
 
@@ -320,7 +320,7 @@ namespace Httx.Caches.Disk {
 
       try {
         for (var i = 0; i < ValueCount; i++) {
-          ins[i] = entry.GetCleanFile(i).OpenRead();
+          ins[i] = entry.CleanFileAt(i).OpenRead();
         }
       } catch (FileNotFoundException) {
         // A file must have been deleted manually!
@@ -343,7 +343,7 @@ namespace Httx.Caches.Disk {
         Evict();
       }
 
-      return new Snapshot(key, entry.SequenceNumber, ins, entry.Lengths, this);
+      return new Snapshot(key, entry.UnsafeSequenceNumber, ins, entry.UnsafeFileLengths, this);
     }
 
     /// <summary>
@@ -358,19 +358,19 @@ namespace Httx.Caches.Disk {
       lruEntries.TryGetValue(key, out var entry);
 
       if (expectedSequenceNumber != AnySequenceNumber
-        && (null == entry || entry.SequenceNumber != expectedSequenceNumber)) {
+        && (null == entry || entry.UnsafeSequenceNumber != expectedSequenceNumber)) {
         return null; // Snapshot is stale.
       }
 
       if (null == entry) {
-        entry = new Entry(key, Directory, ValueCount);
+        entry = new UnsafeEntry(key, Directory, ValueCount);
         lruEntries[key] = entry;
-      } else if (null != entry.CurrentEditor) {
+      } else if (null != entry.UnsafeCurrentEditor) {
         return null; // Another edit is in progress.
       }
 
       var editor = new Editor(entry, this);
-      entry.CurrentEditor = editor;
+      entry.UnsafeCurrentEditor = editor;
 
       // Flush the journal before creating files to prevent file leaks.
       journalWriter.WriteLine($"{DirtyFlag} {key}");
@@ -385,20 +385,20 @@ namespace Httx.Caches.Disk {
     public void CompleteEdit(Editor editor, bool success) {
       var entry = editor.Entry;
 
-      if (entry.CurrentEditor != editor) {
+      if (entry.UnsafeCurrentEditor != editor) {
         throw new InvalidOperationException();
       }
 
       // If this edit is creating the entry for the first
       // time, every index must have a value.
-      if (success && !entry.Readable) {
+      if (success && !entry.UnsafeReadable) {
         for (var i = 0; i < ValueCount; i++) {
           if (!editor.WrittenAt(i)) {
             editor.Abort();
             throw new InvalidOperationException($"newly created entry didn't create value for index {i}");
           }
 
-          if (!entry.GetDirtyFile(i).Exists) {
+          if (!entry.DirtyFileAt(i).Exists) {
             editor.Abort();
             return;
           }
@@ -406,11 +406,11 @@ namespace Httx.Caches.Disk {
       }
 
       for (var i = 0; i < ValueCount; i++) {
-        var dirty = entry.GetDirtyFile(i);
+        var dirty = entry.DirtyFileAt(i);
 
         if (success) {
           if (dirty.Exists) {
-            var clean = entry.GetCleanFile(i);
+            var clean = entry.CleanFileAt(i);
 
             if (File.Exists(clean.FullName)) {
               File.Delete(clean.FullName);
@@ -418,10 +418,10 @@ namespace Httx.Caches.Disk {
 
             File.Move(dirty.FullName, clean.FullName);
 
-            var oldLength = entry.Lengths[i];
+            var oldLength = entry.UnsafeFileLengths[i];
             var newLength = clean.Length;
 
-            entry.Lengths[i] = newLength;
+            entry.UnsafeFileLengths[i] = newLength;
             size = size - oldLength + newLength;
           }
         } else {
@@ -430,15 +430,15 @@ namespace Httx.Caches.Disk {
       }
 
       redundantOpCount++;
-      entry.CurrentEditor = null;
+      entry.UnsafeCurrentEditor = null;
 
       // Original: if (entry.readable | success)
-      if (entry.Readable || success) {
-        entry.Readable = true;
+      if (entry.UnsafeReadable || success) {
+        entry.UnsafeReadable = true;
         journalWriter.WriteLine($"{CleanFlag} {entry.Key}{entry.GetLengths()}");
 
         if (success) {
-          entry.SequenceNumber = nextSequenceNumber++;
+          entry.UnsafeSequenceNumber = nextSequenceNumber++;
         }
       } else {
         lruEntries.Remove(entry.Key);
@@ -463,12 +463,12 @@ namespace Httx.Caches.Disk {
 
       lruEntries.TryGetValue(key, out var entry);
 
-      if (null == entry || null != entry.CurrentEditor) {
+      if (null == entry || null != entry.UnsafeCurrentEditor) {
         return false;
       }
 
       for (var i = 0; i < ValueCount; i++) {
-        var file = entry.GetCleanFile(i);
+        var file = entry.CleanFileAt(i);
 
         if (file.Exists) {
           try {
@@ -478,8 +478,8 @@ namespace Httx.Caches.Disk {
           }
         }
 
-        size -= entry.Lengths[i];
-        entry.Lengths[i] = 0;
+        size -= entry.UnsafeFileLengths[i];
+        entry.UnsafeFileLengths[i] = 0;
       }
 
       redundantOpCount++;
@@ -515,7 +515,7 @@ namespace Httx.Caches.Disk {
       var entries = lruEntries.Values.ToList();
 
       foreach (var entry in entries) {
-        entry.CurrentEditor?.Abort();
+        entry.UnsafeCurrentEditor?.Abort();
       }
 
       TrimToSize();
