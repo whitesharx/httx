@@ -38,7 +38,8 @@ namespace Httx.Caches.Disk {
   ///  - LinkedList replaced by custom LinkedDictionary
   ///  - StrictLineReader replaced by standard .net *ReadLine
   ///  - Util class replaced by standard .net handles
-  ///  - Cache manages evictions/stream synchronously
+  ///  - Public, synchronous Evict method instead of worker thread,
+  /// you need to manage it manually, as you decide.
   ///
   /// <see cref="https://github.com/JakeWharton/DiskLruCache"/>
   /// <seealso cref="http://bit.ly/2S5O2px"/>
@@ -140,6 +141,10 @@ namespace Httx.Caches.Disk {
       cache.RebuildJournal();
 
       return cache;
+    }
+
+    public static DiskLruCache Open(string path, int appVersion, long maxSize = int.MaxValue) {
+      return Open(new DirectoryInfo(path), appVersion, 1, maxSize);
     }
 
     private void ReadJournal() {

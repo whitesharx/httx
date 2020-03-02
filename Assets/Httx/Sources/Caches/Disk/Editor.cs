@@ -116,11 +116,16 @@ namespace Httx.Caches.Disk {
     /// <summary>
     /// Sets the value at index to value.
     /// </summary>
-    public void SetAt(int index, string value) {
+    public void PutAt(int index, string value) {
       using (var writer = new StreamWriter(WriterInstanceAt(index))) {
         writer.Write(value);
       }
     }
+
+    /// <summary>
+    /// Sets the value at 0 index to value.
+    /// </summary>
+    public void Put(string value) => PutAt(0, value);
 
     /// <summary>
     /// Commits this edit so it is visible to readers.  This releases the

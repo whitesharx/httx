@@ -76,7 +76,7 @@ namespace Httx.Caches.Disk {
     /// <summary>
     /// Returns the string value for 0 index.
     /// </summary>
-    public string String => StringAt(0);
+    public string StringValue => StringAt(0);
 
     /// <summary>
     /// Returns the byte array value for index.
@@ -95,7 +95,7 @@ namespace Httx.Caches.Disk {
     /// <summary>
     /// Returns the byte array value for 0 index.
     /// </summary>
-    public IEnumerable<byte> Bytes => BytesAt(0);
+    public IEnumerable<byte> ByteValue => BytesAt(0);
 
     /// <summary>
     /// Returns the byte length of the value for index
