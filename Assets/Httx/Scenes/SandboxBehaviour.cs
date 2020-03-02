@@ -100,8 +100,8 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     SetUp();
 
     var editor = cache.Edit("k1");
-    editor.Set(0, "A");
-    editor.Set(1, "B");
+    editor.SetAt(0, "A");
+    editor.SetAt(1, "B");
     editor.Commit();
 
     cache.Close();

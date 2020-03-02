@@ -19,6 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Httx.Caches.Disk {
@@ -26,19 +27,13 @@ namespace Httx.Caches.Disk {
   /// Edits the values for an entry.
   /// </summary>
   public class Editor {
-    private readonly Entry entry;
     private readonly bool[] written;
-
-    // TODO: WeakRef?
     private readonly DiskLruCache parent;
 
-    private bool hasErrors;
-    private bool committed;
-
     public Editor(Entry entry, DiskLruCache parent) {
-      this.entry = entry;
       this.parent = parent;
 
+      Entry = entry;
       written = entry.Readable ? null : new bool[parent.ValueCount];
     }
 
@@ -46,18 +41,18 @@ namespace Httx.Caches.Disk {
     /// Returns an unbuffered input stream to read the last committed value,
     /// or null if no value has been committed.
     /// </summary>
-    public Stream NewInputStream(int index) {
+    public Stream ReaderInstanceAt(int index) {
       lock (parent) {
-        if (this != entry.CurrentEditor) {
+        if (this != Entry.CurrentEditor) {
           throw new InvalidOperationException();
         }
 
-        if (!entry.Readable) {
+        if (!Entry.Readable) {
           return null;
         }
 
         try {
-          return entry.GetCleanFile(index).OpenRead();
+          return Entry.GetCleanFile(index).OpenRead();
         } catch (FileNotFoundException) {
           return null;
         }
@@ -68,8 +63,8 @@ namespace Httx.Caches.Disk {
     /// Returns the last committed value as a string, or null if no value
     /// has been committed.
     /// </summary>
-    public string GetString(int index) {
-      var inputStream = NewInputStream(index);
+    public string StringAt(int index) {
+      var inputStream = ReaderInstanceAt(index);
       return null != inputStream ? new StreamReader(inputStream).ReadToEnd() : null;
     }
 
@@ -80,7 +75,7 @@ namespace Httx.Caches.Disk {
     /// commit is called. The returned output stream does not throw
     /// IOExceptions.
     /// </summary>
-    public Stream NewOutputStream(int index) {
+    public Stream WriterInstanceAt(int index) {
       if (index < 0 || index >= parent.ValueCount) {
         throw new ArgumentException($"Expected index {index} to "
           + "be greater than 0 and less than the maximum value count "
@@ -88,15 +83,15 @@ namespace Httx.Caches.Disk {
       }
 
       lock (parent) {
-        if (this != entry.CurrentEditor) {
+        if (this != Entry.CurrentEditor) {
           throw new InvalidOperationException();
         }
 
-        if (!entry.Readable) {
+        if (!Entry.Readable) {
           written[index] = true;
         }
 
-        var dirtyFile = entry.GetDirtyFile(index);
+        var dirtyFile = Entry.GetDirtyFile(index);
         Stream outputStream;
 
         try {
@@ -121,8 +116,8 @@ namespace Httx.Caches.Disk {
     /// <summary>
     /// Sets the value at index to value.
     /// </summary>
-    public void Set(int index, string value) {
-      using (var writer = new StreamWriter(NewOutputStream(index))) {
+    public void SetAt(int index, string value) {
+      using (var writer = new StreamWriter(WriterInstanceAt(index))) {
         writer.Write(value);
       }
     }
@@ -132,14 +127,14 @@ namespace Httx.Caches.Disk {
     /// edit lock so another edit may be started on the same key.
     /// </summary>
     public void Commit() {
-      if (hasErrors) {
-        parent.CompleteEdit(this, false);
-        parent.Remove(entry.Key); // The previous entry is stale.
-      } else {
+      try {
         parent.CompleteEdit(this, true);
+      } catch (Exception) {
+        parent.CompleteEdit(this, false);
+        parent.Remove(Entry.Key); // The previous entry is stale.
       }
 
-      committed = true;
+      Committed = true;
     }
 
     /// <summary>
@@ -150,19 +145,12 @@ namespace Httx.Caches.Disk {
       parent.CompleteEdit(this, false);
     }
 
-    public void AbortUnlessCommitted() {
-      if (!committed) {
-        try {
-          Abort();
-        } catch (IOException) {
+    public bool Committed { get; private set; }
 
-        }
-      }
-    }
+    public Entry Entry { get; }
 
-    // TODO: FaultHidingOutputStream
+    public IEnumerable<bool> Written => written;
 
-    public Entry Entry => entry;
-    public bool[] Written => written;
+    public bool WrittenAt(int index) => written[index];
   }
 }

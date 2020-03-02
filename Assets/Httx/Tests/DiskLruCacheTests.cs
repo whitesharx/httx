@@ -132,13 +132,13 @@ namespace Httx.Tests {
     [Test]
     public void WriteAndReadEntry() {
       var editor = cache.Edit("k1");
-      editor.Set(0, "ABC");
-      editor.Set(1, "DE");
+      editor.SetAt(0, "ABC");
+      editor.SetAt(1, "DE");
 
-      Assert.That(editor.GetString(0), Is.Null);
-      Assert.That(editor.NewInputStream(0), Is.Null);
-      Assert.That(editor.GetString(1), Is.Null);
-      Assert.That(editor.NewInputStream(1), Is.Null);
+      Assert.That(editor.StringAt(0), Is.Null);
+      Assert.That(editor.ReaderInstanceAt(0), Is.Null);
+      Assert.That(editor.StringAt(1), Is.Null);
+      Assert.That(editor.ReaderInstanceAt(1), Is.Null);
 
       editor.Commit();
 
@@ -153,8 +153,8 @@ namespace Httx.Tests {
     [Test]
     public void ReadAndWriteEntryAcrossCacheOpenAndClose() {
       var editor = cache.Edit("k1");
-      editor.Set(0, "A");
-      editor.Set(1, "B");
+      editor.SetAt(0, "A");
+      editor.SetAt(1, "B");
       editor.Commit();
 
       cache.Close();
@@ -173,8 +173,8 @@ namespace Httx.Tests {
     [Test]
     public void ReadAndWriteEntryWithoutProperClose() {
       var creator = cache.Edit("k1");
-      creator.Set(0, "A");
-      creator.Set(1, "B");
+      creator.SetAt(0, "A");
+      creator.SetAt(1, "B");
       creator.Commit();
 
       // Simulate a dirty close of 'cache' by opening the cache directory again.
@@ -196,8 +196,8 @@ namespace Httx.Tests {
 
       AssertJournalEquals("DIRTY k1"); // DIRTY must always be flushed.
 
-      creator.Set(0, "AB");
-      creator.Set(1, "C");
+      creator.SetAt(0, "AB");
+      creator.SetAt(1, "C");
       creator.Commit();
 
       cache.Close();
@@ -211,8 +211,8 @@ namespace Httx.Tests {
 
       AssertJournalEquals("DIRTY k1"); // DIRTY must always be flushed.
 
-      creator.Set(0, "AB");
-      creator.Set(1, "C");
+      creator.SetAt(0, "AB");
+      creator.SetAt(1, "C");
       creator.Abort();
 
       cache.Close();
@@ -233,8 +233,8 @@ namespace Httx.Tests {
 
       Assert.That(cache.Get("k1"), Is.Null);
 
-      creator.Set(0, "A");
-      creator.Set(1, "BC");
+      creator.SetAt(0, "A");
+      creator.SetAt(1, "BC");
       creator.Commit();
 
       cache.Close();
@@ -245,13 +245,13 @@ namespace Httx.Tests {
     [Test]
     public void JournalWithEditAndPublishAndRead() {
       var k1Creator = cache.Edit("k1");
-      k1Creator.Set(0, "AB");
-      k1Creator.Set(1, "C");
+      k1Creator.SetAt(0, "AB");
+      k1Creator.SetAt(1, "C");
       k1Creator.Commit();
 
       var k2Creator = cache.Edit("k2");
-      k2Creator.Set(0, "DEF");
-      k2Creator.Set(1, "G");
+      k2Creator.SetAt(0, "DEF");
+      k2Creator.SetAt(1, "G");
       k2Creator.Commit();
 
       var k1Snapshot = cache.Get("k1");
@@ -265,8 +265,8 @@ namespace Httx.Tests {
     public void CannotOperateOnEditAfterPublish() {
       var editor = cache.Edit("k1");
 
-      editor.Set(0, "A");
-      editor.Set(1, "B");
+      editor.SetAt(0, "A");
+      editor.SetAt(1, "B");
       editor.Commit();
 
       AssertInoperable(editor);
@@ -275,8 +275,8 @@ namespace Httx.Tests {
     [Test]
     public void CannotOperateOnEditAfterRevert() {
       var editor = cache.Edit("k1");
-      editor.Set(0, "A");
-      editor.Set(1, "B");
+      editor.SetAt(0, "A");
+      editor.SetAt(1, "B");
       editor.Abort();
 
       AssertInoperable(editor);
@@ -285,8 +285,8 @@ namespace Httx.Tests {
     [Test]
     public void ExplicitRemoveAppliedToDiskImmediately() {
       var editor = cache.Edit("k1");
-      editor.Set(0, "ABC");
-      editor.Set(1, "B");
+      editor.SetAt(0, "ABC");
+      editor.SetAt(1, "B");
       editor.Commit();
 
       var k1 = GetCleanFile("k1", 0);
@@ -305,8 +305,8 @@ namespace Httx.Tests {
     [Test]
     public void ReadAndWriteOverlapsMaintainConsistency() {
       var v1Creator = cache.Edit("k1");
-      v1Creator.Set(0, "AAaa");
-      v1Creator.Set(1, "BBbb");
+      v1Creator.SetAt(0, "AAaa");
+      v1Creator.SetAt(1, "BBbb");
       v1Creator.Commit();
 
       var snapshot1 = cache.Get("k1");
@@ -316,8 +316,8 @@ namespace Httx.Tests {
       Assert.That(inV1.ReadByte(), Is.EqualTo('A'));
 
       var v1Updater = cache.Edit("k1");
-      v1Updater.Set(0, "CCcc");
-      v1Updater.Set(1, "DDdd");
+      v1Updater.SetAt(0, "CCcc");
+      v1Updater.SetAt(1, "DDdd");
       v1Updater.Commit();
 
       var snapshot2 = cache.Get("k1");
@@ -496,7 +496,7 @@ namespace Httx.Tests {
     [Test]
     public void CreateNewEntryWithTooFewValuesFails() {
       var creator = cache.Edit("k1");
-      creator.Set(1, "A");
+      creator.SetAt(1, "A");
 
       Assert.Catch<InvalidOperationException>(() => {
         creator.Commit();
@@ -510,15 +510,15 @@ namespace Httx.Tests {
       Assert.That(cache.Get("k1"), Is.Null);
 
       var creator2 = cache.Edit("k1");
-      creator2.Set(0, "B");
-      creator2.Set(1, "C");
+      creator2.SetAt(0, "B");
+      creator2.SetAt(1, "C");
       creator2.Commit();
     }
 
     [Test]
     public void RevertWithTooFewValues() {
       var creator = cache.Edit("k1");
-      creator.Set(1, "A");
+      creator.SetAt(1, "A");
       creator.Abort();
 
       Assert.That(GetCleanFile("k1", 0).Exists, Is.False);
@@ -532,12 +532,12 @@ namespace Httx.Tests {
     [Test]
     public void UpdateExistingEntryWithTooFewValuesReusesPreviousValues() {
       var creator = cache.Edit("k1");
-      creator.Set(0, "A");
-      creator.Set(1, "B");
+      creator.SetAt(0, "A");
+      creator.SetAt(1, "B");
       creator.Commit();
 
       var updater = cache.Edit("k1");
-      updater.Set(0, "C");
+      updater.SetAt(0, "C");
       updater.Commit();
 
       var snapshot = cache.Get("k1");
@@ -858,8 +858,8 @@ namespace Httx.Tests {
     [Test]
     public void RestoreBackupFile() {
       var creator = cache.Edit("k1");
-      creator.Set(0, "ABC");
-      creator.Set(1, "DE");
+      creator.SetAt(0, "ABC");
+      creator.SetAt(1, "DE");
       creator.Commit();
       cache.Close();
 
@@ -889,16 +889,16 @@ namespace Httx.Tests {
     [Test]
     public void JournalFileIsPreferredOverBackupFile() {
       var creator = cache.Edit("k1");
-      creator.Set(0, "ABC");
-      creator.Set(1, "DE");
+      creator.SetAt(0, "ABC");
+      creator.SetAt(1, "DE");
       creator.Commit();
       cache.Flush();
 
       File.Copy(journalFile.FullName, journalBackupFile.FullName);
 
       creator = cache.Edit("k2");
-      creator.Set(0, "F");
-      creator.Set(1, "GH");
+      creator.SetAt(0, "F");
+      creator.SetAt(1, "GH");
       creator.Commit();
       cache.Close();
 
@@ -942,7 +942,7 @@ namespace Httx.Tests {
 
       var snapshot = cache.Get("a");
       var editor = snapshot.Edit();
-      editor.Set(1, "a2");
+      editor.SetAt(1, "a2");
       editor.Commit();
 
       AssertValue("a", "a", "a2");
@@ -954,11 +954,11 @@ namespace Httx.Tests {
 
       var snapshot = cache.Get("a");
       var toAbort = snapshot.Edit();
-      toAbort.Set(0, "b");
+      toAbort.SetAt(0, "b");
       toAbort.Abort();
 
       var editor = snapshot.Edit();
-      editor.Set(1, "a2");
+      editor.SetAt(1, "a2");
       editor.Commit();
 
       AssertValue("a", "a", "a2");
@@ -969,7 +969,7 @@ namespace Httx.Tests {
       Set("a", "a", "a");
       var snapshot = cache.Get("a");
       var toAbort = snapshot.Edit();
-      toAbort.Set(0, "b");
+      toAbort.SetAt(0, "b");
       toAbort.Commit();
       Assert.That(snapshot.Edit(), Is.Null);
     }
@@ -1012,7 +1012,7 @@ namespace Httx.Tests {
       Set("a", "a", "a");
       var a = cache.Get("a").Edit();
       directory.Delete(true);
-      a.Set(1, "a2");
+      a.SetAt(1, "a2");
       a.Commit();
     }
 
@@ -1028,9 +1028,9 @@ namespace Httx.Tests {
       Set("a", "a", "a");
       Set("b", "b", "b");
       var a = cache.Get("a").Edit();
-      a.Set(0, "a1");
+      a.SetAt(0, "a1");
       directory.Delete(true);
-      a.Set(1, "a2");
+      a.SetAt(1, "a2");
       a.Commit();
       Assert.That(cache.Get("a"), Is.Null);
     }
@@ -1043,19 +1043,19 @@ namespace Httx.Tests {
 
     private static void AssertInoperable(Editor editor) {
       Assert.Catch<InvalidOperationException>(() => {
-        editor.GetString(0);
+        editor.StringAt(0);
       });
 
       Assert.Catch<InvalidOperationException>(() => {
-        editor.Set(0, "A");
+        editor.SetAt(0, "A");
       });
 
       Assert.Catch<InvalidOperationException>(() => {
-        editor.NewInputStream(0);
+        editor.ReaderInstanceAt(0);
       });
 
       Assert.Catch<InvalidOperationException>(() => {
-        editor.NewOutputStream(0);
+        editor.WriterInstanceAt(0);
       });
 
       Assert.Catch<InvalidOperationException>(() => {
@@ -1170,8 +1170,8 @@ namespace Httx.Tests {
 
     private void Set(string key, string value0, string value1) {
       var editor = cache.Edit(key);
-      editor.Set(0, value0);
-      editor.Set(1, value1);
+      editor.SetAt(0, value0);
+      editor.SetAt(1, value1);
       editor.Commit();
     }
 

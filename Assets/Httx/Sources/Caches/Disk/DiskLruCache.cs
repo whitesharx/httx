@@ -39,6 +39,7 @@ namespace Httx.Caches.Disk {
   ///  - LinkedList replaced by custom LinkedDictionary
   ///  - StrictLineReader replaced by standard .net *ReadLine
   ///  - Util class replaced by standard .net handles
+  ///  - Cache manages evictions/stream synchronously
   ///
   /// <see cref="https://github.com/JakeWharton/DiskLruCache"/>
   /// <seealso cref="http://bit.ly/2S5O2px"/>
@@ -392,7 +393,7 @@ namespace Httx.Caches.Disk {
       // time, every index must have a value.
       if (success && !entry.Readable) {
         for (var i = 0; i < ValueCount; i++) {
-          if (!editor.Written[i]) {
+          if (!editor.WrittenAt(i)) {
             editor.Abort();
             throw new InvalidOperationException($"newly created entry didn't create value for index {i}");
           }
