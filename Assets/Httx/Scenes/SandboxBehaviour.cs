@@ -104,7 +104,7 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     editor.SetAt(1, "B");
     editor.Commit();
 
-    cache.Close();
+    cache.Dispose();
 
     cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
     var snapshot = cache.Get("k1");

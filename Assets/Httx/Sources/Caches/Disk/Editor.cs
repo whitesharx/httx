@@ -128,9 +128,9 @@ namespace Httx.Caches.Disk {
     /// </summary>
     public void Commit() {
       try {
-        parent.CompleteEdit(this, true);
+        parent.UnsafeCompleteEdit(this, true);
       } catch (Exception) {
-        parent.CompleteEdit(this, false);
+        parent.UnsafeCompleteEdit(this, false);
         parent.Remove(Entry.Key); // The previous entry is stale.
       }
 
@@ -142,7 +142,7 @@ namespace Httx.Caches.Disk {
     /// started on the same key.
     /// </summary>
     public void Abort() {
-      parent.CompleteEdit(this, false);
+      parent.UnsafeCompleteEdit(this, false);
     }
 
     public bool Committed { get; private set; }

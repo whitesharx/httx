@@ -24,7 +24,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Httx.Caches.Collections;
-using UnityEngine;
 
 namespace Httx.Caches.Disk {
   /// <summary>
@@ -44,14 +43,14 @@ namespace Httx.Caches.Disk {
   /// <see cref="https://github.com/JakeWharton/DiskLruCache"/>
   /// <seealso cref="http://bit.ly/2S5O2px"/>
   /// </summary>
-  public class DiskLruCache {
+  public class DiskLruCache : IDisposable {
     public const string JournalFile = "journal";
     public const string JournalFileTemp = "journal.tmp";
     public const string JournalFileBackup = "journal.bkp";
     public const string Magic = "libcore.io.DiskLruCache";
     public const string Version1 = "1";
-    public const long AnySequenceNumber = -1;
 
+    private const long AnySequenceNumber = -1;
     private const string CleanFlag = "CLEAN";
     private const string DirtyFlag = "DIRTY";
     private const string RemoveFlag = "REMOVE";
@@ -129,10 +128,8 @@ namespace Httx.Caches.Disk {
           cache.ProcessJournal();
 
           return cache;
-        } catch (IOException journalIsCorrupt) {
-          // XXX: Remove
-          Debug.Log($"{directory} is corrupt, removing: {journalIsCorrupt.Message}");
-          Debug.LogWarning(journalIsCorrupt);
+        } catch (IOException) {
+          // Journal is corrupt
           cache.Delete();
         }
       }
@@ -275,11 +272,9 @@ namespace Httx.Caches.Disk {
         writer.WriteLine();
 
         foreach (var entry in lruEntries.Values) {
-          if (null != entry.UnsafeCurrentEditor) {
-            writer.WriteLine($"{DirtyFlag} {entry.Key}");
-          } else {
-            writer.WriteLine($"{CleanFlag} {entry.Key}{entry.GetLengths()}");
-          }
+          writer.WriteLine(null != entry.UnsafeCurrentEditor
+            ? $"{DirtyFlag} {entry.Key}"
+            : $"{CleanFlag} {entry.Key}{entry.GetLengths()}");
         }
       }
 
@@ -379,10 +374,8 @@ namespace Httx.Caches.Disk {
       return editor;
     }
 
-
-    // TODO: Private???
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void CompleteEdit(Editor editor, bool success) {
+    public void UnsafeCompleteEdit(Editor editor, bool success) {
       var entry = editor.Entry;
 
       if (entry.UnsafeCurrentEditor != editor) {
@@ -507,7 +500,7 @@ namespace Httx.Caches.Disk {
     /// Closes this cache. Stored values will remain on the filesystem.
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public void Close() {
+    public void Dispose() {
       if (null == journalWriter) {
         return; // Already closed.
       }
@@ -531,7 +524,7 @@ namespace Httx.Caches.Disk {
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
     public void Delete() {
-      Close();
+      Dispose();
       Directory.Delete(true);
     }
 

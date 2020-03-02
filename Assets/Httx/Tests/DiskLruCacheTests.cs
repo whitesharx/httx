@@ -56,12 +56,12 @@ namespace Httx.Tests {
 
     [TearDown]
     public void TearDown() {
-      cache.Close();
+      cache.Dispose();
     }
 
     [Test]
     public void EmptyCache() {
-      cache.Close();
+      cache.Dispose();
       AssertJournalEquals();
     }
 
@@ -157,7 +157,7 @@ namespace Httx.Tests {
       editor.SetAt(1, "B");
       editor.Commit();
 
-      cache.Close();
+      cache.Dispose();
 
       cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
       var snapshot = cache.Get("k1");
@@ -187,7 +187,7 @@ namespace Httx.Tests {
       Assert.That(snapshot.LengthAt(1), Is.EqualTo(1));
 
       snapshot.Dispose();
-      cache2.Close();
+      cache2.Dispose();
     }
 
     [Test]
@@ -200,7 +200,7 @@ namespace Httx.Tests {
       creator.SetAt(1, "C");
       creator.Commit();
 
-      cache.Close();
+      cache.Dispose();
 
       AssertJournalEquals("DIRTY k1", "CLEAN k1 2 1");
     }
@@ -215,14 +215,14 @@ namespace Httx.Tests {
       creator.SetAt(1, "C");
       creator.Abort();
 
-      cache.Close();
+      cache.Dispose();
       AssertJournalEquals("DIRTY k1", "REMOVE k1");
     }
 
     [Test]
     public void UnterminatedEditIsRevertedOnClose() {
       cache.Edit("k1");
-      cache.Close();
+      cache.Dispose();
 
       AssertJournalEquals("DIRTY k1", "REMOVE k1");
     }
@@ -237,7 +237,7 @@ namespace Httx.Tests {
       creator.SetAt(1, "BC");
       creator.Commit();
 
-      cache.Close();
+      cache.Dispose();
 
       AssertJournalEquals("DIRTY k1", "CLEAN k1 1 2");
     }
@@ -257,7 +257,7 @@ namespace Httx.Tests {
       var k1Snapshot = cache.Get("k1");
       k1Snapshot.Dispose();
 
-      cache.Close();
+      cache.Dispose();
       AssertJournalEquals("DIRTY k1", "CLEAN k1 2 1", "DIRTY k2", "CLEAN k2 3 1", "READ k1");
     }
 
@@ -336,7 +336,7 @@ namespace Httx.Tests {
 
     [Test]
     public void OpenWithDirtyKeyDeletesAllFilesForThatKey() {
-      cache.Close();
+      cache.Dispose();
 
       var cleanFile0 = GetCleanFile("k1", 0);
       var cleanFile1 = GetCleanFile("k1", 1);
@@ -363,7 +363,7 @@ namespace Httx.Tests {
 
     [Test]
     public void OpenWithInvalidVersionClearsDirectory() {
-      cache.Close();
+      cache.Dispose();
       GenerateSomeGarbageFiles();
       CreateJournalWithHeader(DiskLruCache.Magic, "0", "100", "2", "");
 
@@ -374,7 +374,7 @@ namespace Httx.Tests {
 
     [Test]
     public void OpenWithInvalidAppVersionClearsDirectory() {
-      cache.Close();
+      cache.Dispose();
       GenerateSomeGarbageFiles();
       CreateJournalWithHeader(DiskLruCache.Magic, "1", "101", "2", "");
 
@@ -385,7 +385,7 @@ namespace Httx.Tests {
 
     [Test]
     public void OpenWithInvalidValueCountClearsDirectory() {
-      cache.Close();
+      cache.Dispose();
       GenerateSomeGarbageFiles();
       CreateJournalWithHeader(DiskLruCache.Magic, "1", "100", "1", "");
 
@@ -396,7 +396,7 @@ namespace Httx.Tests {
 
     [Test]
     public void OpenWithInvalidBlankLineClearsDirectory() {
-      cache.Close();
+      cache.Dispose();
       GenerateSomeGarbageFiles();
       CreateJournalWithHeader(DiskLruCache.Magic, "1", "100", "2", "x");
 
@@ -407,7 +407,7 @@ namespace Httx.Tests {
 
     [Test]
     public void OpenWithInvalidJournalLineClearsDirectory() {
-      cache.Close();
+      cache.Dispose();
       GenerateSomeGarbageFiles();
       CreateJournal("CLEAN k1 1 1", "BOGUS");
 
@@ -419,7 +419,7 @@ namespace Httx.Tests {
 
     [Test]
     public void OpenWithInvalidFileSizeClearsDirectory() {
-      cache.Close();
+      cache.Dispose();
       GenerateSomeGarbageFiles();
       CreateJournal("CLEAN k1 0000x001 1");
 
@@ -432,7 +432,7 @@ namespace Httx.Tests {
     [Test]
     [Ignore("For now, reader treats truncated line as correct. Fix later?")]
     public void OpenWithTruncatedLineDiscardsThatLine() {
-      cache.Close();
+      cache.Dispose();
       WriteFile(GetCleanFile("k1", 0), "A");
       WriteFile(GetCleanFile("k1", 1), "B");
 
@@ -447,7 +447,7 @@ namespace Httx.Tests {
       // The journal is not corrupt when editing after a truncated line.
       Set("k1", "C", "D");
 
-      cache.Close();
+      cache.Dispose();
       cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
 
       AssertValue("k1", "C", "D");
@@ -455,7 +455,7 @@ namespace Httx.Tests {
 
     [Test]
     public void OpenWithTooManyFileSizesClearsDirectory() {
-      cache.Close();
+      cache.Dispose();
       GenerateSomeGarbageFiles();
       CreateJournal("CLEAN k1 1 1 1");
 
@@ -552,7 +552,7 @@ namespace Httx.Tests {
 
     [Test]
     public void GrowMaxSize() {
-      cache.Close();
+      cache.Dispose();
       cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
 
       Set("a", "a", "aaa"); // size 4
@@ -573,7 +573,7 @@ namespace Httx.Tests {
 
     [Test]
     public void EvictOnInsert() {
-      cache.Close();
+      cache.Dispose();
       cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
 
       Set("a", "a", "aaa"); // size 4
@@ -610,7 +610,7 @@ namespace Httx.Tests {
 
     [Test]
     public void EvictOnUpdate() {
-      cache.Close();
+      cache.Dispose();
       cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
 
       Set("a", "a", "aa"); // size 3
@@ -632,7 +632,7 @@ namespace Httx.Tests {
 
     [Test]
     public void EvictionHonorsLruFromCurrentSession() {
-      cache.Close();
+      cache.Dispose();
       cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
       Set("a", "a", "a");
       Set("b", "b", "b");
@@ -691,7 +691,7 @@ namespace Httx.Tests {
 
     [Test]
     public void CacheSingleEntryOfSizeGreaterThanMaxSize() {
-      cache.Close();
+      cache.Dispose();
       cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
       Set("a", "aaaaa", "aaaaaa"); // size=11
       cache.Flush();
@@ -700,7 +700,7 @@ namespace Httx.Tests {
 
     [Test]
     public void CacheSingleValueOfSizeGreaterThanMaxSize() {
-      cache.Close();
+      cache.Dispose();
       cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
       Set("a", "aaaaaaaaaaa", "a"); // size=12
       cache.Flush();
@@ -809,7 +809,7 @@ namespace Httx.Tests {
         AssertValue("a", "a", "a");
         AssertValue("b", "b", "b");
 
-        cache.Close();
+        cache.Dispose();
         cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
 
         if (journalLength < lastJournalLength) {
@@ -838,7 +838,7 @@ namespace Httx.Tests {
         Set("a", "a", "a");
         Set("b", "b", "b");
 
-        cache.Close();
+        cache.Dispose();
         cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
 
         if (journalLength < lastJournalLength) {
@@ -861,7 +861,7 @@ namespace Httx.Tests {
       creator.SetAt(0, "ABC");
       creator.SetAt(1, "DE");
       creator.Commit();
-      cache.Close();
+      cache.Dispose();
 
       if (journalBackupFile.Exists) {
         journalBackupFile.Delete();
@@ -900,7 +900,7 @@ namespace Httx.Tests {
       creator.SetAt(0, "F");
       creator.SetAt(1, "GH");
       creator.Commit();
-      cache.Close();
+      cache.Dispose();
 
       Assert.That(journalFile.Exists, Is.True);
       Assert.That(journalBackupFile.Exists, Is.True);
@@ -976,7 +976,7 @@ namespace Httx.Tests {
 
     [Test]
     public void EditSinceEvicted() {
-      cache.Close();
+      cache.Dispose();
       cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
       Set("a", "aa", "aaa"); // size 5
       var snapshot = cache.Get("a");
@@ -988,7 +988,7 @@ namespace Httx.Tests {
 
     [Test]
     public void EditSinceEvictedAndRecreated() {
-      cache.Close();
+      cache.Dispose();
       cache = DiskLruCache.Open(directory, AppVersion, 2, 10);
       Set("a", "aa", "aaa"); // size 5
       var snapshot = cache.Get("a");
