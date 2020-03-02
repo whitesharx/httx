@@ -19,6 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Httx.Caches.Disk {
@@ -28,14 +29,14 @@ namespace Httx.Caches.Disk {
   public class Snapshot : IDisposable {
     private readonly string key;
     private readonly long sequenceNumber;
-    private readonly Stream[] ins;
+    private readonly Stream[] readStreams;
     private readonly long[] lengths;
     private readonly WeakReference<DiskLruCache> parentRef;
 
-    public Snapshot(string key, long sequenceNumber, Stream[] ins, long[] lengths, DiskLruCache parent) {
+    public Snapshot(string key, long sequenceNumber, Stream[] readStreams, long[] lengths, DiskLruCache parent) {
       this.key = key;
       this.sequenceNumber = sequenceNumber;
-      this.ins = ins;
+      this.readStreams = readStreams;
       this.lengths = lengths;
 
       parentRef = new WeakReference<DiskLruCache>(parent);
@@ -54,26 +55,62 @@ namespace Httx.Caches.Disk {
     /// <summary>
     /// Returns the unbuffered stream with the value for index.
     /// </summary>
-    public Stream GetInputStream(int index) {
-      return ins[index];
+    public Stream ReaderAt(int index) {
+      return readStreams[index];
     }
 
     /// <summary>
-    /// Returns the string value for index
+    /// Returns the unbuffered stream with the value for 0 index.
     /// </summary>
-    public string GetString(int index) {
-      return new StreamReader(GetInputStream(index)).ReadToEnd();
+    public Stream Reader => readStreams[0];
+
+    /// <summary>
+    /// Returns the string value for index.
+    /// </summary>
+    public string StringAt(int index) {
+      using (var reader = new StreamReader(ReaderAt(index))) {
+        return reader.ReadToEnd();
+      }
     }
+
+    /// <summary>
+    /// Returns the string value for 0 index.
+    /// </summary>
+    public string String => StringAt(0);
+
+    /// <summary>
+    /// Returns the byte array value for index.
+    /// </summary>
+    public IEnumerable<byte> BytesAt(int index) {
+      byte[] bytes;
+
+      using (var stream = new MemoryStream()) {
+        ReaderAt(index).CopyTo(stream);
+        bytes = stream.ToArray();
+      }
+
+      return bytes;
+    }
+
+    /// <summary>
+    /// Returns the byte array value for 0 index.
+    /// </summary>
+    public IEnumerable<byte> Bytes => BytesAt(0);
 
     /// <summary>
     /// Returns the byte length of the value for index
     /// </summary>
-    public long GetLength(int index) {
+    public long LengthAt(int index) {
       return lengths[index];
     }
 
+    /// <summary>
+    /// Returns the byte length of the value for 0 index.
+    /// </summary>
+    public long Length => LengthAt(0);
+
     public void Dispose() {
-      foreach (var s in ins) {
+      foreach (var s in readStreams) {
         // XXX: Original: Util.closeQuietly(in);
         s.Dispose();
       }

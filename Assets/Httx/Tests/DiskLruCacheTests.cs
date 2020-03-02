@@ -144,10 +144,10 @@ namespace Httx.Tests {
 
       var snapshot = cache.Get("k1");
 
-      Assert.That(snapshot.GetString(0), Is.EqualTo("ABC"));
-      Assert.That(snapshot.GetLength(0), Is.EqualTo(3));
-      Assert.That(snapshot.GetString(1), Is.EqualTo("DE"));
-      Assert.That(snapshot.GetLength(1), Is.EqualTo(2));
+      Assert.That(snapshot.StringAt(0), Is.EqualTo("ABC"));
+      Assert.That(snapshot.LengthAt(0), Is.EqualTo(3));
+      Assert.That(snapshot.StringAt(1), Is.EqualTo("DE"));
+      Assert.That(snapshot.LengthAt(1), Is.EqualTo(2));
     }
 
     [Test]
@@ -162,10 +162,10 @@ namespace Httx.Tests {
       cache = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
       var snapshot = cache.Get("k1");
 
-      Assert.That(snapshot.GetString(0), Is.EqualTo("A"));
-      Assert.That(snapshot.GetLength(0), Is.EqualTo(1));
-      Assert.That(snapshot.GetString(1), Is.EqualTo("B"));
-      Assert.That(snapshot.GetLength(1), Is.EqualTo(1));
+      Assert.That(snapshot.StringAt(0), Is.EqualTo("A"));
+      Assert.That(snapshot.LengthAt(0), Is.EqualTo(1));
+      Assert.That(snapshot.StringAt(1), Is.EqualTo("B"));
+      Assert.That(snapshot.LengthAt(1), Is.EqualTo(1));
 
       snapshot.Dispose();
     }
@@ -181,10 +181,10 @@ namespace Httx.Tests {
       var cache2 = DiskLruCache.Open(directory, AppVersion, 2, int.MaxValue);
       var snapshot = cache2.Get("k1");
 
-      Assert.That(snapshot.GetString(0), Is.EqualTo("A"));
-      Assert.That(snapshot.GetLength(0), Is.EqualTo(1));
-      Assert.That(snapshot.GetString(1), Is.EqualTo("B"));
-      Assert.That(snapshot.GetLength(1), Is.EqualTo(1));
+      Assert.That(snapshot.StringAt(0), Is.EqualTo("A"));
+      Assert.That(snapshot.LengthAt(0), Is.EqualTo(1));
+      Assert.That(snapshot.StringAt(1), Is.EqualTo("B"));
+      Assert.That(snapshot.LengthAt(1), Is.EqualTo(1));
 
       snapshot.Dispose();
       cache2.Close();
@@ -310,7 +310,7 @@ namespace Httx.Tests {
       v1Creator.Commit();
 
       var snapshot1 = cache.Get("k1");
-      var inV1 = snapshot1.GetInputStream(0);
+      var inV1 = snapshot1.ReaderAt(0);
 
       Assert.That(inV1.ReadByte(), Is.EqualTo('A'));
       Assert.That(inV1.ReadByte(), Is.EqualTo('A'));
@@ -321,16 +321,16 @@ namespace Httx.Tests {
       v1Updater.Commit();
 
       var snapshot2 = cache.Get("k1");
-      Assert.That(snapshot2.GetString(0), Is.EqualTo("CCcc"));
-      Assert.That(snapshot2.GetLength(0), Is.EqualTo(4));
-      Assert.That(snapshot2.GetString(1), Is.EqualTo("DDdd"));
-      Assert.That(snapshot2.GetLength(1), Is.EqualTo(4));
+      Assert.That(snapshot2.StringAt(0), Is.EqualTo("CCcc"));
+      Assert.That(snapshot2.LengthAt(0), Is.EqualTo(4));
+      Assert.That(snapshot2.StringAt(1), Is.EqualTo("DDdd"));
+      Assert.That(snapshot2.LengthAt(1), Is.EqualTo(4));
       snapshot2.Dispose();
 
       Assert.That(inV1.ReadByte(), Is.EqualTo('a'));
       Assert.That(inV1.ReadByte(), Is.EqualTo('a'));
-      Assert.That(snapshot1.GetString(1), Is.EqualTo("BBbb"));
-      Assert.That(snapshot1.GetLength(1), Is.EqualTo(4));
+      Assert.That(snapshot1.StringAt(1), Is.EqualTo("BBbb"));
+      Assert.That(snapshot1.LengthAt(1), Is.EqualTo(4));
       snapshot1.Dispose();
     }
 
@@ -542,10 +542,10 @@ namespace Httx.Tests {
 
       var snapshot = cache.Get("k1");
 
-      Assert.That(snapshot.GetString(0), Is.EqualTo("C"));
-      Assert.That(snapshot.GetLength(0), Is.EqualTo(1));
-      Assert.That(snapshot.GetString(1), Is.EqualTo("B"));
-      Assert.That(snapshot.GetLength(1), Is.EqualTo(1));
+      Assert.That(snapshot.StringAt(0), Is.EqualTo("C"));
+      Assert.That(snapshot.LengthAt(0), Is.EqualTo(1));
+      Assert.That(snapshot.StringAt(1), Is.EqualTo("B"));
+      Assert.That(snapshot.LengthAt(1), Is.EqualTo(1));
 
       snapshot.Dispose();
     }
@@ -731,7 +731,7 @@ namespace Httx.Tests {
       Set("a", "a", "b");
 
       var snapshot = cache.Get("a");
-      Assert.That(snapshot.GetInputStream(0), Is.SameAs(snapshot.GetInputStream(0)));
+      Assert.That(snapshot.ReaderAt(0), Is.SameAs(snapshot.ReaderAt(0)));
       snapshot.Dispose();
     }
 
@@ -875,10 +875,10 @@ namespace Httx.Tests {
       var snapshot = cache.Get("k1");
 
       Assert.That(snapshot, Is.Not.Null);
-      Assert.That(snapshot.GetString(0), Is.EqualTo("ABC"));
-      Assert.That(snapshot.GetLength(0), Is.EqualTo(3));
-      Assert.That(snapshot.GetString(1), Is.EqualTo("DE"));
-      Assert.That(snapshot.GetLength(1), Is.EqualTo(2));
+      Assert.That(snapshot.StringAt(0), Is.EqualTo("ABC"));
+      Assert.That(snapshot.LengthAt(0), Is.EqualTo(3));
+      Assert.That(snapshot.StringAt(1), Is.EqualTo("DE"));
+      Assert.That(snapshot.LengthAt(1), Is.EqualTo(2));
 
       journalFile.Refresh();
 
@@ -909,17 +909,17 @@ namespace Httx.Tests {
 
       var snapshotA = cache.Get("k1");
 
-      Assert.That(snapshotA.GetString(0), Is.EqualTo("ABC"));
-      Assert.That(snapshotA.GetLength(0), Is.EqualTo(3));
-      Assert.That(snapshotA.GetString(1), Is.EqualTo("DE"));
-      Assert.That(snapshotA.GetLength(1), Is.EqualTo(2));
+      Assert.That(snapshotA.StringAt(0), Is.EqualTo("ABC"));
+      Assert.That(snapshotA.LengthAt(0), Is.EqualTo(3));
+      Assert.That(snapshotA.StringAt(1), Is.EqualTo("DE"));
+      Assert.That(snapshotA.LengthAt(1), Is.EqualTo(2));
 
       var snapshotB = cache.Get("k2");
 
-      Assert.That(snapshotB.GetString(0), Is.EqualTo("F"));
-      Assert.That(snapshotB.GetLength(0), Is.EqualTo(1));
-      Assert.That(snapshotB.GetString(1), Is.EqualTo("GH"));
-      Assert.That(snapshotB.GetLength(1), Is.EqualTo(2));
+      Assert.That(snapshotB.StringAt(0), Is.EqualTo("F"));
+      Assert.That(snapshotB.LengthAt(0), Is.EqualTo(1));
+      Assert.That(snapshotB.StringAt(1), Is.EqualTo("GH"));
+      Assert.That(snapshotB.LengthAt(1), Is.EqualTo(2));
 
       Assert.That(journalBackupFile.Exists, Is.True);
       Assert.That(journalFile.Exists, Is.True);
@@ -1192,10 +1192,10 @@ namespace Httx.Tests {
     private void AssertValue(string key, string value0, string value1) {
       var snapshot = cache.Get(key);
 
-      Assert.That(snapshot.GetString(0), Is.EqualTo(value0));
-      Assert.That(snapshot.GetLength(0), Is.EqualTo(value0.Length));
-      Assert.That(snapshot.GetString(1), Is.EqualTo(value1));
-      Assert.That(snapshot.GetLength(1), Is.EqualTo(value1.Length));
+      Assert.That(snapshot.StringAt(0), Is.EqualTo(value0));
+      Assert.That(snapshot.LengthAt(0), Is.EqualTo(value0.Length));
+      Assert.That(snapshot.StringAt(1), Is.EqualTo(value1));
+      Assert.That(snapshot.LengthAt(1), Is.EqualTo(value1.Length));
 
       Assert.That(GetCleanFile(key, 0).Exists, Is.True);
       Assert.That(GetCleanFile(key, 1).Exists, Is.True);

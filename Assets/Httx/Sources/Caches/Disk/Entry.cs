@@ -21,7 +21,6 @@
 using System;
 using System.IO;
 using System.Text;
-using UnityEngine;
 
 namespace Httx.Caches.Disk {
   // TODO: Immutabiliy, WeekRef to parent.
