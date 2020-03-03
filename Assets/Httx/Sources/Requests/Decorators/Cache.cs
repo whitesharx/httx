@@ -18,8 +18,29 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System.Collections.Generic;
+using Httx.Requests.Extensions;
+using Httx.Utils;
+
 namespace Httx.Requests.Decorators {
-  public class Cache {
-    // TODO: Implement (Disk, Memory)
+  public class Cache : BaseRequest {
+    public enum Engine { Memory, Disk, Internal }
+
+    private readonly Engine engineType;
+    private readonly string cacheControlArgs;
+    private readonly string cachePath;
+
+    public Cache(IRequest next, Engine type, string cacheControl, string path = null) : base(next) {
+      engineType = type;
+      cacheControlArgs = cacheControl;
+      cachePath = path;
+    }
+
+    public override IEnumerable<KeyValuePair<string, object>> Headers =>
+      new Dictionary<string, object> {
+        [InternalHeaders.CacheEngine] = engineType,
+        [InternalHeaders.CacheId] = Crypto.Sha256($"{engineType}-{cacheControlArgs}"),
+        [InternalHeaders.CachePath] = cachePath
+      };
   }
 }

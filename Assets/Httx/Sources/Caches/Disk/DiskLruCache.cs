@@ -255,7 +255,6 @@ namespace Httx.Caches.Disk {
             DeleteIfExists(entry.DirtyFileAt(i));
           }
 
-          // XXX: i.remove();
           lruEntries.Remove(entry.Key);
         }
       }
@@ -430,7 +429,6 @@ namespace Httx.Caches.Disk {
       redundantOpCount++;
       entry.UnsafeCurrentEditor = null;
 
-      // Original: if (entry.readable | success)
       if (entry.UnsafeReadable || success) {
         entry.UnsafeReadable = true;
         journalWriter.WriteLine($"{CleanFlag} {entry.Key}{entry.GetLengths()}");
@@ -637,13 +635,13 @@ namespace Httx.Caches.Disk {
       }
     }
 
-    private static void DeleteIfExists(FileInfo file) {
+    private static void DeleteIfExists(FileSystemInfo file) {
       if (file.Exists) {
         file.Delete();
       }
     }
 
-    private static void RenameTo(FileInfo from, FileInfo to, bool deleteDestination) {
+    private static void RenameTo(FileSystemInfo from, FileSystemInfo to, bool deleteDestination) {
       if (deleteDestination) {
         DeleteIfExists(to);
       }

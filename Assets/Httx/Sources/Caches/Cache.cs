@@ -19,28 +19,35 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
+using Httx.Caches.Disk;
+using Httx.Caches.Memory;
+using Httx.Requests.Awaiters;
 
-namespace Httx.Utils {
-  public static class Crypto {
-    public static string Sha256(string s) {
-      using (var sha1 = SHA256.Create()) {
-        var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(s));
+namespace Httx.Caches {
+  public class Cache {
+    private static Cache instance;
+    public static Cache Instance => instance ?? (instance = new Cache());
 
-        return ToHex(hashBytes);
-      }
+    private readonly Dictionary<string, MemoryCache<object>> memoryCaches =
+      new Dictionary<string, MemoryCache<object>>();
+
+    private readonly Dictionary<string, DiskLruCache> diskCaches =
+      new Dictionary<string, DiskLruCache>();
+
+    public void Put<T>(string cacheId, string key, T value) {
+
     }
 
-    public static string ToHex(IEnumerable<byte> bytes) {
-      var sb = new StringBuilder();
+    public IAsyncOperation PutAsync(string cacheId, string key, IEnumerable<byte> value) {
+      return null;
+    }
 
-      foreach (var b in bytes) {
-        var hex = b.ToString("x2");
-        sb.Append(hex);
-      }
+    public T Get<T>(string cacheId, string key) {
+      return default;
+    }
 
-      return sb.ToString();
+    public IAsyncOperation GetAsync(string cacheId, string key) {
+      return null;
     }
   }
 }
