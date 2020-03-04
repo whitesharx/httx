@@ -25,26 +25,26 @@ using Httx.Utils;
 
 namespace Httx.Caches.Memory {
   internal class Item<T> {
-    public Item(string key, T value, int ttl, long createdAt) {
+    public Item(string key, T value, int maxAge, long createdAt) {
       Key = key;
       Value = value;
-      Ttl = ttl;
+      MaxAge = maxAge;
       CreatedAt = createdAt;
     }
 
-    public Item(string key, T value, int ttl) : this(key, value, ttl, Time.UnixTime()) { }
+    public Item(string key, T value, int maxAge) : this(key, value, maxAge, Time.UnixTime()) { }
 
     public string Key { get; }
     public T Value { get; }
-    public int Ttl { get; }
+    public int MaxAge { get; }
     public long CreatedAt { get; }
-    public bool Expired => Time.Since(CreatedAt) >= Ttl;
+    public bool Expired => Time.Since(CreatedAt) >= MaxAge;
   }
 
   public class MemoryCache<T> {
     private readonly object selfLock = new object();
     private readonly int size;
-    private readonly int defaultTtl;
+    private readonly int maxAge;
     private readonly int collectFrequency;
     private int collectAfter;
 
@@ -54,12 +54,12 @@ namespace Httx.Caches.Memory {
     private LinkedList<Item<T>> lruPolicy =
       new LinkedList<Item<T>>();
 
-    public MemoryCache(int size, int defaultTtl = int.MaxValue, int collectFrequency = 0) {
+    public MemoryCache(int size, int maxAge = int.MaxValue, int collectFrequency = 0) {
       this.size = size;
-      this.defaultTtl = defaultTtl;
+      this.maxAge = maxAge;
       this.collectFrequency = collectFrequency;
 
-      var isExpirationEnabled = int.MaxValue != defaultTtl && 0 != collectFrequency;
+      var isExpirationEnabled = int.MaxValue != maxAge && 0 != collectFrequency;
       collectAfter = isExpirationEnabled ? collectFrequency : -1;
     }
 
@@ -80,7 +80,7 @@ namespace Httx.Caches.Memory {
     }
 
     public void Put(string key, T value) {
-      Put(key, value, defaultTtl);
+      Put(key, value, maxAge);
     }
 
     public T Get(string key, Func<T> defaultFunc = null) {

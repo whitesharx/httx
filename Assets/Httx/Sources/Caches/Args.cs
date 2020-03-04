@@ -18,19 +18,36 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Collections.Generic;
-using Httx.Caches;
-using Httx.Requests.Extensions;
+using System;
+using Httx.Utils;
 
-namespace Httx.Requests.Decorators {
-  public class Cache : BaseRequest {
-    private readonly Args cacheArgs;
+namespace Httx.Caches {
+  public struct Args {
+    public enum Engine { Memory, Disk }
 
-    public Cache(IRequest next, Args args) : base(next) {
-      cacheArgs = args;
+    public Args(Engine type, int maxSize = int.MaxValue, TimeSpan maxAge = default,
+      string path = default, int evictValue = 0) {
+
+      EngineType = type;
+      MaxSize = maxSize;
+      MaxAge = maxAge;
+      Path = path;
+      EvictValue = evictValue;
     }
 
-    public override IEnumerable<KeyValuePair<string, object>> Headers =>
-      new Dictionary<string, object> { [InternalHeaders.CacheArgs] = cacheArgs };
+    public Engine EngineType { get; }
+    public int MaxSize { get; }
+    public TimeSpan MaxAge { get; }
+    public string Path { get; }
+    public int EvictValue { get; }
+    public string Id => Crypto.Sha256(ToString());
+
+    public override string ToString() {
+      return $"Cache (type: {EngineType} "
+        + $"maxSize: {MaxSize} "
+        + $"path: {Path} "
+        + $"ttl: {MaxAge}) "
+        + $"evictValue: {EvictValue}";
+    }
   }
 }

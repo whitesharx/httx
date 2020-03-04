@@ -34,20 +34,44 @@ namespace Httx.Caches {
     private readonly Dictionary<string, DiskLruCache> diskCaches =
       new Dictionary<string, DiskLruCache>();
 
-    public void Put<T>(string cacheId, string key, T value) {
+    public void Put<T>(string key, T value, Args cacheArgs) {
+      var cacheId = cacheArgs.Id;
 
+      memoryCaches.TryGetValue(cacheId, out var cache);
+
+      if (null == cache) {
+        var maxAge = default == cacheArgs.MaxAge ? 0 : (int) cacheArgs.MaxAge.TotalMilliseconds;
+        var collectFrequency = cacheArgs.EvictValue;
+
+        cache = new MemoryCache<object>(cacheArgs.MaxSize, maxAge, collectFrequency);
+        memoryCaches[cacheId] = cache;
+      }
+
+      cache.Put(key, value);
     }
 
-    public IAsyncOperation PutAsync(string cacheId, string key, IEnumerable<byte> value) {
+    public T Get<T>(string key, Args cacheArgs) {
+      var cacheId = cacheArgs.Id;
+
+      memoryCaches.TryGetValue(cacheId, out var cache);
+
+      if (null == cache) {
+        return default;
+      }
+
+      return (T) cache.Get(key);
+    }
+
+    public IAsyncOperation PutAsync(string key, IEnumerable<byte> value, Args cacheArgs) {
       return null;
     }
 
-    public T Get<T>(string cacheId, string key) {
-      return default;
+    public IAsyncOperation GetAsync(string key, Args cacheArgs) {
+      return null;
     }
 
-    public IAsyncOperation GetAsync(string cacheId, string key) {
-      return null;
+    public void Clear() {
+
     }
   }
 }
