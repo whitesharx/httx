@@ -30,6 +30,7 @@ using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
+using Httx.Utils;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -71,6 +72,34 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     //
     // var manifestResult = await new As<AssetBundleManifest>(new Get(new Manifest(fileUrl)));
     // Debug.Log($"ManifestResult: {manifestResult}");
+
+    var path = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_tests"));
+
+    if (Directory.Exists(path)) {
+      Directory.Delete(path, true);
+    }
+
+    var cache = DiskLruCache.Open(path, 1);
+    var key = Crypto.Sha256("keyA");
+
+    var editor = cache.Edit(key);
+    editor.Put("Hello from Cache!");
+    editor.Commit();
+
+    var snapshot = cache.Get(key);
+    var lockEditor = snapshot?.Edit();
+
+    cache.Remove(key);
+
+    Debug.Log($"url: {snapshot?.UnsafeUrl}");
+
+    if (null != snapshot) {
+      var result = await new As<string>(new Get(new Text(snapshot.UnsafeUrl)));
+
+      Debug.Log($"result: {result}");
+      lockEditor.Commit();
+    }
+
   }
 
   public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");

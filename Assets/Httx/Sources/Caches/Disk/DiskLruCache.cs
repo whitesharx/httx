@@ -582,7 +582,7 @@ namespace Httx.Caches.Disk {
     /// Original cache implementation uses a single background thread to evict entries.
     /// Here, we simply do this synchronously to keep things clean and concise for now.
     /// </summary>
-    public void Evict() {
+    public void Evict() { // TODO: Only signal evict required???
       lock (evictLock) {
         if (null == journalWriter) {
           return;

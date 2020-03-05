@@ -73,6 +73,12 @@ namespace Httx.Caches.Disk {
       }
     }
 
+    public string UnsafeUrlAt(int index) {
+      return $"file://{((FileStream) ReaderAt(index)).Name}";
+    }
+
+    public string UnsafeUrl => UnsafeUrlAt(0);
+
     /// <summary>
     /// Returns the string value for 0 index.
     /// </summary>

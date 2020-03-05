@@ -18,10 +18,49 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using Httx.Caches.Memory;
 using Httx.Loggers;
 
 namespace Httx {
-  public class Context {
+  public partial class Context {
+    public Context(ILogger logger, MemoryCache memoryCache) {
+      Logger = logger;
+      MemoryCache = memoryCache;
+    }
+
     public ILogger Logger { get; }
+    public MemoryCache MemoryCache { get; }
+  }
+
+  public partial class Context {
+    public class Builder {
+      private ILogger logger;
+      private MemoryCache memoryCache;
+
+      public Builder() { }
+
+      public Builder(Context context) {
+        logger = context.Logger;
+        memoryCache = context.MemoryCache;
+      }
+
+      public Builder WithLogger(ILogger loggerArg) {
+        logger = loggerArg;
+        return this;
+      }
+
+      public Builder WithMemoryCache(MemoryCache memoryCacheArg) {
+        memoryCache = memoryCacheArg;
+        return this;
+      }
+
+      public Context Build() {
+        return new Context(logger, memoryCache);
+      }
+      
+      public void Initialize() {
+
+      }
+    }
   }
 }

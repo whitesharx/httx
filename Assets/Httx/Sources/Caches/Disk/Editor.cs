@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Httx.Caches.Disk {
   /// <summary>
@@ -122,10 +123,18 @@ namespace Httx.Caches.Disk {
       }
     }
 
+    public void PutAt(int index, byte[] value) {
+      using (var writer = new BinaryWriter(WriterInstanceAt(index))) {
+        writer.Write(value);
+      }
+    }
+
     /// <summary>
     /// Sets the value at 0 index to value.
     /// </summary>
     public void Put(string value) => PutAt(0, value);
+
+    public void Put(byte[] value) => PutAt(0, value);
 
     /// <summary>
     /// Commits this edit so it is visible to readers.  This releases the

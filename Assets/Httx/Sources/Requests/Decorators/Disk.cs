@@ -19,18 +19,13 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Collections.Generic;
-using Httx.Caches;
 using Httx.Requests.Extensions;
 
 namespace Httx.Requests.Decorators {
-  public class Cache : BaseRequest {
-    private readonly Args cacheArgs;
-
-    public Cache(IRequest next, Args args) : base(next) {
-      cacheArgs = args;
-    }
+  public class Disk : BaseRequest {
+    public Disk(IRequest next) : base(next) { }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers =>
-      new Dictionary<string, object> { [InternalHeaders.CacheArgs] = cacheArgs };
+      new Dictionary<string, object> { [InternalHeaders.DiskCacheEnabled] = true };
   }
 }

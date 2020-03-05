@@ -133,4 +133,9 @@ namespace Httx.Caches.Memory {
       cacheImpl.Remove(firstNode.Value.Key);
     }
   }
+
+  public class MemoryCache : MemoryCache<object> {
+    public MemoryCache(int size, int maxAge = int.MaxValue, int collectFrequency = 0)
+      : base(size, maxAge, collectFrequency) { }
+  }
 }
