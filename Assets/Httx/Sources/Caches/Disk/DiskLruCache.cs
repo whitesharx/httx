@@ -38,7 +38,7 @@ namespace Httx.Caches.Disk {
   ///  - LinkedList replaced by custom LinkedDictionary
   ///  - StrictLineReader replaced by standard .net *ReadLine
   ///  - Util class replaced by standard .net handles
-  ///  - Public, synchronous Evict method instead of worker thread,
+  ///  - Public, synchronous Collect method instead of worker thread,
   /// you need to manage it manually, as you decide.
   ///
   /// <see cref="https://github.com/JakeWharton/DiskLruCache"/>
@@ -339,7 +339,7 @@ namespace Httx.Caches.Disk {
       journalWriter.Flush();
 
       if (JournalRebuildRequired()) {
-        Evict();
+        Collect();
       }
 
       return new Snapshot(key, entry.UnsafeSequenceNumber, ins, entry.UnsafeFileLengths, this);
@@ -444,7 +444,7 @@ namespace Httx.Caches.Disk {
       journalWriter.Flush();
 
       if (size > maxSize || JournalRebuildRequired()) {
-        Evict();
+        Collect();
       }
     }
 
@@ -483,7 +483,7 @@ namespace Httx.Caches.Disk {
       lruEntries.Remove(key);
 
       if (JournalRebuildRequired()) {
-        Evict();
+        Collect();
       }
 
       return true;
@@ -546,10 +546,6 @@ namespace Httx.Caches.Disk {
     /// </summary>
     public DirectoryInfo Directory { get; }
 
-    public delegate void EvictCompleteHandler();
-
-    public event EvictCompleteHandler OnEvictComplete;
-
     /// <summary>
     /// Changes the maximum number of bytes the cache can store and queues a job
     /// to trim the existing store, if necessary.
@@ -561,7 +557,7 @@ namespace Httx.Caches.Disk {
       [MethodImpl(MethodImplOptions.Synchronized)]
       set {
         maxSize = value;
-        Evict();
+        Collect();
       }
 
       [MethodImpl(MethodImplOptions.Synchronized)]
@@ -580,9 +576,9 @@ namespace Httx.Caches.Disk {
 
     /// <summary>
     /// Original cache implementation uses a single background thread to evict entries.
-    /// Here, we simply do this synchronously to keep things clean and concise for now.
+    /// Here, we simply do this manually/synchronously to keep things clean and concise for now.
     /// </summary>
-    public void Evict() { // TODO: Only signal evict required???
+    public void Collect() {
       lock (evictLock) {
         if (null == journalWriter) {
           return;
@@ -596,7 +592,6 @@ namespace Httx.Caches.Disk {
 
         RebuildJournal();
         redundantOpCount = 0;
-        OnEvictComplete?.Invoke();
       }
     }
 
