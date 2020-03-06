@@ -40,8 +40,8 @@ namespace Httx.Requests.Awaiters {
       return new UnityAsyncOperation(() => Send(requestImpl, headers));
     }
 
-    public override Texture2D Map(IRequest request, IAsyncOperation operation) {
-      var webRequest = (UnityWebRequest) operation.Result;
+    public override Texture2D Map(IRequest request, IAsyncOperation completeOperation) {
+      var webRequest = (UnityWebRequest) completeOperation.Result;
       var handler = (DownloadHandlerTexture) webRequest.downloadHandler;
 
       return handler.texture;

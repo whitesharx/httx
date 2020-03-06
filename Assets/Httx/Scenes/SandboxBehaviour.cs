@@ -25,6 +25,7 @@ using System.Net;
 using System.Threading;
 using Httx.Caches.Collections;
 using Httx.Caches.Disk;
+using Httx.Httx.Sources.Caches;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
@@ -73,33 +74,51 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     // var manifestResult = await new As<AssetBundleManifest>(new Get(new Manifest(fileUrl)));
     // Debug.Log($"ManifestResult: {manifestResult}");
 
+    Debug.Log($"Start: {Thread.CurrentThread.ManagedThreadId}");
+
     var path = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_tests"));
 
     if (Directory.Exists(path)) {
       Directory.Delete(path, true);
     }
 
-    var cache = DiskLruCache.Open(path, 1);
-    var key = Crypto.Sha256("keyA");
 
-    var editor = cache.Edit(key);
-    editor.Put("Hello from Cache!");
-    editor.Commit();
 
-    var snapshot = cache.Get(key);
-    var lockEditor = snapshot?.Edit();
+    var urlCache = new WebRequestDiskCache(new WebRequestCacheArgs(path, 1, int.MaxValue, 0));
 
-    cache.Remove(key);
+    urlCache.Initialize(e => {
+      Debug.Log($"Complete: {e} Thread: {Thread.CurrentThread.ManagedThreadId}");
+    });
 
-    Debug.Log($"url: {snapshot?.UnsafeUrl}");
 
-    if (null != snapshot) {
-      var result = await new As<string>(new Get(new Text(snapshot.UnsafeUrl)));
 
-      Debug.Log($"result: {result}");
-      lockEditor.Commit();
-    }
 
+
+
+
+
+
+
+    // var cache = DiskLruCache.Open(path, 1);
+    // var key = Crypto.Sha256("keyA");
+    //
+    // var editor = cache.Edit(key);
+    // editor.Put("Hello from Cache!");
+    // editor.Commit();
+    //
+    // var snapshot = cache.Get(key);
+    // var lockEditor = snapshot?.Edit();
+    //
+    // cache.Remove(key);
+    //
+    // Debug.Log($"url: {snapshot?.UnsafeUrl}");
+    //
+    // if (null != snapshot) {
+    //   var result = await new As<string>(new Get(new Text(snapshot.UnsafeUrl)));
+    //
+    //   Debug.Log($"result: {result}");
+    //   lockEditor.Commit();
+    // }
   }
 
   public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");

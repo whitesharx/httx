@@ -18,36 +18,18 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System.Linq;
-using Httx.Requests.Extensions;
-using UnityEngine.Networking;
+using System;
 
 namespace Httx.Requests.Awaiters {
-  public class UnityWebRequestFileAwaiter : BaseUnityAwaiter<int> {
-    private string inputPath;
+  public class MutableAsyncOperation : IAsyncOperation {
+    public event Action OnComplete;
 
-    public UnityWebRequestFileAwaiter(IRequest request) : base(request) { }
+    public object Result { get; set; }
+    public bool Done { get; set; }
+    public float Progress { get; set; }
 
-    public override IAsyncOperation Awake(IRequest request) {
-      var verb = request.ResolveVerb();
-      var url = request.ResolveUrl();
-      var headers = request.ResolveHeaders()?.ToList();
-
-
-      var path = headers.FetchHeader<string>(InternalHeaders.FilePath);
-      var isAppend = headers.FetchHeader<bool>(InternalHeaders.FileAppend);
-      var isRemoveOnAbort = headers.FetchHeader<bool>(InternalHeaders.FileRemoveOnAbort);
-
-      var requestImpl = new UnityWebRequest(url, verb);
-
-      // TODO: Implement
-
-      return new UnityAsyncOperation(() => Send(requestImpl, headers));
-    }
-
-    public override int Map(IRequest request, IAsyncOperation completeOperation) {
-      var webRequest = (UnityWebRequest) completeOperation.Result;
-      return (int) webRequest.responseCode;
+    public void InvokeSafe() {
+      OnComplete?.Invoke();
     }
   }
 }

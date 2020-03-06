@@ -32,8 +32,8 @@ namespace Httx.Requests.Awaiters {
       return new UnityAsyncOperation(() => Send(requestImpl, headers));
     }
 
-    public override TResult Map(IRequest request, IAsyncOperation operation) {
-      var requestImpl = (UnityWebRequest) operation.Result;
+    public override TResult Map(IRequest request, IAsyncOperation completeOperation) {
+      var requestImpl = (UnityWebRequest) completeOperation.Result;
 
       if (isResponseCodeOnly) {
         var result = (int) requestImpl.responseCode;

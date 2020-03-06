@@ -65,6 +65,7 @@ namespace Httx.Caches.Disk {
     private long size;
     private StreamWriter journalWriter;
     private int redundantOpCount;
+    private int redundantOpCompactThreshold;
 
     private readonly object evictLock = new object();
     private readonly Regex legalKeyPattern = new Regex("^[a-z0-9_-]{1,120}$");
@@ -78,12 +79,13 @@ namespace Httx.Caches.Disk {
     /// </summary>
     private long nextSequenceNumber;
 
-    private DiskLruCache(DirectoryInfo directory, int appVersion, int valueCount, long maxSize) {
+    private DiskLruCache(DirectoryInfo directory, int appVersion, int valueCount, long maxSize, int compactThreshold) {
       Directory = directory;
       ValueCount = valueCount;
 
       this.appVersion = appVersion;
       this.maxSize = maxSize;
+      redundantOpCompactThreshold = compactThreshold;
 
       journalFile = new FileInfo(Path.Combine(directory.FullName, JournalFile));
       journalFileTmp = new FileInfo(Path.Combine(directory.FullName, JournalFileTemp));
@@ -97,8 +99,9 @@ namespace Httx.Caches.Disk {
     /// <param name="appVersion">???</param>
     /// <param name="valueCount">the number of values per cache entry. Must be positive.</param>
     /// <param name="maxSize">the maximum number of bytes this cache should use to store</param>
+    /// <param name="compactThreshold">Since how many operations cache will Collect</param>
     /// <returns></returns>
-    public static DiskLruCache Open(DirectoryInfo directory, int appVersion, int valueCount, long maxSize) {
+    public static DiskLruCache Open(DirectoryInfo directory, int appVersion, int valueCount, long maxSize, int compactThreshold = 2000) {
       if (maxSize <= 0) {
         throw new ArgumentException("maxSize <= 0");
       }
@@ -121,7 +124,7 @@ namespace Httx.Caches.Disk {
         }
       }
 
-      var cache = new DiskLruCache(directory, appVersion, valueCount, maxSize);
+      var cache = new DiskLruCache(directory, appVersion, valueCount, maxSize, compactThreshold);
 
       if (cache.journalFile.Exists) {
         try {
@@ -137,13 +140,13 @@ namespace Httx.Caches.Disk {
 
       // Create a new empty cache.
       System.IO.Directory.CreateDirectory(directory.FullName);
-      cache = new DiskLruCache(directory, appVersion, valueCount, maxSize);
+      cache = new DiskLruCache(directory, appVersion, valueCount, maxSize, compactThreshold);
       cache.RebuildJournal();
 
       return cache;
     }
 
-    public static DiskLruCache Open(string path, int appVersion, long maxSize = int.MaxValue) {
+    public static DiskLruCache Open(string path, int appVersion, long maxSize, int compactThreshold) {
       return Open(new DirectoryInfo(path), appVersion, 1, maxSize);
     }
 
@@ -618,8 +621,6 @@ namespace Httx.Caches.Disk {
     /// and eliminate at least 2000 ops.
     /// </summary>
     private bool JournalRebuildRequired() {
-      const int redundantOpCompactThreshold = 2000;
-
       return redundantOpCount >= redundantOpCompactThreshold
         && redundantOpCount >= lruEntries.Count;
     }

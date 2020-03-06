@@ -90,7 +90,7 @@ namespace Httx.Requests.Awaiters {
     }
 
     public abstract IAsyncOperation Awake(IRequest request);
-    public abstract TResult Map(IRequest request, IAsyncOperation operation);
+    public abstract TResult Map(IRequest request, IAsyncOperation completeOperation);
 
     protected UnityWebRequestAsyncOperation Send(UnityWebRequest request,
       IEnumerable<KeyValuePair<string, object>> headers) {

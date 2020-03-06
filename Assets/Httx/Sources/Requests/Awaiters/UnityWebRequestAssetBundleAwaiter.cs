@@ -70,13 +70,13 @@ namespace Httx.Requests.Awaiters {
       return new AsyncOperationQueue(requestOperation, manifestOperation);
     }
 
-    public override TResult Map(IRequest request, IAsyncOperation operation) {
+    public override TResult Map(IRequest request, IAsyncOperation completeOperation) {
       if (typeof(TResult) == typeof(AssetBundle)) {
-        return (TResult) (object) MapAssetBundle(operation);
+        return (TResult) (object) MapAssetBundle(completeOperation);
       }
 
       if (typeof(TResult) == typeof(AssetBundleManifest)) {
-        return (TResult) (object) MapAssetBundleManifest(operation);
+        return (TResult) (object) MapAssetBundleManifest(completeOperation);
       }
 
       return default;
