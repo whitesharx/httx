@@ -3,7 +3,9 @@
 // Proprietary and confidential.
 //
 
+using System;
 using System.Linq;
+using Httx.Httx.Sources.Caches;
 using Httx.Requests.Extensions;
 using UnityEngine.Networking;
 
@@ -29,7 +31,42 @@ namespace Httx.Requests.Awaiters {
 
       isResponseCodeOnly = headers.FetchHeader<bool>(InternalHeaders.ResponseCodeOnly);
 
-      return new UnityAsyncOperation(() => Send(requestImpl, headers));
+      WebRequestDiskCache cache = null;
+      var isDiskCacheEnabled = headers.FetchHeader<bool>(InternalHeaders.DiskCacheEnabled);
+
+      if (!isDiskCacheEnabled) {
+        return new UnityAsyncOperation(() => Send(requestImpl, headers));
+      }
+
+      // var cacheHitOp
+      var tryCacheOp = new Func<IAsyncOperation, IAsyncOperation>(_ => {
+        return cache.Get(url);
+      });
+
+      // var requestOp
+      var netRequestOp = new Func<IAsyncOperation, IAsyncOperation>(previous => {
+        var cachedFileUrl = previous.Result as string;
+
+        if (!string.IsNullOrEmpty(cachedFileUrl)) {
+          // XXX: Put to headers origin url?
+          requestImpl.url = cachedFileUrl;
+        }
+
+        return new UnityAsyncOperation(() => Send(requestImpl, headers));
+      });
+
+      // var cacheSaveOp
+      var persistCacheOp = new Func<IAsyncOperation, IAsyncOperation>(previous => {
+        var resultRequest = (previous as UnityAsyncOperation)?.Request;
+
+        if (resultRequest.LocalOrCached()) {
+          return previous; // DoneAsyncOperation
+        }
+
+        return cache.Put(resultRequest);
+      });
+
+      return new AsyncOperationQueue(tryCacheOp, netRequestOp, persistCacheOp);
     }
 
     public override TResult Map(IRequest request, IAsyncOperation completeOperation) {

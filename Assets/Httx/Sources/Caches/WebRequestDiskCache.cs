@@ -69,6 +69,7 @@ namespace Httx.Httx.Sources.Caches {
 
       PutImpl(completeRequest, () => {
         operation.Progress = 1.0f;
+        operation.Result = completeRequest;
         operation.Done = true;
 
         operation.InvokeSafe();
@@ -91,12 +92,31 @@ namespace Httx.Httx.Sources.Caches {
       return operation;
     }
 
-    public void Lock(string key, Action<bool> onComplete) {
+    public IAsyncOperation Lock(string requestUrl) {
+      var operation = new MutableAsyncOperation();
 
+      LockImpl(requestUrl, editor => {
+        operation.Progress = 1.0f;
+        operation.Result = editor;
+        operation.Done = true;
+
+        operation.InvokeSafe();
+      });
+
+      return operation;
     }
 
-    public void Unlock(string key, Action<bool> onComplete) {
+    public IAsyncOperation Unlock(Editor editor) {
+      var operation = new MutableAsyncOperation();
 
+      UnlockImpl(editor, () => {
+        operation.Progress = 1.0f;
+        operation.Done = true;
+
+        operation.InvokeSafe();
+      });
+
+      return operation;
     }
 
     public async void Delete(Action onComplete) {
@@ -110,7 +130,7 @@ namespace Httx.Httx.Sources.Caches {
     public void Dispose() => cacheImpl?.Dispose();
 
     private async void GetImpl(string requestUrl, Action<string> onComplete) {
-      var fileUrl = await new Task<string>(() => {
+      var fileUrl = await Task.Run(() => {
         var key = Crypto.Sha256(requestUrl);
         var snapshot = cacheImpl.Get(key);
 
@@ -132,6 +152,25 @@ namespace Httx.Httx.Sources.Caches {
         var editor = cacheImpl.Edit(Crypto.Sha256(key));
         editor.Put(value);
         editor.Commit();
+      });
+
+      onComplete();
+    }
+
+    private async void LockImpl(string requestUrl, Action<Editor> onComplete) {
+      var result = await Task.Run(() => {
+        var key = Crypto.Sha256(requestUrl);
+        var snapshot = cacheImpl.Get(key);
+
+        return snapshot?.Edit();
+      });
+
+      onComplete(result);
+    }
+
+    private async void UnlockImpl(Editor editor, Action onComplete) {
+      await Task.Run(() => {
+        editor?.Commit();
       });
 
       onComplete();

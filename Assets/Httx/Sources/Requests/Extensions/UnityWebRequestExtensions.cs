@@ -101,5 +101,10 @@ namespace Httx.Requests.Extensions {
 
       return request;
     }
+
+    public static bool LocalOrCached(this UnityWebRequest request) {
+      var url = request?.url;
+      return !string.IsNullOrEmpty(url) && url.StartsWith("file://");
+    }
   }
 }

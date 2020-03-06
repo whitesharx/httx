@@ -49,5 +49,6 @@ namespace Httx.Requests.Awaiters {
 
     public bool Done => operation.isDone;
     public float Progress => operation.progress;
+    public UnityWebRequest Request => (operation as UnityWebRequestAsyncOperation)?.webRequest;
   }
 }
