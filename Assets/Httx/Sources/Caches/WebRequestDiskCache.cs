@@ -22,10 +22,11 @@ using System;
 using System.Threading.Tasks;
 using Httx.Caches.Disk;
 using Httx.Requests.Awaiters;
+using Httx.Utils;
 using UnityEngine.Networking;
 
 namespace Httx.Httx.Sources.Caches {
-  public class WebRequestCacheArgs { // todo: Logger
+  public class WebRequestCacheArgs {
     public WebRequestCacheArgs(string path, int version, int maxSize, int collectFrequency) {
       Path = path;
       Version = version;
@@ -55,45 +56,19 @@ namespace Httx.Httx.Sources.Caches {
       collectFrequency = args.CollectFrequency;
     }
 
-    public async void Initialize(Action<Exception> onComplete) {
-      Exception exception = null;
+    public async void Initialize(Action onComplete) {
+      await Task.Run(() => {
+        cacheImpl = DiskLruCache.Open(path, version, maxSize, collectFrequency);
+      });
 
-      try {
-        await Task.Run(() => {
-          cacheImpl = DiskLruCache.Open(path, version, maxSize, collectFrequency);
-        });
-      } catch (Exception e) {
-        exception = e;
-      } finally {
-        onComplete(exception);
-      }
+      onComplete();
     }
 
-    public async void Put(UnityWebRequest request, Action<Exception> onComplete) {
-      Exception exception = null;
-
-      try {
-        await Task.Run(() => {
-          // TODO: Serialize
-
-
-          // var editor = cacheImpl.Edit(Crypto.Sha256(key));
-          // editor.Put(value);
-          // editor.Commit();
-        });
-      } catch (Exception e) {
-        exception = e;
-      } finally {
-        onComplete(exception);
-      }
-    }
-
-    public IAsyncOperation Put(UnityWebRequest request) {
+    public IAsyncOperation Put(UnityWebRequest completeRequest) {
       var operation = new MutableAsyncOperation();
 
-      Put(request, result => {
+      PutImpl(completeRequest, () => {
         operation.Progress = 1.0f;
-        operation.Result = result;
         operation.Done = true;
 
         operation.InvokeSafe();
@@ -102,9 +77,18 @@ namespace Httx.Httx.Sources.Caches {
       return operation;
     }
 
+    public IAsyncOperation Get(string requestUrl) {
+      var operation = new MutableAsyncOperation();
 
-    public void GetFileUrl(string key, Action<string> onComplete) {
+      GetImpl(requestUrl, (cachedFileUrl) => {
+        operation.Progress = 1.0f;
+        operation.Result = cachedFileUrl;
+        operation.Done = true;
 
+        operation.InvokeSafe();
+      });
+
+      return operation;
     }
 
     public void Lock(string key, Action<bool> onComplete) {
@@ -115,10 +99,42 @@ namespace Httx.Httx.Sources.Caches {
 
     }
 
-    public void Clear(Action<Exception> onComplete) {
+    public async void Delete(Action onComplete) {
+      await Task.Run(() => {
+        cacheImpl.Delete();
+      });
 
+      onComplete();
     }
 
     public void Dispose() => cacheImpl?.Dispose();
+
+    private async void GetImpl(string requestUrl, Action<string> onComplete) {
+      var fileUrl = await new Task<string>(() => {
+        var key = Crypto.Sha256(requestUrl);
+        var snapshot = cacheImpl.Get(key);
+
+        return snapshot?.UnsafeUrl;
+      });
+
+      onComplete(fileUrl);
+    }
+
+    private async void PutImpl(UnityWebRequest completeRequest, Action onComplete) {
+      await Task.Run(() => {
+        var value = completeRequest.downloadHandler?.data;
+
+        if (null == value || 0 == value.Length) {
+          return;
+        }
+
+        var key = Crypto.Sha256(completeRequest.url);
+        var editor = cacheImpl.Edit(Crypto.Sha256(key));
+        editor.Put(value);
+        editor.Commit();
+      });
+
+      onComplete();
+    }
   }
 }

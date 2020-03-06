@@ -86,8 +86,8 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
     var urlCache = new WebRequestDiskCache(new WebRequestCacheArgs(path, 1, int.MaxValue, 0));
 
-    urlCache.Initialize(e => {
-      Debug.Log($"Complete: {e} Thread: {Thread.CurrentThread.ManagedThreadId}");
+    urlCache.Initialize(() => {
+      Debug.Log($"Thread: {Thread.CurrentThread.ManagedThreadId}");
     });
 
 
