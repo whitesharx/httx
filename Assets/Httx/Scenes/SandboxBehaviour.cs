@@ -84,51 +84,7 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
 
 
-    // Debug.Log($"Start: {Thread.CurrentThread.ManagedThreadId}");
-    //
-    // var path = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_tests"));
-    //
-    // if (Directory.Exists(path)) {
-    //   Directory.Delete(path, true);
-    // }
-    //
-    //
-    //
-    // var urlCache = new DiskCache(new DiskCacheArgs(path, 1, int.MaxValue, 0));
-    //
-    // urlCache.Initialize(() => {
-    //   Debug.Log($"Thread: {Thread.CurrentThread.ManagedThreadId}");
-    // });
 
-
-
-
-
-
-
-
-
-
-    // var cache = DiskLruCache.Open(path, 1);
-    // var key = Crypto.Sha256("keyA");
-    //
-    // var editor = cache.Edit(key);
-    // editor.Put("Hello from Cache!");
-    // editor.Commit();
-    //
-    // var snapshot = cache.Get(key);
-    // var lockEditor = snapshot?.Edit();
-    //
-    // cache.Remove(key);
-    //
-    // Debug.Log($"url: {snapshot?.UnsafeUrl}");
-    //
-    // if (null != snapshot) {
-    //   var result = await new As<string>(new Get(new Text(snapshot.UnsafeUrl)));
-    //
-    //   Debug.Log($"result: {result}");
-    //   lockEditor.Commit();
-    // }
 
 
 
@@ -161,17 +117,26 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
 
   private async void OnContextReady(Context context) {
-    Debug.Log($"OnContextReady: {context}");
+    Debug.Log($"======== OnContextReady: {context}");
 
-    var url = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
+    var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
+    var bundleUrl = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
 
-    var noCacheText = await new As<string>(new Get(new Text(url)));
+    var noCacheText = await new As<string>(new Get(new Text(textUrl)));
 
-    Debug.Log($"no-cache: {noCacheText}");
+    Debug.Log($"text-no-cache: {noCacheText}");
 
-    var withCacheText = await new As<string>(new Get(new Cache(new Text(url), Storage.Disk)));
+    var withCacheText = await new As<string>(new Get(new Cache(new Text(textUrl), Storage.Disk)));
 
-    Debug.Log($"with-cache: {withCacheText}");
+    Debug.Log($"text-with-cache: {withCacheText}");
+
+    var noCacheBundle = await new As<AssetBundle>(new Get(new Bundle(bundleUrl), this));
+
+    Debug.Log($"bundle-no-cache: {noCacheBundle}");
+
+    var withCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Disk), this));
+
+    Debug.Log($"bundle-no-cache: {withCacheBundle}");
   }
 
 
