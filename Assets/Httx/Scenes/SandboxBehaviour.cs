@@ -38,6 +38,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Networking;
+using Cache = Httx.Requests.Decorators.Cache;
 
 class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   [UsedImplicitly]
@@ -135,9 +136,9 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
     var path = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_tests"));
 
-    // if (Directory.Exists(path)) {
-    //   Directory.Delete(path, true);
-    // }
+    if (Directory.Exists(path)) {
+      Directory.Delete(path, true);
+    }
 
     var maxSize = 1024 * 1024 * 8;
     var diskCacheArgs = new DiskCacheArgs(path, 1, maxSize, 128);
@@ -168,7 +169,7 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
     Debug.Log($"no-cache: {noCacheText}");
 
-    var withCacheText = await new As<string>(new Get(new Disk(new Text(url))));
+    var withCacheText = await new As<string>(new Get(new Cache(new Text(url), Storage.Disk)));
 
     Debug.Log($"with-cache: {withCacheText}");
   }

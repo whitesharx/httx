@@ -20,7 +20,9 @@ namespace Httx.Requests.Awaiters {
       var headers = request.ResolveHeaders()?.ToList();
       var body = request.ResolveBody()?.ToArray();
 
-      var requestImpl = new UnityWebRequest(url, verb) { downloadHandler = new DownloadHandlerBuffer() };
+      var requestImpl = new UnityWebRequest(url, verb) {
+        downloadHandler = new DownloadHandlerBuffer()
+      };
 
       if (null != body && 0 != body.Length) {
         requestImpl.uploadHandler = new UploadHandlerRaw(body);

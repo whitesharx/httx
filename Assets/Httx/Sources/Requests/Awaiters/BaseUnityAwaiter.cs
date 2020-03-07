@@ -128,7 +128,7 @@ namespace Httx.Requests.Awaiters {
         : CreateCacheOperation(request, hx);
     }
 
-    protected IAsyncOperation CreateCacheOperation(UnityWebRequest request,
+    private IAsyncOperation CreateCacheOperation(UnityWebRequest request,
       IEnumerable<KeyValuePair<string, object>> headers) {
 
       var url = request.url;

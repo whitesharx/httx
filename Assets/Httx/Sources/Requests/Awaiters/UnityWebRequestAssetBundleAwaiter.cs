@@ -55,11 +55,10 @@ namespace Httx.Requests.Awaiters {
       };
 
       var isManifestRequest = headers.FetchHeader<bool>(InternalHeaders.AssetBundleLoadManifest);
-      var requestOperation = new Func<IAsyncOperation, IAsyncOperation>(_ =>
-        new UnityAsyncOperation(() => Send(requestImpl, headers)));
+      var requestLazy = new Func<IAsyncOperation, IAsyncOperation>(_ => SendCached(requestImpl, headers));
 
       if (!isManifestRequest) {
-        return requestOperation(null);
+        return requestLazy(null);
       }
 
       var manifestOperation = new Func<IAsyncOperation, IAsyncOperation>(previous => {
@@ -68,7 +67,7 @@ namespace Httx.Requests.Awaiters {
           bundle.LoadAssetAsync<AssetBundleManifest>(ManifestAsset));
       });
 
-      return new AsyncOperationQueue(requestOperation, manifestOperation);
+      return new AsyncOperationQueue(requestLazy, manifestOperation);
     }
 
     public override TResult Map(IRequest request, IAsyncOperation completeOperation) {

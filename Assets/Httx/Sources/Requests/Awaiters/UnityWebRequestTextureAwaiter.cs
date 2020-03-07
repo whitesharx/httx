@@ -38,7 +38,7 @@ namespace Httx.Requests.Awaiters {
         downloadHandler = new DownloadHandlerTexture(isReadable)
       };
 
-      return new UnityAsyncOperation(() => Send(requestImpl, headers));
+      return SendCached(requestImpl, headers);
     }
 
     public override Texture2D Map(IRequest request, IAsyncOperation completeOperation) {
