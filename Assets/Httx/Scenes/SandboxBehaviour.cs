@@ -23,9 +23,11 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using Httx;
 using Httx.Caches.Collections;
 using Httx.Caches.Disk;
 using Httx.Httx.Sources.Caches;
+using Httx.Loggers;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
@@ -74,21 +76,28 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     // var manifestResult = await new As<AssetBundleManifest>(new Get(new Manifest(fileUrl)));
     // Debug.Log($"ManifestResult: {manifestResult}");
 
-    Debug.Log($"Start: {Thread.CurrentThread.ManagedThreadId}");
-
-    var path = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_tests"));
-
-    if (Directory.Exists(path)) {
-      Directory.Delete(path, true);
-    }
 
 
 
-    var urlCache = new WebRequestDiskCache(new WebRequestCacheArgs(path, 1, int.MaxValue, 0));
 
-    urlCache.Initialize(() => {
-      Debug.Log($"Thread: {Thread.CurrentThread.ManagedThreadId}");
-    });
+
+
+
+    // Debug.Log($"Start: {Thread.CurrentThread.ManagedThreadId}");
+    //
+    // var path = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_tests"));
+    //
+    // if (Directory.Exists(path)) {
+    //   Directory.Delete(path, true);
+    // }
+    //
+    //
+    //
+    // var urlCache = new DiskCache(new DiskCacheArgs(path, 1, int.MaxValue, 0));
+    //
+    // urlCache.Initialize(() => {
+    //   Debug.Log($"Thread: {Thread.CurrentThread.ManagedThreadId}");
+    // });
 
 
 
@@ -119,7 +128,53 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     //   Debug.Log($"result: {result}");
     //   lockEditor.Commit();
     // }
+
+
+
+
+
+    var path = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_tests"));
+
+    // if (Directory.Exists(path)) {
+    //   Directory.Delete(path, true);
+    // }
+
+    var maxSize = 1024 * 1024 * 8;
+    var diskCacheArgs = new DiskCacheArgs(path, 1, maxSize, 128);
+
+    var diskCache = new DiskCache(diskCacheArgs);
+    diskCache.Initialize(() => {
+      var builder = new Context.Builder();
+      builder.WithLogger(new UnityDefaultLogger());
+      builder.WithDiskCache(diskCache);
+
+      OnContextReady(builder.Instantiate());
+    });
   }
+
+
+
+
+
+
+
+
+  private async void OnContextReady(Context context) {
+    Debug.Log($"OnContextReady: {context}");
+
+    var url = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
+
+    var noCacheText = await new As<string>(new Get(new Text(url)));
+
+    Debug.Log($"no-cache: {noCacheText}");
+
+    var withCacheText = await new As<string>(new Get(new Disk(new Text(url))));
+
+    Debug.Log($"with-cache: {noCacheText}");
+  }
+
+
+
 
   public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");
 }

@@ -51,7 +51,14 @@ namespace Httx.Requests.Awaiters {
           return operation.Done;
         }
 
-        Debug.Log(inputRequest.AsJson());
+        Context = Context.Instance;
+
+        if (null == Context) {
+          const string msg = "request context is not set, instantiate default context before usage";
+          throw new InvalidOperationException(msg);
+        }
+
+        Context.Logger.Log(inputRequest.AsJson());
 
         requestId = Guid.NewGuid().ToString();
         operation = Awake(inputRequest);
@@ -108,5 +115,7 @@ namespace Httx.Requests.Awaiters {
 
       return request.SendWebRequest();
     }
+
+    protected Context Context { get; private set; }
   }
 }

@@ -5,9 +5,9 @@
 
 using System;
 using System.Linq;
-using Httx.Httx.Sources.Caches;
 using Httx.Requests.Awaiters.Async;
 using Httx.Requests.Extensions;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
@@ -32,8 +32,10 @@ namespace Httx.Requests.Awaiters {
 
       isResponseCodeOnly = headers.FetchHeader<bool>(InternalHeaders.ResponseCodeOnly);
 
-      WebRequestDiskCache cache = null;
+      var cache = Context.DiskCache;
       var isDiskCacheEnabled = headers.FetchHeader<bool>(InternalHeaders.DiskCacheEnabled);
+
+      Context.Logger.Log($"is-cache-enabled: {isDiskCacheEnabled}");
 
       if (!isDiskCacheEnabled) {
         return new UnityAsyncOperation(() => Send(requestImpl, headers));
@@ -41,12 +43,15 @@ namespace Httx.Requests.Awaiters {
 
       // var cacheHitOp
       var tryCacheOp = new Func<IAsyncOperation, IAsyncOperation>(_ => {
+        Debug.Log($"try-cache: {url}");
         return cache.Get(url);
       });
 
       // var requestOp
       var netRequestOp = new Func<IAsyncOperation, IAsyncOperation>(previous => {
         var cachedFileUrl = previous.Result as string;
+
+        Debug.Log($"net-request: {cachedFileUrl}");
 
         if (!string.IsNullOrEmpty(cachedFileUrl)) {
           // XXX: Put to headers origin url?
@@ -60,8 +65,10 @@ namespace Httx.Requests.Awaiters {
       var persistCacheOp = new Func<IAsyncOperation, IAsyncOperation>(previous => {
         var resultRequest = (previous as UnityAsyncOperation)?.Request;
 
+        Debug.Log($"persist-cache: {resultRequest?.LocalOrCached()}");
+
         if (resultRequest.LocalOrCached()) {
-          return previous; // DoneAsyncOperation
+          return previous; // DoneAsyncOperation?
         }
 
         return cache.Put(resultRequest);

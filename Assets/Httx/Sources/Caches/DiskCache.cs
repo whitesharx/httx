@@ -26,8 +26,8 @@ using Httx.Utils;
 using UnityEngine.Networking;
 
 namespace Httx.Httx.Sources.Caches {
-  public class WebRequestCacheArgs {
-    public WebRequestCacheArgs(string path, int version, int maxSize, int collectFrequency) {
+  public class DiskCacheArgs {
+    public DiskCacheArgs(string path, int version, int maxSize, int collectFrequency) {
       Path = path;
       Version = version;
       MaxSize = maxSize;
@@ -40,7 +40,7 @@ namespace Httx.Httx.Sources.Caches {
     public int CollectFrequency { get; }
   }
 
-  public class WebRequestDiskCache : IDisposable {
+  public class DiskCache : IDisposable {
     private readonly string path;
     private readonly int version;
     private readonly int maxSize;
@@ -49,7 +49,7 @@ namespace Httx.Httx.Sources.Caches {
     private int opsCount;
     private DiskLruCache cacheImpl;
 
-    public WebRequestDiskCache(WebRequestCacheArgs args) {
+    public DiskCache(DiskCacheArgs args) {
       path = args.Path;
       version = args.Version;
       maxSize = args.MaxSize;
@@ -141,15 +141,15 @@ namespace Httx.Httx.Sources.Caches {
     }
 
     private async void PutImpl(UnityWebRequest completeRequest, Action onComplete) {
-      await Task.Run(() => {
-        var value = completeRequest.downloadHandler?.data;
+      var key = Crypto.Sha256(completeRequest.url);
+      var value = completeRequest.downloadHandler?.data;
 
+      await Task.Run(() => {
         if (null == value || 0 == value.Length) {
           return;
         }
 
-        var key = Crypto.Sha256(completeRequest.url);
-        var editor = cacheImpl.Edit(Crypto.Sha256(key));
+        var editor = cacheImpl.Edit(key);
         editor.Put(value);
         editor.Commit();
       });

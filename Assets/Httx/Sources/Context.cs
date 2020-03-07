@@ -19,23 +19,34 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Httx.Caches.Memory;
+using Httx.Httx.Sources.Caches;
 using Httx.Loggers;
 
 namespace Httx {
   public partial class Context {
-    public Context(ILogger logger, MemoryCache memoryCache) {
+    public static Context Instance { get; private set; }
+
+    private static Context Instantiate(Context builtCtx) {
+      Instance = builtCtx;
+      return Instance;
+    }
+
+    private Context(ILogger logger, MemoryCache memoryCache, DiskCache diskCache) {
       Logger = logger;
       MemoryCache = memoryCache;
+      DiskCache = diskCache;
     }
 
     public ILogger Logger { get; }
     public MemoryCache MemoryCache { get; }
+    public DiskCache DiskCache { get; }
   }
 
   public partial class Context {
     public class Builder {
       private ILogger logger;
       private MemoryCache memoryCache;
+      private DiskCache diskCache;
 
       public Builder() { }
 
@@ -54,12 +65,17 @@ namespace Httx {
         return this;
       }
 
-      public Context Build() {
-        return new Context(logger, memoryCache);
+      public Builder WithDiskCache(DiskCache diskCacheArg) {
+        diskCache = diskCacheArg;
+        return this;
       }
-      
-      public void Initialize() {
 
+      public Context Build() {
+        return new Context(logger, memoryCache, diskCache);
+      }
+
+      public Context Instantiate() {
+        return Context.Instantiate(Build());
       }
     }
   }
