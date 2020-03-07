@@ -39,6 +39,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Networking;
 using Cache = Httx.Requests.Decorators.Cache;
+using Texture = Httx.Requests.Types.Texture;
 
 class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   [UsedImplicitly]
@@ -120,7 +121,10 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     Debug.Log($"======== OnContextReady: {context}");
 
     var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
+    var imageUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png";
     var bundleUrl = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
+
+    // ---
 
     var noCacheText = await new As<string>(new Get(new Text(textUrl)));
 
@@ -130,13 +134,25 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
     Debug.Log($"text-with-cache: {withCacheText}");
 
-    var noCacheBundle = await new As<AssetBundle>(new Get(new Bundle(bundleUrl), this));
+    // ---
 
-    Debug.Log($"bundle-no-cache: {noCacheBundle}");
+    var noCacheImage = await new As<UnityEngine.Texture>(new Get(new Texture(imageUrl)));
 
-    var withCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Disk), this));
+    Debug.Log($"image-no-cache: {noCacheImage}");
 
-    Debug.Log($"bundle-no-cache: {withCacheBundle}");
+    var withCacheImage = await new As<UnityEngine.Texture>(new Get(new Cache(new Texture(imageUrl), Storage.Disk)));
+
+    Debug.Log($"image-with-cache: {withCacheImage}");
+
+    // ---
+
+    // var noCacheBundle = await new As<AssetBundle>(new Get(new Bundle(bundleUrl), this));
+    //
+    // Debug.Log($"bundle-no-cache: {noCacheBundle}");
+    //
+    // var withCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Disk), this));
+    //
+    // Debug.Log($"bundle-with-cache: {withCacheBundle}");
   }
 
 
