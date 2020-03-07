@@ -169,6 +169,10 @@ namespace Httx.Httx.Sources.Caches {
     }
 
     private async void UnlockImpl(Editor editor, Action onComplete) {
+      if (null == editor) {
+        onComplete();
+      }
+
       await Task.Run(() => {
         editor?.Commit();
       });

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Httx.Caches.Disk;
 using Httx.Requests.Awaiters.Async;
 using Httx.Requests.Exceptions;
 using Httx.Requests.Extensions;
@@ -73,13 +74,13 @@ namespace Httx.Requests.Awaiters {
       var e = requestOpt?.AsException();
 
       if (null != e) {
-        Debug.Log(e.AsJson());
+        Context.Logger.Log(e.AsJson());
         throw e;
       }
 
       if (null == continuationAction) {
         if (null != requestOpt) {
-          Debug.Log(requestOpt.AsJson());
+          Context.Logger.Log(requestOpt.AsJson());
         }
 
         return Map(inputRequest, operation);
@@ -114,6 +115,64 @@ namespace Httx.Requests.Awaiters {
       UnityWebRequestReporter.AddReporterRef(requestId, wrapper);
 
       return request.SendWebRequest();
+    }
+
+    protected IAsyncOperation SendCached(UnityWebRequest request,
+      IEnumerable<KeyValuePair<string, object>> headers) {
+
+      var hx = headers?.ToList() ?? new List<KeyValuePair<string, object>>();
+      var isDiskCacheEnabled = hx.FetchHeader<bool>(InternalHeaders.DiskCacheEnabled);
+
+      return !isDiskCacheEnabled
+        ? new UnityAsyncOperation(() => Send(request, hx))
+        : CreateCacheOperation(request, hx);
+    }
+
+    protected IAsyncOperation CreateCacheOperation(UnityWebRequest request,
+      IEnumerable<KeyValuePair<string, object>> headers) {
+
+      var url = request.url;
+      var cache = Context.DiskCache;
+
+      Editor unsafeEditor = null;
+
+      var tryCache = new Func<IAsyncOperation, IAsyncOperation>(_ => {
+        Debug.Log($"try-cache: {url}");
+        return cache.Get(url);
+      });
+
+      var netRequest = new Func<IAsyncOperation, IAsyncOperation>(previous => {
+        var cachedFileUrl = previous.Result as string;
+
+        if (string.IsNullOrEmpty(cachedFileUrl)) {
+          return new UnityAsyncOperation(() => Send(request, headers));
+        }
+
+        Debug.Log($"net-request: {cachedFileUrl}");
+
+        request.url = cachedFileUrl;
+
+        return new AsyncOperationQueue(
+          _ => cache.Lock(cachedFileUrl),
+          pLock => {
+            unsafeEditor = pLock.Result as Editor;
+            return new UnityAsyncOperation(() => Send(request, headers));
+          });
+      });
+
+      var putCache = new Func<IAsyncOperation, IAsyncOperation>(previous => {
+        var resultRequest = previous?.Result as UnityWebRequest;
+
+        if (resultRequest.LocalOrCached()) {
+          return previous;
+        }
+
+        return new AsyncOperationQueue(
+          _ => cache.Put(resultRequest),
+          _ => cache.Unlock(unsafeEditor));
+      });
+
+      return new AsyncOperationQueue(tryCache, netRequest, putCache);
     }
 
     protected Context Context { get; private set; }

@@ -170,7 +170,7 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
     var withCacheText = await new As<string>(new Get(new Disk(new Text(url))));
 
-    Debug.Log($"with-cache: {noCacheText}");
+    Debug.Log($"with-cache: {withCacheText}");
   }
 
 
