@@ -136,10 +136,7 @@ namespace Httx.Requests.Awaiters {
 
       Editor unsafeEditor = null;
 
-      var tryCache = new Func<IAsyncOperation, IAsyncOperation>(_ => {
-        Debug.Log($"try-cache: {url}");
-        return cache.Get(url);
-      });
+      var tryCache = new Func<IAsyncOperation, IAsyncOperation>(_ => cache.Get(url));
 
       var netRequest = new Func<IAsyncOperation, IAsyncOperation>(previous => {
         var cachedFileUrl = previous.Result as string;
@@ -147,8 +144,6 @@ namespace Httx.Requests.Awaiters {
         if (string.IsNullOrEmpty(cachedFileUrl)) {
           return new UnityAsyncOperation(() => Send(request, headers));
         }
-
-        Debug.Log($"net-request: {cachedFileUrl}");
 
         request.url = cachedFileUrl;
 

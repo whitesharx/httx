@@ -26,6 +26,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
+  // TODO: Native Cache
   public class UnityWebRequestAssetBundleAwaiter<TResult> : BaseUnityAwaiter<TResult> {
     private const string ManifestAsset = "assetbundlemanifest";
 
@@ -54,11 +55,22 @@ namespace Httx.Requests.Awaiters {
         downloadHandler = handler
       };
 
+
+
+
+
+      var isNativeCacheEnabled = headers.FetchHeader<bool>(InternalHeaders.NativeCacheEnabled);
+
+
+
+
+
       var isManifestRequest = headers.FetchHeader<bool>(InternalHeaders.AssetBundleLoadManifest);
-      var requestLazy = new Func<IAsyncOperation, IAsyncOperation>(_ => SendCached(requestImpl, headers));
+      var requestOperation = new Func<IAsyncOperation, IAsyncOperation>(_ =>
+        new UnityAsyncOperation(() => Send(requestImpl, headers)));
 
       if (!isManifestRequest) {
-        return requestLazy(null);
+        return requestOperation(null);
       }
 
       var manifestOperation = new Func<IAsyncOperation, IAsyncOperation>(previous => {
@@ -67,7 +79,7 @@ namespace Httx.Requests.Awaiters {
           bundle.LoadAssetAsync<AssetBundleManifest>(ManifestAsset));
       });
 
-      return new AsyncOperationQueue(requestLazy, manifestOperation);
+      return new AsyncOperationQueue(requestOperation, manifestOperation);
     }
 
     public override TResult Map(IRequest request, IAsyncOperation completeOperation) {

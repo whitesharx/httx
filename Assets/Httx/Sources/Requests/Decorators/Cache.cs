@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using Httx.Requests.Extensions;
 
 namespace Httx.Requests.Decorators {
-  public enum Storage { Memory, Disk }
+  public enum Storage { Memory, Disk, Native }
 
   public class Cache : BaseRequest {
     private readonly Storage storageType;
@@ -33,11 +33,15 @@ namespace Httx.Requests.Decorators {
 
     public override IEnumerable<KeyValuePair<string, object>> Headers {
       get {
-        var result = new Dictionary<string, object> {
-          { storageType == Storage.Memory ?
-            InternalHeaders.MemoryCacheEnabled :
-            InternalHeaders.DiskCacheEnabled, true }
-        };
+        var result = new Dictionary<string, object>();
+
+        if (storageType == Storage.Memory) {
+          result.Add(InternalHeaders.MemoryCacheEnabled, true);
+        } else if (storageType == Storage.Disk) {
+          result.Add(InternalHeaders.DiskCacheEnabled, true);
+        } else if (storageType == Storage.Native) {
+          result.Add(InternalHeaders.NativeCacheEnabled, true);
+        }
 
         return result;
       }

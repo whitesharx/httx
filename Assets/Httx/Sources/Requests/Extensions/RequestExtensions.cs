@@ -34,6 +34,7 @@ namespace Httx.Requests.Extensions {
 
     public const string MemoryCacheEnabled = Prefix + "MemoryCache-Enabled";
     public const string DiskCacheEnabled = Prefix + "DiskCache-Enabled";
+    public const string NativeCacheEnabled = Prefix + "NativeCache-Enabled";
     public const string ContextOverride = Prefix + "Context-Override";
     public const string ProgressObject = Prefix + "Progress-Object";
     public const string TextureReadable = Prefix + "Texture-NonReadable";
