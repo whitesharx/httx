@@ -19,17 +19,36 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using UnityEngine;
+using UnityEngine.Networking;
 
-namespace Httx.Requests.Awaiters {
-  public class MutableAsyncOperation : IAsyncOperation {
+namespace Httx.Requests.Awaiters.Async {
+  public class UnityAsyncOperation : IAsyncOperation {
+    private readonly AsyncOperation operation;
+
+    public UnityAsyncOperation(Func<AsyncOperation> operationFunc) {
+      operation = operationFunc();
+      operation.completed += o => OnComplete?.Invoke();
+    }
+
     public event Action OnComplete;
 
-    public object Result { get; set; }
-    public bool Done { get; set; }
-    public float Progress { get; set; }
+    public object Result {
+      get {
+        if (operation is UnityWebRequestAsyncOperation webRequestOp) {
+          return webRequestOp.webRequest;
+        }
 
-    public void InvokeSafe() {
-      OnComplete?.Invoke();
+        if (operation is AssetBundleRequest bundleRequestOp) {
+          return bundleRequestOp.asset;
+        }
+
+        return null;
+      }
     }
+
+    public bool Done => operation.isDone;
+    public float Progress => operation.progress;
+    public UnityWebRequest Request => (operation as UnityWebRequestAsyncOperation)?.webRequest;
   }
 }

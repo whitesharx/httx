@@ -20,12 +20,30 @@
 
 using System;
 
-namespace Httx.Requests.Awaiters {
-  public interface IAsyncOperation {
-    event Action OnComplete;
+namespace Httx.Requests.Awaiters.Async {
+  public class MutableAsyncOperation : IAsyncOperation {
+    public event Action OnComplete;
 
-    object Result { get; }
-    bool Done { get; }
-    float Progress { get; }
+    public object Result { get; set; }
+    public bool Done { get; set; }
+    public float Progress { get; set; }
+
+    public void InvokeSafe() {
+      OnComplete?.Invoke();
+    }
+  }
+
+  public class CompleteAsyncOperation : MutableAsyncOperation {
+    public CompleteAsyncOperation(object result, Action optionalCallback = null) {
+      Result = result;
+      Progress = 1.0f;
+      Done = true;
+
+      if (null != optionalCallback) {
+        OnComplete += optionalCallback;
+      }
+
+      InvokeSafe();
+    }
   }
 }

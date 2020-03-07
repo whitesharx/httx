@@ -20,6 +20,7 @@
 
 using System;
 using System.Linq;
+using Httx.Requests.Awaiters.Async;
 using Httx.Requests.Extensions;
 using UnityEngine;
 using UnityEngine.Networking;

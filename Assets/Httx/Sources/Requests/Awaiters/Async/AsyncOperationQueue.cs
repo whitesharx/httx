@@ -19,36 +19,45 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using UnityEngine;
-using UnityEngine.Networking;
+using System.Collections.Generic;
 
-namespace Httx.Requests.Awaiters {
-  public class UnityAsyncOperation : IAsyncOperation {
-    private readonly AsyncOperation operation;
+namespace Httx.Requests.Awaiters.Async {
+  public class AsyncOperationQueue : IAsyncOperation {
+    private readonly Queue<Func<IAsyncOperation, IAsyncOperation>> operationsQueue;
+    private IAsyncOperation currentOperation;
 
-    public UnityAsyncOperation(Func<AsyncOperation> operationFunc) {
-      operation = operationFunc();
-      operation.completed += o => OnComplete?.Invoke();
+    public AsyncOperationQueue(params Func<IAsyncOperation, IAsyncOperation>[] operations) {
+      operationsQueue = new Queue<Func<IAsyncOperation, IAsyncOperation>>(operations);
+      ExecuteNext(null);
     }
+
+    public object Result { get; private set; }
+
+    public bool Done { get; private set; }
+
+    public float Progress => currentOperation?.Progress ?? 1.0f;
 
     public event Action OnComplete;
 
-    public object Result {
-      get {
-        if (operation is UnityWebRequestAsyncOperation webRequestOp) {
-          return webRequestOp.webRequest;
-        }
+    private void ExecuteNext(IAsyncOperation previous) {
+      if (0 == operationsQueue.Count) {
+        Result = currentOperation.Result;
+        Done = true;
+        OnComplete?.Invoke();
 
-        if (operation is AssetBundleRequest bundleRequestOp) {
-          return bundleRequestOp.asset;
-        }
-
-        return null;
+        return;
       }
-    }
 
-    public bool Done => operation.isDone;
-    public float Progress => operation.progress;
-    public UnityWebRequest Request => (operation as UnityWebRequestAsyncOperation)?.webRequest;
+      var nextOperationFunc = operationsQueue.Dequeue();
+      var nextOperation = nextOperationFunc(previous);
+
+      if (nextOperation.Done) {
+        ExecuteNext(currentOperation);
+      } else {
+        nextOperation.OnComplete += () => ExecuteNext(currentOperation);
+      }
+
+      currentOperation = nextOperation;
+    }
   }
 }

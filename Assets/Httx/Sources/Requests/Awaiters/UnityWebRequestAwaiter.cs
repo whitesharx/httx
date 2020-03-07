@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using Httx.Httx.Sources.Caches;
+using Httx.Requests.Awaiters.Async;
 using Httx.Requests.Extensions;
 using UnityEngine.Networking;
 

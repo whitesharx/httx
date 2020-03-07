@@ -19,6 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Linq;
+using Httx.Requests.Awaiters.Async;
 using Httx.Requests.Extensions;
 using UnityEngine.Networking;
 
@@ -32,7 +33,6 @@ namespace Httx.Requests.Awaiters {
       var verb = request.ResolveVerb();
       var url = request.ResolveUrl();
       var headers = request.ResolveHeaders()?.ToList();
-
 
       var path = headers.FetchHeader<string>(InternalHeaders.FilePath);
       var isAppend = headers.FetchHeader<bool>(InternalHeaders.FileAppend);

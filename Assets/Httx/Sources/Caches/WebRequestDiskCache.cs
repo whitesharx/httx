@@ -21,7 +21,7 @@
 using System;
 using System.Threading.Tasks;
 using Httx.Caches.Disk;
-using Httx.Requests.Awaiters;
+using Httx.Requests.Awaiters.Async;
 using Httx.Utils;
 using UnityEngine.Networking;
 
