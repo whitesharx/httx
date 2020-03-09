@@ -18,9 +18,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using Httx.Caches;
 using Httx.Caches.Memory;
-using Httx.Httx.Sources.Caches;
 using Httx.Loggers;
+using Httx.Sources.Caches;
 
 namespace Httx {
   public partial class Context {
@@ -31,15 +32,19 @@ namespace Httx {
       return Instance;
     }
 
-    private Context(ILogger logger, MemoryCache memoryCache, DiskCache diskCache) {
+    private Context(ILogger logger, MemoryCache memoryCache,
+      DiskCache diskCache, NativeCache nativeCache) {
+
       Logger = logger;
       MemoryCache = memoryCache;
       DiskCache = diskCache;
+      NativeCache = nativeCache;
     }
 
     public ILogger Logger { get; }
     public MemoryCache MemoryCache { get; }
     public DiskCache DiskCache { get; }
+    public NativeCache NativeCache { get; }
   }
 
   public partial class Context {
@@ -47,6 +52,7 @@ namespace Httx {
       private ILogger logger;
       private MemoryCache memoryCache;
       private DiskCache diskCache;
+      private NativeCache nativeCache;
 
       public Builder() { }
 
@@ -70,8 +76,13 @@ namespace Httx {
         return this;
       }
 
+      public Builder WithNativeCache(NativeCache nativeCacheArg) {
+        nativeCache = nativeCacheArg;
+        return this;
+      }
+
       public Context Build() {
-        return new Context(logger, memoryCache, diskCache);
+        return new Context(logger, memoryCache, diskCache, nativeCache);
       }
 
       public Context Instantiate() {

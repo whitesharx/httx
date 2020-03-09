@@ -25,7 +25,7 @@ using Httx.Requests.Awaiters.Async;
 using Httx.Utils;
 using UnityEngine.Networking;
 
-namespace Httx.Httx.Sources.Caches {
+namespace Httx.Caches {
   public class DiskCacheArgs {
     public DiskCacheArgs(string path, int version, int maxSize, int collectFrequency) {
       Path = path;

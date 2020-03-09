@@ -19,26 +19,29 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using Httx;
+using Httx.Caches;
 using Httx.Caches.Collections;
 using Httx.Caches.Disk;
-using Httx.Httx.Sources.Caches;
 using Httx.Loggers;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
+using Httx.Sources.Caches;
 using Httx.Utils;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Networking;
 using Cache = Httx.Requests.Decorators.Cache;
+using Debug = UnityEngine.Debug;
 using Texture = Httx.Requests.Types.Texture;
 
 class SandboxBehaviour : MonoBehaviour, IProgress<float> {
@@ -91,23 +94,42 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
 
 
-    var path = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_tests"));
+    var diskCachePath = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_disk_tests"));
+    var nativeCachePath = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_native_tests"));
 
-    if (Directory.Exists(path)) {
-      Directory.Delete(path, true);
+    if (Directory.Exists(diskCachePath)) {
+      Directory.Delete(diskCachePath, true);
     }
 
-    var maxSize = 1024 * 1024 * 8;
-    var diskCacheArgs = new DiskCacheArgs(path, 1, maxSize, 128);
+    // if (Directory.Exists(nativeCachePath)) {
+    //   Directory.Delete(nativeCachePath, true);
+    // }
+
+
+
+
+
+
+    const int maxSize = 1024 * 1024 * 12;
+    var diskCacheArgs = new DiskCacheArgs(diskCachePath, 1, maxSize, 128);
+    var nativeCacheArgs = new NativeCacheArgs(nativeCachePath, 7, maxSize);
 
     var diskCache = new DiskCache(diskCacheArgs);
-    diskCache.Initialize(() => {
-      var builder = new Context.Builder();
-      builder.WithLogger(new UnityDefaultLogger());
-      builder.WithDiskCache(diskCache);
+    var nativeCache = new NativeCache(nativeCacheArgs);
 
-      OnContextReady(builder.Instantiate());
+    diskCache.Initialize(() => {
+      nativeCache.Initialize(() => {
+        var builder = new Context.Builder();
+        builder.WithLogger(new UnityDefaultLogger());
+        builder.WithDiskCache(diskCache);
+        builder.WithNativeCache(nativeCache);
+
+        OnContextReady(builder.Instantiate());
+      });
     });
+
+
+
   }
 
 
@@ -122,41 +144,62 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
     var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
     var imageUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png";
-    var bundleUrl = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
+    var bundleUrl = "https://emilystories.app/static/v46/story/bundles/scene_1.apple-bundle";
+
+    // // ---
+    //
+    // var noCacheText = await new As<string>(new Get(new Text(textUrl)));
+    //
+    // Debug.Log($"text-no-cache: {noCacheText}");
+    //
+    // var withCacheText = await new As<string>(new Get(new Cache(new Text(textUrl), Storage.Disk)));
+    //
+    // Debug.Log($"text-with-cache: {withCacheText}");
+    //
+    // // ---
+    //
+    // var noCacheImage = await new As<UnityEngine.Texture>(new Get(new Texture(imageUrl)));
+    //
+    // Debug.Log($"image-no-cache: {noCacheImage}");
+    //
+    // var withCacheImage = await new As<UnityEngine.Texture>(new Get(new Cache(new Texture(imageUrl), Storage.Disk)));
+    //
+    // Debug.Log($"image-with-cache: {withCacheImage}");
 
     // ---
 
-    var noCacheText = await new As<string>(new Get(new Text(textUrl)));
+    var s1 = new Stopwatch();
+    var s2 = new Stopwatch();
 
-    Debug.Log($"text-no-cache: {noCacheText}");
+    s1.Start();
 
-    var withCacheText = await new As<string>(new Get(new Cache(new Text(textUrl), Storage.Disk)));
+    var noCacheBundle = await new As<AssetBundle>(new Get(new Bundle(bundleUrl), this));
+    Debug.Log($"bundle-no-cache: {noCacheBundle}");
 
-    Debug.Log($"text-with-cache: {withCacheText}");
+    s1.Stop();
 
-    // ---
+    noCacheBundle.Unload(true);
 
-    var noCacheImage = await new As<UnityEngine.Texture>(new Get(new Texture(imageUrl)));
 
-    Debug.Log($"image-no-cache: {noCacheImage}");
 
-    var withCacheImage = await new As<UnityEngine.Texture>(new Get(new Cache(new Texture(imageUrl), Storage.Disk)));
 
-    Debug.Log($"image-with-cache: {withCacheImage}");
+    s2.Start();
 
-    // --- TODO:
+    var withCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Native), this));
+    Debug.Log($"bundle-with-cache: {withCacheBundle}");
 
-    // var noCacheBundle = await new As<AssetBundle>(new Get(new Bundle(bundleUrl), this));
-    //
-    // Debug.Log($"bundle-no-cache: {noCacheBundle}");
-    //
-    // var withCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Disk), this));
-    //
-    // Debug.Log($"bundle-with-cache: {withCacheBundle}");
+    s2.Stop();
+
+    withCacheBundle.Unload(true);
+
+
+
+
+    Debug.Log($"s1: {s1.Elapsed} s2: {s2.Elapsed}");
   }
 
 
 
-
-  public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");
+  public void Report(float value) { }
+  // public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");
 }

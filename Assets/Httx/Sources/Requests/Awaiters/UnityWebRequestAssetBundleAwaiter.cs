@@ -26,7 +26,6 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
-  // TODO: Native Cache
   public class UnityWebRequestAssetBundleAwaiter<TResult> : BaseUnityAwaiter<TResult> {
     private const string ManifestAsset = "assetbundlemanifest";
 
@@ -41,10 +40,14 @@ namespace Httx.Requests.Awaiters {
       var version = headers.FetchHeader<uint>(InternalHeaders.AssetBundleVersion);
       var hash = headers.FetchHeader<Hash128>(InternalHeaders.AssetBundleHash);
 
+      var isCacheEnabled = headers.FetchHeader<bool>(InternalHeaders.NativeCacheEnabled);
+      var cache = Context.NativeCache;
+      var cacheVersion = 0 != version ? version : cache.Version;
+
       var handler = new DownloadHandlerAssetBundle(url, crc);
 
-      if (0 != version) {
-        handler = new DownloadHandlerAssetBundle(url, version, crc);
+      if (0 != cacheVersion && isCacheEnabled) {
+        handler = new DownloadHandlerAssetBundle(url, cacheVersion, crc);
       }
 
       if (default != hash) {
@@ -54,16 +57,6 @@ namespace Httx.Requests.Awaiters {
       var requestImpl = new UnityWebRequest(url, verb) {
         downloadHandler = handler
       };
-
-
-
-
-
-      var isNativeCacheEnabled = headers.FetchHeader<bool>(InternalHeaders.NativeCacheEnabled);
-
-
-
-
 
       var isManifestRequest = headers.FetchHeader<bool>(InternalHeaders.AssetBundleLoadManifest);
       var requestOperation = new Func<IAsyncOperation, IAsyncOperation>(_ =>
