@@ -28,6 +28,7 @@ using Httx;
 using Httx.Caches;
 using Httx.Caches.Collections;
 using Httx.Caches.Disk;
+using Httx.Caches.Memory;
 using Httx.Loggers;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Decorators;
@@ -101,9 +102,9 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
       Directory.Delete(diskCachePath, true);
     }
 
-    // if (Directory.Exists(nativeCachePath)) {
-    //   Directory.Delete(nativeCachePath, true);
-    // }
+    if (Directory.Exists(nativeCachePath)) {
+      Directory.Delete(nativeCachePath, true);
+    }
 
 
 
@@ -121,6 +122,7 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
       nativeCache.Initialize(() => {
         var builder = new Context.Builder();
         builder.WithLogger(new UnityDefaultLogger());
+        builder.WithMemoryCache(new MemoryCache(12));
         builder.WithDiskCache(diskCache);
         builder.WithNativeCache(nativeCache);
 
@@ -173,24 +175,24 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
     s1.Start();
 
-    var noCacheBundle = await new As<AssetBundle>(new Get(new Bundle(bundleUrl), this));
+    var noCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory)));
     Debug.Log($"bundle-no-cache: {noCacheBundle}");
 
     s1.Stop();
 
-    noCacheBundle.Unload(true);
+    // noCacheBundle.Unload(true);
 
 
 
 
     s2.Start();
 
-    var withCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Native), this));
+    var withCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory)));
     Debug.Log($"bundle-with-cache: {withCacheBundle}");
 
     s2.Stop();
 
-    withCacheBundle.Unload(true);
+    // withCacheBundle.Unload(true);
 
 
 

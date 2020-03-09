@@ -70,11 +70,17 @@ namespace Httx.Requests.Awaiters {
         requestId = Guid.NewGuid().ToString();
         isCacheEnabled = inputRequest.IsMemoryCacheEnabled();
 
+        if (isCacheEnabled && null == Context.MemoryCache) {
+          throw new InvalidOperationException("memory cache enabled, but not initialized");
+        }
+
         if (isCacheEnabled) {
           cacheKey = Crypto.Sha256(inputRequest.ResolveUrl());
           cachedResult = Context.MemoryCache.Get(cacheKey);
 
-          return default != cachedResult;
+          if (default != cachedResult) {
+            return true;
+          }
         }
 
         operation = Awake(inputRequest);
@@ -85,33 +91,33 @@ namespace Httx.Requests.Awaiters {
     }
 
     public TResult GetResult() {
-      if (null != cachedResult) {
+      if (default != cachedResult) {
         return (TResult) cachedResult;
       }
 
       var requestOpt = operation.Result as UnityWebRequest;
       var e = requestOpt?.AsException();
 
-      if (null != e) {
-        Log(e.AsJson());
-        throw e;
-      }
-
-      if (null == continuationAction) {
-        if (null != requestOpt) {
-          Context.Logger.Log(requestOpt.AsJson());
+      try {
+        if (null != e) {
+          Log(e.AsJson());
+          throw e;
         }
 
-        return MapInternal(inputRequest, operation);
-      }
+        if (null == continuationAction) {
+          if (null != requestOpt) {
+            Context.Logger.Log(requestOpt.AsJson());
+          }
 
-      operation.OnComplete -= continuationAction;
-      continuationAction = null;
+          return MapInternal(inputRequest, operation);
+        }
 
-      try {
-        UnityWebRequestReporter.RemoveReporterRef(requestId);
+        operation.OnComplete -= continuationAction;
+        continuationAction = null;
+
         return MapInternal(inputRequest, operation);
       } finally {
+        UnityWebRequestReporter.RemoveReporterRef(requestId);
         requestOpt?.Dispose();
         operation = null;
       }
