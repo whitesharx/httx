@@ -18,10 +18,14 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
+using System.IO;
 using Httx.Caches;
 using Httx.Caches.Memory;
 using Httx.Loggers;
 using Httx.Sources.Caches;
+using UnityEngine;
+using ILogger = Httx.Loggers.ILogger;
 
 namespace Httx {
   public partial class Context {
@@ -45,9 +49,13 @@ namespace Httx {
     public MemoryCache MemoryCache { get; }
     public DiskCache DiskCache { get; }
     public NativeCache NativeCache { get; }
+
+    // TODO: TrackBundles?
+
+    // TODO: Clear?
   }
 
-  public partial class Context {
+  public partial class Context { // TODO: IDisposeble?
     public class Builder {
       private ILogger logger;
       private MemoryCache memoryCache;
@@ -87,6 +95,50 @@ namespace Httx {
 
       public Context Instantiate() {
         return Context.Instantiate(Build());
+      }
+    }
+  }
+
+  public partial class Context {
+    private static readonly string DefaultDiskCache =
+      Path.Combine(Application.persistentDataPath, "Httx", "DiskCache");
+
+    private static readonly string DefaultNativeCache =
+      Path.Combine(Application.persistentDataPath, "Httx", "BundlesCache");
+
+    private static int MemoryMaxSize = 32;
+    private static int DiskMaxSize = 64 * 1024 * 1024;
+    private static int NativeMaxSize = 128 * 1024 * 1024;
+
+    public static void InitializeDefault(int version, Action onContextReady) {
+      var diskCacheArgs = new DiskCacheArgs(DefaultDiskCache, version, DiskMaxSize, 128);
+      var nativeCacheArgs = new NativeCacheArgs(DefaultNativeCache, (uint) version, NativeMaxSize);
+
+      var diskCache = new DiskCache(diskCacheArgs);
+      var nativeCache = new NativeCache(nativeCacheArgs);
+
+      diskCache.Initialize(() => {
+        nativeCache.Initialize(() => {
+          var builder = new Builder();
+          builder.WithLogger(new UnityDefaultLogger());
+          builder.WithMemoryCache(new MemoryCache(MemoryMaxSize));
+          builder.WithDiskCache(diskCache);
+          builder.WithNativeCache(nativeCache);
+
+          builder.Instantiate();
+
+          onContextReady();
+        });
+      });
+    }
+
+    public static void ClearDefault() {
+      if (Directory.Exists(DefaultDiskCache)) {
+        Directory.Delete(DefaultDiskCache, true);
+      }
+
+      if (Directory.Exists(DefaultNativeCache)) {
+        Directory.Delete(DefaultNativeCache, true);
       }
     }
   }

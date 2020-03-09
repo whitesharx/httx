@@ -82,56 +82,8 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     // var manifestResult = await new As<AssetBundleManifest>(new Get(new Manifest(fileUrl)));
     // Debug.Log($"ManifestResult: {manifestResult}");
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    var diskCachePath = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_disk_tests"));
-    var nativeCachePath = Path.GetFullPath(Path.Combine(Application.dataPath, "../", "__httx_cache_native_tests"));
-
-    if (Directory.Exists(diskCachePath)) {
-      Directory.Delete(diskCachePath, true);
-    }
-
-    if (Directory.Exists(nativeCachePath)) {
-      Directory.Delete(nativeCachePath, true);
-    }
-
-
-
-
-
-
-    const int maxSize = 1024 * 1024 * 12;
-    var diskCacheArgs = new DiskCacheArgs(diskCachePath, 1, maxSize, 128);
-    var nativeCacheArgs = new NativeCacheArgs(nativeCachePath, 7, maxSize);
-
-    var diskCache = new DiskCache(diskCacheArgs);
-    var nativeCache = new NativeCache(nativeCacheArgs);
-
-    diskCache.Initialize(() => {
-      nativeCache.Initialize(() => {
-        var builder = new Context.Builder();
-        builder.WithLogger(new UnityDefaultLogger());
-        builder.WithMemoryCache(new MemoryCache(12));
-        builder.WithDiskCache(diskCache);
-        builder.WithNativeCache(nativeCache);
-
-        OnContextReady(builder.Instantiate());
-      });
-    });
-
-
-
+    const int appVersion = 1;
+    Context.InitializeDefault(appVersion, OnContextReady);
   }
 
 
@@ -141,8 +93,8 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
 
 
-  private async void OnContextReady(Context context) {
-    Debug.Log($"======== OnContextReady: {context}");
+  private async void OnContextReady() {
+
 
     var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
     var imageUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png";

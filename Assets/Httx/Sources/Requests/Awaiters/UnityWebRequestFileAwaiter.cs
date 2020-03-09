@@ -18,12 +18,14 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.Linq;
 using Httx.Requests.Awaiters.Async;
 using Httx.Requests.Extensions;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
+  // TODO: Implement
   public class UnityWebRequestFileAwaiter : BaseUnityAwaiter<int> {
     private string inputPath;
 
@@ -40,7 +42,7 @@ namespace Httx.Requests.Awaiters {
 
       var requestImpl = new UnityWebRequest(url, verb);
 
-      // TODO: Implement
+      throw new NotImplementedException("will be implemented in future versions");
 
       return new UnityAsyncOperation(() => Send(requestImpl, headers));
     }

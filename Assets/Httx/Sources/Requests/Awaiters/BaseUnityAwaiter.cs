@@ -67,6 +67,8 @@ namespace Httx.Requests.Awaiters {
 
         Log(inputRequest.AsJson());
 
+        // TODO: Context override
+
         requestId = Guid.NewGuid().ToString();
         isCacheEnabled = inputRequest.IsMemoryCacheEnabled();
 
