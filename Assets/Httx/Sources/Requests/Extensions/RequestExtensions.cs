@@ -139,6 +139,13 @@ namespace Httx.Requests.Extensions {
       return default != value ? (T) value : defaultValue;
     }
 
+    public static bool IsMemoryCacheEnabled(this IRequest request) {
+      var headers = request.ResolveHeaders()?.ToList() ?? new List<KeyValuePair<string, object>>();
+      var isEnabled = headers.FetchHeader<bool>(InternalHeaders.MemoryCacheEnabled);
+
+      return isEnabled;
+    }
+
     public static string AsJson(this IRequest request, int bodySize = 256) {
       var jsonObject = new Dictionary<string, object>();
 

@@ -26,7 +26,6 @@ using Httx.Requests.Awaiters.Async;
 using Httx.Requests.Exceptions;
 using Httx.Requests.Extensions;
 using Httx.Utils;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
@@ -36,6 +35,9 @@ namespace Httx.Requests.Awaiters {
     private Action continuationAction;
     private bool isAwaken;
     private string requestId;
+    private bool isCacheEnabled;
+    private string cacheKey;
+    private object cachedResult;
 
     public BaseUnityAwaiter(IRequest request) {
       inputRequest = request;
@@ -48,6 +50,10 @@ namespace Httx.Requests.Awaiters {
 
     public bool IsCompleted {
       get {
+        if (default != cachedResult) {
+          return true;
+        }
+
         if (isAwaken) {
           return operation.Done;
         }
@@ -59,9 +65,18 @@ namespace Httx.Requests.Awaiters {
           throw new InvalidOperationException(msg);
         }
 
-        Context.Logger.Log(inputRequest.AsJson());
+        Log(inputRequest.AsJson());
 
         requestId = Guid.NewGuid().ToString();
+        isCacheEnabled = inputRequest.IsMemoryCacheEnabled();
+
+        if (isCacheEnabled) {
+          cacheKey = Crypto.Sha256(inputRequest.ResolveUrl());
+          cachedResult = Context.MemoryCache.Get(cacheKey);
+
+          return default != cachedResult;
+        }
+
         operation = Awake(inputRequest);
         isAwaken = true;
 
@@ -70,11 +85,15 @@ namespace Httx.Requests.Awaiters {
     }
 
     public TResult GetResult() {
+      if (null != cachedResult) {
+        return (TResult) cachedResult;
+      }
+
       var requestOpt = operation.Result as UnityWebRequest;
       var e = requestOpt?.AsException();
 
       if (null != e) {
-        Context.Logger.Log(e.AsJson());
+        Log(e.AsJson());
         throw e;
       }
 
@@ -83,7 +102,7 @@ namespace Httx.Requests.Awaiters {
           Context.Logger.Log(requestOpt.AsJson());
         }
 
-        return Map(inputRequest, operation);
+        return MapInternal(inputRequest, operation);
       }
 
       operation.OnComplete -= continuationAction;
@@ -91,7 +110,7 @@ namespace Httx.Requests.Awaiters {
 
       try {
         UnityWebRequestReporter.RemoveReporterRef(requestId);
-        return Map(inputRequest, operation);
+        return MapInternal(inputRequest, operation);
       } finally {
         requestOpt?.Dispose();
         operation = null;
@@ -127,6 +146,8 @@ namespace Httx.Requests.Awaiters {
         ? new UnityAsyncOperation(() => Send(request, hx))
         : CreateCacheOperation(request, hx);
     }
+
+    protected Context Context { get; private set; }
 
     private IAsyncOperation CreateCacheOperation(UnityWebRequest request,
       IEnumerable<KeyValuePair<string, object>> headers) {
@@ -170,6 +191,19 @@ namespace Httx.Requests.Awaiters {
       return new AsyncOperationQueue(tryCache, netRequest, putCache);
     }
 
-    protected Context Context { get; private set; }
+    private TResult MapInternal(IRequest request, IAsyncOperation completeOperation) {
+      var result = Map(request, completeOperation);
+
+      if (isCacheEnabled && !string.IsNullOrEmpty(cacheKey)) {
+        Context.MemoryCache.Put(cacheKey, result);
+      }
+
+      return result;
+    }
+
+    private void Log(object message) {
+      var logger = Context?.Logger;
+      logger?.Log(message);
+    }
   }
 }
