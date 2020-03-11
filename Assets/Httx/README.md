@@ -4,6 +4,7 @@
 
 X-Force HTTP/REST framework for Unity
 
+ - :warning: Under heavy development
  - Zero dependency, based on Unity built-in `UnityWebRequest`
  - Simple, consise DSL-like syntax to compose your queries
  - Includes Memory/Disk/Bundle caches
@@ -11,8 +12,9 @@ X-Force HTTP/REST framework for Unity
 
 ## Installation
 
-You can install this package using Unity Pacakage Manager, just add the following
-to your `Packages/manifest.json`:
+Httx distributed as standard [Unity Package](https://docs.unity3d.com/Manual/PackagesList.html)
+You can install this package using Unity Pacakage Manager, just add the
+following to your `Packages/manifest.json`:
 
 1. Add official NPM registry with WhiteSharx scope, or simply add `com.whitesharx` scope
 if you already have NPM registry added:
