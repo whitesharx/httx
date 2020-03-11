@@ -25,7 +25,7 @@ namespace Httx.Loggers {
     private readonly string prefix;
 
     public UnityDefaultLogger(string prefix) => this.prefix = prefix;
-    public UnityDefaultLogger() : this($"[Httx/{Version.Current}") { }
+    public UnityDefaultLogger() : this("[Httx]") { }
 
     public void Log(object message) => Debug.Log($"{prefix} {message}");
   }
