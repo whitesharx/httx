@@ -19,9 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.Linq;
 using Httx.Requests.Awaiters.Async;
-using Httx.Requests.Extensions;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
@@ -32,19 +30,19 @@ namespace Httx.Requests.Awaiters {
     public UnityWebRequestFileAwaiter(IRequest request) : base(request) { }
 
     public override IAsyncOperation Awake(IRequest request) {
-      var verb = request.ResolveVerb();
-      var url = request.ResolveUrl();
-      var headers = request.ResolveHeaders()?.ToList();
+      // var verb = request.ResolveVerb();
+      // var url = request.ResolveUrl();
+      // var headers = request.ResolveHeaders()?.ToList();
 
-      var path = headers.FetchHeader<string>(InternalHeaders.FilePath);
-      var isAppend = headers.FetchHeader<bool>(InternalHeaders.FileAppend);
-      var isRemoveOnAbort = headers.FetchHeader<bool>(InternalHeaders.FileRemoveOnAbort);
-
-      var requestImpl = new UnityWebRequest(url, verb);
+      // var path = headers.FetchHeader<string>(InternalHeaders.FilePath);
+      // var isAppend = headers.FetchHeader<bool>(InternalHeaders.FileAppend);
+      // var isRemoveOnAbort = headers.FetchHeader<bool>(InternalHeaders.FileRemoveOnAbort);
+      //
+      // var requestImpl = new UnityWebRequest(url, verb);
 
       throw new NotImplementedException("will be implemented in future versions");
 
-      return new UnityAsyncOperation(() => Send(requestImpl, headers));
+      // return new UnityAsyncOperation(() => Send(requestImpl, headers));
     }
 
     public override int Map(IRequest request, IAsyncOperation completeOperation) {

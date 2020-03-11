@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using Httx.Requests.Attributes;
-using Httx.Requests.Decorators;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
 using UnityEngine.Networking;

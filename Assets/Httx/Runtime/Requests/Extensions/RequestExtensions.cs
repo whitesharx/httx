@@ -46,6 +46,7 @@ namespace Httx.Requests.Extensions {
     public const string AssetBundleHash = Prefix + "AssetBundle-Hash";
     public const string AssetBundleVersion = Prefix + "AssetBundle-Verison";
     public const string AssetBundleLoadManifest = Prefix + "AssetBundle-LoadManifest";
+    public const string ResourcePath = Prefix + "Resource-Path";
 
     public static bool IsInternalHeader(this KeyValuePair<string, object> header) {
       return !string.IsNullOrEmpty(header.Key) && header.Key.StartsWith(Prefix);
