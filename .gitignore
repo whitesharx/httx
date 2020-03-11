@@ -9,8 +9,6 @@
 *.sublime-workspace
 
 *.pidb.meta
-*.meta
-!*.*.meta
 
 /*.userprefs
 /*.csproj
@@ -39,7 +37,4 @@ Build-*/
 UnityPackageManager/
 Assets/Plugins/Editor/JetBrains
 Logs/
-
 *_tests/
-Assets/Httx/*.md.meta
-Assets/Httx/package.json.meta

@@ -1,5 +1,8 @@
 Scenes/
+Scenes.meta
+
 *_tests/
+*_tests.meta
 
 .DS_Store
 .Spotlight-V100
@@ -8,7 +11,3 @@ Scenes/
 .log
 .tmp
 .bk
-
-*.pidb.meta
-*.meta
-!*.*.meta
