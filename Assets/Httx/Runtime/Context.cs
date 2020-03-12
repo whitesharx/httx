@@ -146,23 +146,28 @@ namespace Httx {
   }
 
   public partial class Context {
-    private static readonly string DefaultDiskCache =
+    private static readonly string DiskCachePath =
       Path.Combine(Application.persistentDataPath, "Httx", "DiskCache");
 
-    private static readonly string DefaultNativeCache =
+    private static readonly string NativeCachePath =
       Path.Combine(Application.persistentDataPath, "Httx", "BundlesCache");
 
     private static int MemoryMaxSize = 32;
     private static int DiskMaxSize = 64 * 1024 * 1024;
     private static int NativeMaxSize = 128 * 1024 * 1024;
+    private static int DiskCollectFrequency = 128;
 
-    public static void InitializeDefault(int version, Action onContextReady) {
-      var diskCacheArgs = new DiskCacheArgs(DefaultDiskCache, version, DiskMaxSize, 128);
-      var nativeCacheArgs = new NativeCacheArgs(DefaultNativeCache, (uint) version, NativeMaxSize);
+    public static void InitializeDefault(int version, Action onContextReady, int inflateMultiplier = 1) {
+      var memoryMaxSize = inflateMultiplier * MemoryMaxSize;
+      var diskMaxSize = inflateMultiplier * DiskMaxSize;
+      var nativeMaxSize = inflateMultiplier * NativeMaxSize;
+
+      var diskCacheArgs = new DiskCacheArgs(DiskCachePath, version, diskMaxSize, DiskCollectFrequency);
+      var nativeCacheArgs = new NativeCacheArgs(NativeCachePath, (uint) version, nativeMaxSize);
 
       var diskCache = new DiskCache(diskCacheArgs);
       var nativeCache = new NativeCache(nativeCacheArgs);
-      var memoryCache = new MemoryCache(MemoryMaxSize, onEvictValueCallback: (value, isExpired) => {
+      var memoryCache = new MemoryCache(memoryMaxSize, onEvictValueCallback: (value, isExpired) => {
         if (value is IDisposable disposable) {
           disposable.Dispose();
         }
@@ -207,12 +212,12 @@ namespace Httx {
     }
 
     public static void ClearDefault() {
-      if (Directory.Exists(DefaultDiskCache)) {
-        Directory.Delete(DefaultDiskCache, true);
+      if (Directory.Exists(DiskCachePath)) {
+        Directory.Delete(DiskCachePath, true);
       }
 
-      if (Directory.Exists(DefaultNativeCache)) {
-        Directory.Delete(DefaultNativeCache, true);
+      if (Directory.Exists(NativeCachePath)) {
+        Directory.Delete(NativeCachePath, true);
       }
     }
   }
