@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Httx.Requests;
 using Httx.Utils;
 
 namespace Httx.Caches.Memory {
@@ -47,6 +48,7 @@ namespace Httx.Caches.Memory {
     private readonly int maxAge;
     private readonly int collectFrequency;
     private int collectAfter;
+    private Action<T, bool> onEvictValueCallback;
 
     private Dictionary<string, LinkedListNode<Item<T>>> cacheImpl =
       new Dictionary<string, LinkedListNode<Item<T>>>();
@@ -54,13 +56,13 @@ namespace Httx.Caches.Memory {
     private LinkedList<Item<T>> lruPolicy =
       new LinkedList<Item<T>>();
 
-    public event OnValueEvictHandler OnValueEvict;
-    public delegate void OnValueEvictHandler(T value, bool isExpired);
+    public MemoryCache(int size, int maxAge = int.MaxValue,
+      int collectFrequency = 0, Action<T, bool> onEvictValueCallback = null) {
 
-    public MemoryCache(int size, int maxAge = int.MaxValue, int collectFrequency = 0) {
       this.size = size;
       this.maxAge = maxAge;
       this.collectFrequency = collectFrequency;
+      this.onEvictValueCallback = onEvictValueCallback;
 
       var isExpirationEnabled = int.MaxValue != maxAge && 0 != collectFrequency;
       collectAfter = isExpirationEnabled ? collectFrequency : -1;
@@ -118,7 +120,7 @@ namespace Httx.Caches.Memory {
 
         foreach (var p in cacheImpl) {
           if (p.Value.Value.Expired) {
-            OnValueEvict?.Invoke(p.Value.Value.Value, true);
+            onEvictValueCallback?.Invoke(p.Value.Value.Value, true);
           } else {
             collectedCacheImpl[p.Key] = p.Value;
           }
@@ -136,7 +138,7 @@ namespace Httx.Caches.Memory {
     private void RemoveFirst() {
       var firstNode = lruPolicy.First;
 
-      OnValueEvict?.Invoke(firstNode.Value.Value, false);
+      onEvictValueCallback?.Invoke(firstNode.Value.Value, false);
 
       lruPolicy.RemoveFirst();
       cacheImpl.Remove(firstNode.Value.Key);
@@ -144,7 +146,8 @@ namespace Httx.Caches.Memory {
   }
 
   public class MemoryCache : MemoryCache<object> {
-    public MemoryCache(int size, int maxAge = int.MaxValue, int collectFrequency = 0)
-      : base(size, maxAge, collectFrequency) { }
+    public MemoryCache(int size, int maxAge = int.MaxValue,
+      int collectFrequency = 0, Action<object, bool> onEvictValueCallback = null)
+      : base(size, maxAge, collectFrequency, onEvictValueCallback) { }
   }
 }

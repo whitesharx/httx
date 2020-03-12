@@ -73,13 +73,9 @@ namespace Httx {
       mapperTypes.TryGetValue(requestType.AsOpen(), out var mapperType);
       return mapperType;
     }
-
-    // TODO: TrackBundles?
-
-    // TODO: Clear?
   }
 
-  public partial class Context { // TODO: IDisposeble?
+  public partial class Context {
     public class Builder {
       private ILogger logger;
       private MemoryCache memoryCache;
@@ -134,6 +130,18 @@ namespace Httx {
       public Context Instantiate() {
         return Context.Instantiate(Build());
       }
+
+      public void Destroy() {
+        memoryCache = null;
+
+        diskCache?.Dispose();
+        diskCache = null;
+
+        nativeCache?.Dispose();
+        nativeCache = null;
+
+        Instance = null;
+      }
     }
   }
 
@@ -154,12 +162,21 @@ namespace Httx {
 
       var diskCache = new DiskCache(diskCacheArgs);
       var nativeCache = new NativeCache(nativeCacheArgs);
+      var memoryCache = new MemoryCache(MemoryMaxSize, onEvictValueCallback: (value, isExpired) => {
+        if (value is IDisposable disposable) {
+          disposable.Dispose();
+        }
+
+        if (value is AssetBundle bundle) {
+          bundle.UnloadUnsafe(false);
+        }
+      });
 
       diskCache.Initialize(() => {
         nativeCache.Initialize(() => {
           var builder = new Builder();
           builder.WithLogger(new UnityDefaultLogger());
-          builder.WithMemoryCache(new MemoryCache(MemoryMaxSize));
+          builder.WithMemoryCache(memoryCache);
           builder.WithDiskCache(diskCache);
           builder.WithNativeCache(nativeCache);
 

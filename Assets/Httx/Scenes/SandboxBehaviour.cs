@@ -156,8 +156,30 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     // s1.Start();
     //
 
-    var noCacheBundle = await new As<AssetBundle>(new Get(new Bundle(bundleUrl)));
-    Debug.Log($"bundle-no-cache: {noCacheBundle}");
+
+
+    const string b1Url = "https://emilystories.app/static/v46/story/bundles/scene_1.apple-bundle";
+    var b1Bundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(b1Url), Storage.Memory)));
+    Debug.Log($"bundle-no-cache: {b1Bundle}");
+
+    const string b2Url = "https://emilystories.app/static/v46/story/bundles/scene_2.apple-bundle";
+    var b2Bundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(b2Url), Storage.Memory)));
+    Debug.Log($"bundle-no-cache: {b2Bundle}");
+
+    const string b3Url = "https://emilystories.app/static/v46/story/bundles/scene_3.apple-bundle";
+    var b3Bundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(b3Url), Storage.Memory)));
+    Debug.Log($"bundle-no-cache: {b3Bundle}");
+
+    const string b4Url = "https://emilystories.app/static/v46/story/bundles/scene_4.apple-bundle";
+    var b4Bundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(b4Url), Storage.Memory)));
+    Debug.Log($"bundle-no-cache: {b4Bundle}");
+
+    const string b5Url = "https://emilystories.app/static/v46/story/bundles/scene_5.apple-bundle";
+    var b5Bundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(b5Url), Storage.Memory)));
+    Debug.Log($"bundle-no-cache: {b5Bundle}");
+
+
+
 
     //
     // s1.Stop();
