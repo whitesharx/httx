@@ -4,12 +4,9 @@
 //
 
 using System.Collections.Generic;
-using Httx.Requests.Attributes;
-using Httx.Requests.Awaiters;
 using Httx.Requests.Extensions;
 
 namespace Httx.Requests.Types {
-  [Awaiter(typeof(UnityWebRequestTextureAwaiter))]
   public class Texture : BaseRequest {
     private readonly bool readable;
 

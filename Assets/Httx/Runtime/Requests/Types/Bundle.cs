@@ -19,13 +19,10 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Collections.Generic;
-using Httx.Requests.Attributes;
-using Httx.Requests.Awaiters;
 using Httx.Requests.Extensions;
 using UnityEngine;
 
 namespace Httx.Requests.Types {
-  [Awaiter(typeof(UnityWebRequestAssetBundleAwaiter<>))]
   public class Bundle : BaseRequest {
     private readonly uint crc;
     private readonly uint version;

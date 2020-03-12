@@ -46,6 +46,14 @@ using Debug = UnityEngine.Debug;
 using Texture = Httx.Requests.Types.Texture;
 
 class SandboxBehaviour : MonoBehaviour, IProgress<float> {
+
+
+  [Serializable]
+  public class TestJson {
+    public string key;
+  }
+
+
   [UsedImplicitly]
   private async void Start() {
     // var result = await new As<string>(new Get(new Text("https://google.com")));
@@ -97,14 +105,24 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
 
     var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
+    var jsonUrl = "http://www.mocky.io/v2/5e69dddb2d0000aa005f9e20";
     var imageUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png";
     var bundleUrl = "https://emilystories.app/static/v46/story/bundles/scene_1.apple-bundle";
 
-    // // ---
-    //
-    // var noCacheText = await new As<string>(new Get(new Text(textUrl)));
-    //
-    // Debug.Log($"text-no-cache: {noCacheText}");
+
+
+
+
+    // // // ---
+
+    var noCacheText = await new As<string>(new Get(new Text(textUrl)));
+
+    Debug.Log($"text-no-cache: {noCacheText}");
+
+    var noCacheJson = await new As<TestJson>(new Get(new Json(jsonUrl)));
+
+    Debug.Log($"json-no-cache: {noCacheJson.key}");
+
     //
     // var withCacheText = await new As<string>(new Get(new Cache(new Text(textUrl), Storage.Disk)));
     //
@@ -122,34 +140,34 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
     // ---
 
-    var s1 = new Stopwatch();
-    var s2 = new Stopwatch();
-
-    s1.Start();
-
-    var noCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory)));
-    Debug.Log($"bundle-no-cache: {noCacheBundle}");
-
-    s1.Stop();
-
-    // noCacheBundle.Unload(true);
-
-
-
-
-    s2.Start();
-
-    var withCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory)));
-    Debug.Log($"bundle-with-cache: {withCacheBundle}");
-
-    s2.Stop();
-
-    // withCacheBundle.Unload(true);
-
-
-
-
-    Debug.Log($"s1: {s1.Elapsed} s2: {s2.Elapsed}");
+    // var s1 = new Stopwatch();
+    // var s2 = new Stopwatch();
+    //
+    // s1.Start();
+    //
+    // var noCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory)));
+    // Debug.Log($"bundle-no-cache: {noCacheBundle}");
+    //
+    // s1.Stop();
+    //
+    // // noCacheBundle.Unload(true);
+    //
+    //
+    //
+    //
+    // s2.Start();
+    //
+    // var withCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory)));
+    // Debug.Log($"bundle-with-cache: {withCacheBundle}");
+    //
+    // s2.Stop();
+    //
+    // // withCacheBundle.Unload(true);
+    //
+    //
+    //
+    //
+    // Debug.Log($"s1: {s1.Elapsed} s2: {s2.Elapsed}");
   }
 
 

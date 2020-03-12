@@ -4,14 +4,9 @@
 //
 
 using System.Collections.Generic;
-using Httx.Requests.Attributes;
-using Httx.Requests.Awaiters;
-using Httx.Requests.Mappers;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Executors {
-  [Awaiter(typeof(UnityWebRequestAwaiter<>))]
-  [Mapper(typeof(HeadersMapper))]
   public class Head : As<IEnumerable<KeyValuePair<string, string>>> {
     public Head(string url) : base(null) { Url = url; }
     public override string Url { get; }

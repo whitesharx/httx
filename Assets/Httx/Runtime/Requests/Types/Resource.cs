@@ -19,12 +19,9 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Collections.Generic;
-using Httx.Requests.Attributes;
-using Httx.Requests.Awaiters;
 using Httx.Requests.Extensions;
 
 namespace Httx.Requests.Types {
-  [Awaiter(typeof(UnityWebRequestAssetBundleAwaiter<>))]
   public class Resource : BaseRequest {
     private readonly string path;
 

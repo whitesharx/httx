@@ -5,18 +5,13 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Httx.Requests.Attributes;
-using Httx.Requests.Awaiters;
 using Httx.Requests.Extensions;
-using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
-  [Awaiter(typeof(UnityWebRequestAwaiter<>))]
-  [Mapper(typeof(Utf8TextMapper))]
   public class Text : BaseRequest {
     public Text(string url, string body = null) : base(null) {
       Url = url;
-      Body = null == body ? null : this.ResolveBodyMapper<string>().AsBody(body);
+      Body = null == body ? null : this.ResolveBodyMapper<string>(Context.Instance).AsBody(body);
     }
 
     public override string Url { get; }

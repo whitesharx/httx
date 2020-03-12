@@ -20,13 +20,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Httx.Requests.Attributes;
-using Httx.Requests.Awaiters;
-using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
-  [Awaiter(typeof(UnityWebRequestAwaiter<>))]
-  [Mapper(typeof(NopMapper<,>))]
   public class Bytes : BaseRequest {
     public Bytes(string url, IEnumerable<byte> body = null) : base(null) {
       Url = url;

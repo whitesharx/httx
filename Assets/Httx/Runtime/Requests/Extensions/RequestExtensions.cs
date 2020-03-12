@@ -21,10 +21,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using Httx.Externals.MiniJSON;
-using Httx.Requests.Attributes;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
 
@@ -72,9 +70,11 @@ namespace Httx.Requests.Extensions {
         .Aggregate((a, b) => a.Concat(b));
     }
 
-    public static IBodyMapper<TBody> ResolveBodyMapper<TBody>(this IRequest request) {
+    // TODO: ResolveContext?
+
+    public static IBodyMapper<TBody> ResolveBodyMapper<TBody>(this IRequest request, Context ctx) {
       var mapperType = LeftToRight(request)
-        .Select(r => r.GetType().GetCustomAttribute<MapperAttribute>()?.MapperType)
+        .Select(r => ctx.ResolveMapper(r.GetType()))
         .LastOrDefault(t => null != t);
 
       if (null == mapperType) {
@@ -95,9 +95,9 @@ namespace Httx.Requests.Extensions {
       return (IBodyMapper<TBody>) Activator.CreateInstance(mapperType.MakeGenericType(typeArgs));
     }
 
-    public static IResultMapper<TResult> ResolveResultMapper<TResult>(this IRequest request) {
+    public static IResultMapper<TResult> ResolveResultMapper<TResult>(this IRequest request, Context ctx) {
       var mapperType = LeftToRight(request)
-        .Select(r => r.GetType().GetCustomAttribute<MapperAttribute>()?.MapperType)
+        .Select(r => ctx.ResolveMapper(r.GetType()))
         .FirstOrDefault(t => null != t);
 
       if (null == mapperType) {
@@ -118,11 +118,10 @@ namespace Httx.Requests.Extensions {
       return (IResultMapper<TResult>) Activator.CreateInstance(mapperType.MakeGenericType(resultArgs));
     }
 
-    public static IAwaiter<TResult> ResolveAwaiter<TResult>(this IRequest request) {
-      var awaiterType = LeftToRight(request).Select(r => {
-        var attribute = r.GetType().GetCustomAttribute<AwaiterAttribute>();
-        return attribute?.AwaiterType;
-      }).FirstOrDefault(t => null != t);
+    public static IAwaiter<TResult> ResolveAwaiter<TResult>(this IRequest request, Context ctx) {
+      var awaiterType = LeftToRight(request)
+        .Select(r => ctx.ResolveAwaiter(r.GetType()))
+        .FirstOrDefault(t => null != t);
 
       if (null == awaiterType) {
         throw new InvalidOperationException("[resolve awaiter]: awaiter not found");

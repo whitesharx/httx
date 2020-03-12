@@ -19,17 +19,28 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Httx.Caches;
 using Httx.Caches.Memory;
 using Httx.Loggers;
+using Httx.Requests.Awaiters;
+using Httx.Requests.Executors;
+using Httx.Requests.Extensions;
+using Httx.Requests.Mappers;
+using Httx.Requests.Types;
 using Httx.Sources.Caches;
 using UnityEngine;
+using File = Httx.Requests.Types.File;
 using ILogger = Httx.Loggers.ILogger;
+using Texture = Httx.Requests.Types.Texture;
 
 namespace Httx {
   public partial class Context {
     public static Context Instance { get; private set; }
+
+    private readonly Dictionary<Type, Type> awaiterTypes;
+    private readonly Dictionary<Type, Type> mapperTypes;
 
     private static Context Instantiate(Context builtCtx) {
       Instance = builtCtx;
@@ -37,18 +48,31 @@ namespace Httx {
     }
 
     private Context(ILogger logger, MemoryCache memoryCache,
-      DiskCache diskCache, NativeCache nativeCache) {
+      DiskCache diskCache, NativeCache nativeCache,
+      Dictionary<Type, Type> awaiters, Dictionary<Type, Type> mappers) {
 
       Logger = logger;
       MemoryCache = memoryCache;
       DiskCache = diskCache;
       NativeCache = nativeCache;
+      awaiterTypes = awaiters;
+      mapperTypes = mappers;
     }
 
     public ILogger Logger { get; }
     public MemoryCache MemoryCache { get; }
     public DiskCache DiskCache { get; }
     public NativeCache NativeCache { get; }
+
+    public Type ResolveAwaiter(Type requestType) {
+      awaiterTypes.TryGetValue(requestType.AsOpen(), out var awaiterType);
+      return awaiterType;
+    }
+
+    public Type ResolveMapper(Type requestType) {
+      mapperTypes.TryGetValue(requestType.AsOpen(), out var mapperType);
+      return mapperType;
+    }
 
     // TODO: TrackBundles?
 
@@ -61,6 +85,9 @@ namespace Httx {
       private MemoryCache memoryCache;
       private DiskCache diskCache;
       private NativeCache nativeCache;
+
+      private readonly Dictionary<Type, Type> awaiterTypes = new Dictionary<Type, Type>();
+      private readonly Dictionary<Type, Type> mapperTypes = new Dictionary<Type, Type>();
 
       public Builder() { }
 
@@ -89,8 +116,19 @@ namespace Httx {
         return this;
       }
 
+      public Builder WithAwaiter(Type requestType, Type awaiterType) {
+        awaiterTypes[requestType.AsOpen()] = awaiterType.AsOpen();
+        return this;
+      }
+
+      public Builder WithMapper(Type requestType, Type mapperType) {
+        mapperTypes[requestType.AsOpen()] = mapperType.AsOpen();
+        return this;
+      }
+
       public Context Build() {
-        return new Context(logger, memoryCache, diskCache, nativeCache);
+        return new Context(logger, memoryCache, diskCache,
+          nativeCache, awaiterTypes, mapperTypes);
       }
 
       public Context Instantiate() {
@@ -124,6 +162,25 @@ namespace Httx {
           builder.WithMemoryCache(new MemoryCache(MemoryMaxSize));
           builder.WithDiskCache(diskCache);
           builder.WithNativeCache(nativeCache);
+
+          builder.WithAwaiter(typeof(Head), typeof(UnityWebRequestAwaiter<>));
+          builder.WithAwaiter(typeof(Length), typeof(UnityWebRequestAwaiter<>));
+          builder.WithAwaiter(typeof(Bundle), typeof(UnityWebRequestAssetBundleAwaiter<>));
+          builder.WithAwaiter(typeof(Bytes), typeof(UnityWebRequestAwaiter<>));
+          builder.WithAwaiter(typeof(File), typeof(UnityWebRequestFileAwaiter));
+          builder.WithAwaiter(typeof(Json<>), typeof(UnityWebRequestAwaiter<>));
+          builder.WithAwaiter(typeof(Json), typeof(UnityWebRequestAwaiter<>));
+          builder.WithAwaiter(typeof(Manifest), typeof(UnityWebRequestAssetBundleAwaiter<>));
+          builder.WithAwaiter(typeof(Resource), typeof(UnityWebRequestAssetBundleAwaiter<>));
+          builder.WithAwaiter(typeof(Text), typeof(UnityWebRequestAwaiter<>));
+          builder.WithAwaiter(typeof(Texture), typeof(UnityWebRequestTextureAwaiter));
+
+          builder.WithMapper(typeof(Head), typeof(HeadersMapper));
+          builder.WithMapper(typeof(Length), typeof(ContentLengthMapper));
+          builder.WithMapper(typeof(Bytes), typeof(NopMapper<,>));
+          builder.WithMapper(typeof(Json<>), typeof(Utf8JsonUtilityMapper<,>));
+          builder.WithMapper(typeof(Json), typeof(Utf8JsonUtilityMapper<,>));
+          builder.WithMapper(typeof(Text), typeof(Utf8TextMapper));
 
           builder.Instantiate();
 

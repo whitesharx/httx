@@ -5,13 +5,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Httx.Requests.Attributes;
-using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Types {
-  [Awaiter(typeof(UnityWebRequestAwaiter<>))]
-  [Mapper(typeof(Utf8JsonUtilityMapper<,>))]
   public class Json<TBody> : BaseRequest {
     public Json(string url, TBody body = default) : base(null) {
       Url = url;
@@ -34,5 +30,9 @@ namespace Httx.Requests.Types {
         return headers;
       }
     }
+  }
+
+  public class Json : Json<byte[]> {
+    public Json(string url, byte[] body = default) : base(url, body) { }
   }
 }

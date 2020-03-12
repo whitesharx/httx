@@ -20,10 +20,10 @@
 
 using System;
 
-namespace Httx.Requests.Attributes {
-  [AttributeUsage(AttributeTargets.Class)]
-  public class MapperAttribute : Attribute {
-    public MapperAttribute(Type mapperType) => MapperType = mapperType;
-    public Type MapperType { get; }
+namespace Httx.Requests.Extensions {
+  public static class TypeExtensions {
+    public static Type AsOpen(this Type t) {
+      return t.IsGenericType ? t.GetGenericTypeDefinition() : t;
+    }
   }
 }
