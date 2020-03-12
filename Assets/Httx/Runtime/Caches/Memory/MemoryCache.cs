@@ -54,6 +54,9 @@ namespace Httx.Caches.Memory {
     private LinkedList<Item<T>> lruPolicy =
       new LinkedList<Item<T>>();
 
+    public event OnValueEvictHandler OnValueEvict;
+    public delegate void OnValueEvictHandler(T value, bool isExpired);
+
     public MemoryCache(int size, int maxAge = int.MaxValue, int collectFrequency = 0) {
       this.size = size;
       this.maxAge = maxAge;
@@ -113,8 +116,12 @@ namespace Httx.Caches.Memory {
           collectedLruImpl.AddLast(lruItem);
         }
 
-        foreach (var p in cacheImpl.Where(p => !p.Value.Value.Expired)) {
-          collectedCacheImpl[p.Key] = p.Value;
+        foreach (var p in cacheImpl) {
+          if (p.Value.Value.Expired) {
+            OnValueEvict?.Invoke(p.Value.Value.Value, true);
+          } else {
+            collectedCacheImpl[p.Key] = p.Value;
+          }
         }
 
         cacheImpl = collectedCacheImpl;
@@ -128,6 +135,8 @@ namespace Httx.Caches.Memory {
 
     private void RemoveFirst() {
       var firstNode = lruPolicy.First;
+
+      OnValueEvict?.Invoke(firstNode.Value.Value, false);
 
       lruPolicy.RemoveFirst();
       cacheImpl.Remove(firstNode.Value.Key);

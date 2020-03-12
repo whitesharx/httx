@@ -33,6 +33,7 @@ using Httx.Loggers;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
+using Httx.Requests.Extensions;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
 using Httx.Sources.Caches;
@@ -50,7 +51,16 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
   [Serializable]
   public class TestJson {
-    public string key;
+    [SerializeField]
+    private string key;
+
+    private TestJson() { }
+
+    public TestJson(string key) {
+      this.key = key;
+    }
+
+    public string Key => key;
   }
 
 
@@ -121,7 +131,7 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
     var noCacheJson = await new As<TestJson>(new Get(new Json(jsonUrl)));
 
-    Debug.Log($"json-no-cache: {noCacheJson.key}");
+    Debug.Log($"json-no-cache: {noCacheJson.Key}");
 
     //
     // var withCacheText = await new As<string>(new Get(new Cache(new Text(textUrl), Storage.Disk)));
@@ -145,8 +155,10 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     //
     // s1.Start();
     //
-    // var noCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory)));
-    // Debug.Log($"bundle-no-cache: {noCacheBundle}");
+
+    var noCacheBundle = await new As<AssetBundle>(new Get(new Bundle(bundleUrl)));
+    Debug.Log($"bundle-no-cache: {noCacheBundle}");
+
     //
     // s1.Stop();
     //
