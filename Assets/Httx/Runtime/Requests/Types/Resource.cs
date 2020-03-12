@@ -18,6 +18,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.Collections.Generic;
 using Httx.Requests.Extensions;
 
@@ -27,6 +28,7 @@ namespace Httx.Requests.Types {
 
     public Resource(IRequest next, string resourcePath) : base(next) {
       path = resourcePath;
+      throw new NotImplementedException("will be implemented in future releases");
     }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers =>
