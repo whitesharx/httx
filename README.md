@@ -10,7 +10,7 @@ X-Force HTTP/REST framework for Unity
  - Includes Memory/Disk/Bundle caches
 
 
-## Installation
+## Integration
 
 Httx distributed as standard [Unity Package](https://docs.unity3d.com/Manual/PackagesList.html)
 You can install this package using Unity Pacakage Manager, just add the
@@ -35,4 +35,12 @@ if you already have NPM registry added:
   "dependencies": {
     "com.whitesharx.httx": "0.5.2"
   }
+```
+
+3. Preserve Httx assembly contents in your `Assets/link.xml`:
+
+```xml
+<linker>
+  <assembly fullname="Httx" preserve="all"/>
+</linker>
 ```
