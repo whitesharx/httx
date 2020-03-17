@@ -90,6 +90,16 @@ namespace Httx {
       public Builder(Context context) {
         logger = context.Logger;
         memoryCache = context.MemoryCache;
+        diskCache = context.DiskCache;
+        nativeCache = context.NativeCache;
+
+        foreach (var p in context.awaiterTypes) {
+          awaiterTypes[p.Key] = p.Value;
+        }
+
+        foreach (var p in context.mapperTypes) {
+          mapperTypes[p.Key] = p.Value;
+        }
       }
 
       public Builder WithLogger(ILogger loggerArg) {
@@ -157,7 +167,9 @@ namespace Httx {
     private static int NativeMaxSize = 128 * 1024 * 1024;
     private static int DiskCollectFrequency = 128;
 
-    public static void InitializeDefault(int version, Action onContextReady, int inflateMultiplier = 1) {
+    public static void InitializeDefault(int version, Action onContextReady,
+      Action<Builder> onBeforeInstantiate = null, int inflateMultiplier = 1) {
+
       var memoryMaxSize = inflateMultiplier * MemoryMaxSize;
       var diskMaxSize = inflateMultiplier * DiskMaxSize;
       var nativeMaxSize = inflateMultiplier * NativeMaxSize;
@@ -204,8 +216,8 @@ namespace Httx {
           builder.WithMapper(typeof(Json), typeof(Utf8JsonUtilityMapper<,>));
           builder.WithMapper(typeof(Text), typeof(Utf8TextMapper));
 
+          onBeforeInstantiate?.Invoke(builder);
           builder.Instantiate();
-
           onContextReady();
         });
       });
