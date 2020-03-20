@@ -11,7 +11,13 @@ namespace Httx.Requests.Types {
   public class Json<TBody> : BaseRequest {
     public Json(string url, TBody body = default) : base(null) {
       Url = url;
-      Body = Equals(body, default(TBody)) ? default : new Utf8JsonUtilityMapper<TBody>().AsBody(body);
+
+      if (typeof(TBody) == typeof(byte[])) {
+        Body = (byte[]) (object) body;
+      } else {
+        Body = Equals(body, default(TBody)) ?
+          default : new Utf8JsonUtilityMapper<TBody>().AsBody(body);
+      }
     }
 
     public override string Url { get; }

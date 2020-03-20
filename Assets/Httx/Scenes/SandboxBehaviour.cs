@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading;
 using Httx;
 using Httx.Caches;
@@ -129,7 +130,7 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
     Debug.Log($"text-no-cache: {noCacheText}");
 
-    var noCacheJson = await new As<TestJson>(new Get(new Json(jsonUrl)));
+    var noCacheJson = await new As<TestJson>(new Get(new Json(jsonUrl, Encoding.UTF8.GetBytes("some-text"))));
 
     Debug.Log($"json-no-cache: {noCacheJson.Key}");
 
