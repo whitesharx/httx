@@ -26,14 +26,16 @@ using Httx.Externals.MiniJSON;
 
 namespace Httx.Requests.Exceptions {
   public class HttpException : Exception {
-    public HttpException(long code, string message,
+    public HttpException(string url, long code, string message,
       IEnumerable<KeyValuePair<string, string>> headers, IEnumerable<byte> body) : base(message) {
 
+      Url = url;
       Code = code;
       Headers = headers;
       Body = body;
     }
 
+    public string Url { get; }
     public long Code { get; }
     public IEnumerable<KeyValuePair<string, string>> Headers { get; }
     public IEnumerable<byte> Body { get; }
@@ -43,6 +45,7 @@ namespace Httx.Requests.Exceptions {
     public static string AsJson(this HttpException e) {
       var result = new Dictionary<string, object>();
 
+      result["url"] = e.Url;
       result["code"] = e.Code;
 
       if (!string.IsNullOrEmpty(e.Message)) {

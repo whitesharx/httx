@@ -31,12 +31,13 @@ namespace Httx.Requests.Extensions {
         return null;
       }
 
+      var url = request.url;
       var code = request.responseCode;
       var msg = request.error;
       var headers = request.GetResponseHeaders();
       var body = request.downloadHandler?.data ?? new byte[] { };
 
-      return new HttpException(code, msg, headers, body);
+      return new HttpException(url, code, msg, headers, body);
     }
 
     public static string AsJson(this UnityWebRequest request, int bodySize = 256) {
