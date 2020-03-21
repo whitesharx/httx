@@ -22,12 +22,14 @@ using System;
 using System.Linq;
 using Httx.Requests.Awaiters.Async;
 using Httx.Requests.Extensions;
+using Httx.Utils;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
   public class UnityWebRequestAssetBundleAwaiter<TResult> : BaseUnityAwaiter<TResult> {
     private const string ManifestAsset = "assetbundlemanifest";
+    private string currentBundleUrl;
 
     public UnityWebRequestAssetBundleAwaiter(IRequest request) : base(request) { }
 
@@ -35,6 +37,8 @@ namespace Httx.Requests.Awaiters {
       var verb = request.ResolveVerb();
       var url = request.ResolveUrl();
       var headers = request.ResolveHeaders()?.ToList();
+
+      currentBundleUrl = url;
 
       var crc = headers.FetchHeader<uint>(InternalHeaders.AssetBundleCrc);
       var version = headers.FetchHeader<uint>(InternalHeaders.AssetBundleVersion);
@@ -59,15 +63,18 @@ namespace Httx.Requests.Awaiters {
       };
 
       var isManifestRequest = headers.FetchHeader<bool>(InternalHeaders.AssetBundleLoadManifest);
-      var requestOperation = new Func<IAsyncOperation, IAsyncOperation>(_ =>
-        new UnityAsyncOperation(() => Send(requestImpl, headers)));
+
+      var requestOperation = new Func<IAsyncOperation, IAsyncOperation>(_ => {
+        AssetBundlePool.Instance.Release(url, false, Context);
+        return new UnityAsyncOperation(() => Send(requestImpl, headers));
+      });
 
       if (!isManifestRequest) {
         return requestOperation(null);
       }
 
       var manifestOperation = new Func<IAsyncOperation, IAsyncOperation>(previous => {
-        var bundle = MapAssetBundle(previous);
+        var bundle = MapAssetBundle(url, previous);
         return new UnityAsyncOperation(() =>
           bundle.LoadAssetAsync<AssetBundleManifest>(ManifestAsset));
       });
@@ -77,7 +84,7 @@ namespace Httx.Requests.Awaiters {
 
     public override TResult Map(IRequest request, IAsyncOperation completeOperation) {
       if (typeof(TResult) == typeof(AssetBundle)) {
-        return (TResult) (object) MapAssetBundle(completeOperation);
+        return (TResult) (object) MapAssetBundle(currentBundleUrl, completeOperation);
       }
 
       if (typeof(TResult) == typeof(AssetBundleManifest)) {
@@ -87,11 +94,19 @@ namespace Httx.Requests.Awaiters {
       return default;
     }
 
-    private AssetBundle MapAssetBundle(IAsyncOperation operation) {
+    private AssetBundle MapAssetBundle(string url, IAsyncOperation operation) {
       var webRequest = (UnityWebRequest) operation.Result;
       var handler = (DownloadHandlerAssetBundle) webRequest.downloadHandler;
+      var bundle = handler.assetBundle;
 
-      return handler.assetBundle;
+      if (null == bundle) {
+        return bundle;
+      }
+
+      var pool = AssetBundlePool.Instance;
+      pool.Retain(url, bundle.name, Context);
+
+      return bundle;
     }
 
     private AssetBundleManifest MapAssetBundleManifest(IAsyncOperation operation) {
