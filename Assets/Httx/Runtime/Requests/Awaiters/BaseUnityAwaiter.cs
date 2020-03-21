@@ -185,7 +185,10 @@ namespace Httx.Requests.Awaiters {
       var putCache = new Func<IAsyncOperation, IAsyncOperation>(previous => {
         var resultRequest = previous?.Result as UnityWebRequest;
 
-        if (resultRequest.LocalOrCached()) {
+        // TODO: Special handling for NotModified
+        if (resultRequest.LocalOrCached()
+          || resultRequest.Redirect()
+          || !resultRequest.Success()) {
           return previous;
         }
 

@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Httx.Externals.MiniJSON;
 using Httx.Requests.Exceptions;
 using UnityEngine.Networking;
@@ -35,7 +36,7 @@ namespace Httx.Requests.Extensions {
       var code = request.responseCode;
       var msg = request.error;
       var headers = request.GetResponseHeaders();
-      var body = request.downloadHandler?.data ?? new byte[] { };
+      var body = Encoding.UTF8.GetBytes(request.downloadHandler.AsStringBody());
 
       return new HttpException(url, code, msg, headers, body);
     }
@@ -44,12 +45,18 @@ namespace Httx.Requests.Extensions {
       var jsonObject = new Dictionary<string, object>();
 
       var code = request.responseCode;
+      var url = request.url;
       var error = request.error;
       var headers = request.GetResponseHeaders();
       var handler = request.downloadHandler;
+      var body = handler.AsStringBody(bodySize);
 
       if (0 != code) {
         jsonObject["code"] = code;
+      }
+
+      if (!string.IsNullOrEmpty(url)) {
+        jsonObject["url"] = url;
       }
 
       if (!string.IsNullOrEmpty(error)) {
@@ -60,36 +67,41 @@ namespace Httx.Requests.Extensions {
         jsonObject["headers"] = headers;
       }
 
-      switch (handler) {
-        case null:
-          return Json.Serialize(jsonObject);
-        case DownloadHandlerBuffer buffer when !string.IsNullOrEmpty(buffer.text): {
-          var postfix = buffer.text.Length > bodySize ? "..." : string.Empty;
-          jsonObject["body"] = $"{buffer.text.Take(bodySize)}{postfix}";
-          break;
-        }
-        case DownloadHandlerAssetBundle bundle when null != bundle.assetBundle:
-          jsonObject["body"] = $"AssetBundle({bundle.assetBundle.name}B)";
-          break;
-        case DownloadHandlerFile _:
-          jsonObject["body"] = "File()";
-          break;
-        case DownloadHandlerTexture texture when null != texture.texture: {
-          var w = texture.texture.width;
-          var h = texture.texture.height;
-
-          jsonObject["body"] = $"Texture({w}x{h})";
-          break;
-        }
-        case DownloadHandlerAudioClip clip when null != clip.audioClip:
-          jsonObject["body"] = $"AudioClip({clip.audioClip.length})";
-          break;
+      if (!string.IsNullOrEmpty(body)) {
+        jsonObject["body"] = body;
       }
 
       return Json.Serialize(jsonObject);
     }
 
-    public static UnityWebRequest AppendHeaders(this UnityWebRequest request, IEnumerable<KeyValuePair<string, object>> headers) {
+    public static string AsStringBody(this DownloadHandler handler, int bodySize = 256) {
+      switch (handler) {
+        case null:
+          return string.Empty;
+        case DownloadHandlerBuffer buffer when !string.IsNullOrEmpty(buffer.text): {
+          var postfix = buffer.text.Length > bodySize ? "..." : string.Empty;
+          return $"{buffer.text.Take(bodySize)}{postfix}";
+        }
+        case DownloadHandlerAssetBundle bundle when null != bundle.assetBundle:
+          return $"AssetBundle({bundle.assetBundle.name}B)";
+        case DownloadHandlerFile _:
+          return "File()";
+        case DownloadHandlerTexture texture when null != texture.texture: {
+          var w = texture.texture.width;
+          var h = texture.texture.height;
+
+          return $"Texture({w}x{h})";
+        }
+        case DownloadHandlerAudioClip clip when null != clip.audioClip:
+          return $"AudioClip({clip.audioClip.length})";
+      }
+
+      return string.Empty;
+    }
+
+    public static UnityWebRequest AppendHeaders(this UnityWebRequest request,
+      IEnumerable<KeyValuePair<string, object>> headers) {
+
       if (null == headers) {
         return request;
       }
@@ -106,6 +118,15 @@ namespace Httx.Requests.Extensions {
     public static bool LocalOrCached(this UnityWebRequest request) {
       var url = request?.url;
       return !string.IsNullOrEmpty(url) && url.StartsWith("file://");
+    }
+
+    public static bool Success(this UnityWebRequest request) {
+      var isSuccessCode = request.responseCode >= 200 && request.responseCode <= 299;
+      return isSuccessCode && !request.isHttpError && !request.isNetworkError;
+    }
+
+    public static bool Redirect(this UnityWebRequest request) {
+      return request.responseCode >= 300 && request.responseCode <= 399;
     }
   }
 }
