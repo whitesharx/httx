@@ -5,7 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Httx.Requests.Mappers;
+using Httx.Requests.Extensions;
 
 namespace Httx.Requests.Types {
   public class Json<TBody> : BaseRequest {
@@ -16,7 +16,7 @@ namespace Httx.Requests.Types {
         Body = (byte[]) (object) body;
       } else {
         Body = Equals(body, default(TBody)) ?
-          default : new Utf8JsonUtilityMapper<TBody>().AsBody(body);
+          default : this.ResolveBodyMapper<TBody>(Context.Instance).AsBody(body);
       }
     }
 

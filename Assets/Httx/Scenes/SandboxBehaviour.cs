@@ -126,11 +126,11 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
     // // // ---
 
-    var noCacheText = await new As<string>(new Get(new Text(textUrl)));
+    // var noCacheText = await new As<string>(new Get(new Text(textUrl)));
+    //
+    // Debug.Log($"text-no-cache: {noCacheText}");
 
-    Debug.Log($"text-no-cache: {noCacheText}");
-
-    var noCacheJson = await new As<TestJson>(new Get(new Json(jsonUrl, Encoding.UTF8.GetBytes("some-text"))));
+    var noCacheJson = await new As<TestJson>(new Post(new Json<TestJson>(jsonUrl, new TestJson("superkey"))));
 
     Debug.Log($"json-no-cache: {noCacheJson.Key}");
 
@@ -159,14 +159,14 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
 
 
-    const string b1Url = "https://emilystories.app/static/v46/story/bundles/scene_1.apple-bundle";
-    var b1Bundle = await new As<AssetBundle>(new Get(new Bundle(b1Url)));
-    Debug.Log($"bundle-no-cache-1: {b1Bundle}");
-
-    b1Bundle.UnloadUnsafe(true);
-
-    var b11Bundle = await new As<AssetBundle>(new Get(new Bundle(b1Url)));
-    Debug.Log($"bundle-no-cache-1.1: {b11Bundle}");
+    // const string b1Url = "https://emilystories.app/static/v46/story/bundles/scene_1.apple-bundle";
+    // var b1Bundle = await new As<AssetBundle>(new Get(new Bundle(b1Url)));
+    // Debug.Log($"bundle-no-cache-1: {b1Bundle}");
+    //
+    // b1Bundle.UnloadUnsafe(true);
+    //
+    // var b11Bundle = await new As<AssetBundle>(new Get(new Bundle(b1Url)));
+    // Debug.Log($"bundle-no-cache-1.1: {b11Bundle}");
 
 
 
