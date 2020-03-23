@@ -82,20 +82,18 @@ namespace Httx.Requests.Extensions {
           var postfix = buffer.text.Length > bodySize ? "..." : string.Empty;
           return $"{buffer.text.Take(bodySize)}{postfix}";
         }
-        case DownloadHandlerAssetBundle bundle when null != bundle.assetBundle:
-          var name = bundle.isDone ? bundle.assetBundle.name : "null";
-          return $"AssetBundle({name})";
+        case DownloadHandlerAssetBundle bundle when bundle.isDone && null != bundle.assetBundle:
+          return $"AssetBundle({bundle.assetBundle.name})";
         case DownloadHandlerFile _:
           return "File()";
-        case DownloadHandlerTexture texture when null != texture.texture: {
-          var w = texture.isDone ? texture.texture.width : 0;
-          var h = texture.isDone ? texture.texture.height : 0;
+        case DownloadHandlerTexture texture when texture.isDone && null != texture.texture: {
+          var w = texture.texture.width;
+          var h = texture.texture.height;
 
           return $"Texture({w}x{h})";
         }
-        case DownloadHandlerAudioClip clip when null != clip.audioClip:
-          var l = clip.isDone ? clip.audioClip.length : 0;
-          return $"AudioClip({l})";
+        case DownloadHandlerAudioClip clip when clip.isDone && null != clip.audioClip:
+          return $"AudioClip({clip.audioClip.length})";
       }
 
       return string.Empty;
