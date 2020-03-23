@@ -120,8 +120,8 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     var imageUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png";
     var bundleUrl = "https://emilystories.app/static/v46/story/bundles/scene_1.apple-bundle";
 
-
-
+    // var l1 = await new As<long>(new Cache(new Length(bundleUrl), Storage.Disk));
+    // Debug.Log($"l1: {l1}");
 
 
     // // // ---
@@ -130,9 +130,9 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     //
     // Debug.Log($"text-no-cache: {noCacheText}");
 
-    var noCacheJson = await new As<TestJson>(new Post(new Json<TestJson>(jsonUrl, new TestJson("superkey"))));
-
-    Debug.Log($"json-no-cache: {noCacheJson.Key}");
+    // var noCacheJson = await new As<TestJson>(new Post(new Json<TestJson>(jsonUrl, new TestJson("superkey"))));
+    //
+    // Debug.Log($"json-no-cache: {noCacheJson.Key}");
 
     //
     // var withCacheText = await new As<string>(new Get(new Cache(new Text(textUrl), Storage.Disk)));
