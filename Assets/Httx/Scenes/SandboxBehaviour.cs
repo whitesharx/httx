@@ -48,7 +48,8 @@ using Debug = UnityEngine.Debug;
 using Texture = Httx.Requests.Types.Texture;
 
 class SandboxBehaviour : MonoBehaviour, IProgress<float> {
-
+  [SerializeField]
+  private UnityEngine.UI.Text debugText;
 
   [Serializable]
   public class TestJson {
@@ -114,14 +115,22 @@ class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
   private async void OnContextReady() {
 
-
     var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
     var jsonUrl = "http://www.mocky.io/v2/5e69dddb2d0000aa005f9e20";
     var imageUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png";
-    var bundleUrl = "https://emilystories.app/static/v46/story/bundles/scene_1.apple-bundle";
+    var bundleUrl = "https://emilystories.app/static/v49/story/bundles/scene_1.apple-bundle";
 
     // var l1 = await new As<long>(new Cache(new Length(bundleUrl), Storage.Disk));
     // Debug.Log($"l1: {l1}");
+
+    try {
+      var size = await new Length(bundleUrl);
+      debugText.text = $"size: {size}";
+      Debug.Log($"bundle-size: {size}");
+    } catch (Exception e) {
+      debugText.text = e.Message + " / " + e.StackTrace;
+      Debug.LogError(e);
+    }
 
 
     // // // ---

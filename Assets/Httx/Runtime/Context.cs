@@ -198,7 +198,7 @@ namespace Httx {
           builder.WithNativeCache(nativeCache);
 
           builder.WithAwaiter(typeof(Head), typeof(UnityWebRequestAwaiter<>));
-          builder.WithAwaiter(typeof(Length), typeof(UnityWebRequestAwaiter<>));
+          builder.WithAwaiter(typeof(Length), typeof(UnityWebRequestAwaiter<long>));
           builder.WithAwaiter(typeof(Bundle), typeof(UnityWebRequestAssetBundleAwaiter<>));
           builder.WithAwaiter(typeof(Bytes), typeof(UnityWebRequestAwaiter<>));
           builder.WithAwaiter(typeof(File), typeof(UnityWebRequestFileAwaiter));
