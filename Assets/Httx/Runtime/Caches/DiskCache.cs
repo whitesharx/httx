@@ -81,7 +81,7 @@ namespace Httx.Caches {
     public IAsyncOperation Get(string requestUrl) {
       var operation = new MutableAsyncOperation();
 
-      GetImpl(requestUrl, (cachedFileUrl) => {
+      GetImpl(requestUrl, cachedFileUrl => {
         operation.Progress = 1.0f;
         operation.Result = cachedFileUrl;
         operation.Done = true;
@@ -150,8 +150,8 @@ namespace Httx.Caches {
         }
 
         var editor = cacheImpl.Edit(key);
-        editor.Put(value);
-        editor.Commit();
+        editor?.Put(value);
+        editor?.Commit();
       });
 
       onComplete();
