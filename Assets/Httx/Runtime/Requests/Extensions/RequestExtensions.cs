@@ -33,6 +33,7 @@ namespace Httx.Requests.Extensions {
     public const string MemoryCacheEnabled = Prefix + "MemoryCache-Enabled";
     public const string DiskCacheEnabled = Prefix + "DiskCache-Enabled";
     public const string NativeCacheEnabled = Prefix + "NativeCache-Enabled";
+    public const string CacheItemMaxAge = Prefix + "CacheItem-MaxAge";
     public const string ProgressObject = Prefix + "Progress-Object";
     public const string TextureReadable = Prefix + "Texture-NonReadable";
     public const string FilePath = Prefix + "File-Path";
@@ -141,6 +142,13 @@ namespace Httx.Requests.Extensions {
       var isEnabled = headers.FetchHeader<bool>(InternalHeaders.MemoryCacheEnabled);
 
       return isEnabled;
+    }
+
+    public static int FetchCacheItemMaxAge(this IRequest request) {
+      var headers = request.ResolveHeaders()?.ToList() ?? new List<KeyValuePair<string, object>>();
+      var maxAge = headers.FetchHeader<int>(InternalHeaders.CacheItemMaxAge);
+
+      return maxAge;
     }
 
     public static string AsJson(this IRequest request, int bodySize = 256) {

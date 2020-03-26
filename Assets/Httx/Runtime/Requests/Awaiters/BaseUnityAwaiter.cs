@@ -36,6 +36,7 @@ namespace Httx.Requests.Awaiters {
     private bool isAwaken;
     private string requestId;
     private bool isCacheEnabled;
+    private int cacheItemMaxAge;
     private string cacheKey;
     private object cachedResult;
 
@@ -75,6 +76,7 @@ namespace Httx.Requests.Awaiters {
         }
 
         if (isCacheEnabled) {
+          cacheItemMaxAge = inputRequest.FetchCacheItemMaxAge();
           cacheKey = Crypto.Sha256(inputRequest.ResolveUrl());
           cachedResult = Context.MemoryCache.Get(cacheKey);
 
@@ -203,7 +205,13 @@ namespace Httx.Requests.Awaiters {
     private TResult MapInternal(IRequest request, IAsyncOperation completeOperation) {
       var result = Map(request, completeOperation);
 
-      if (isCacheEnabled && !string.IsNullOrEmpty(cacheKey)) {
+      if (!isCacheEnabled || string.IsNullOrEmpty(cacheKey)) {
+        return result;
+      }
+
+      if (0 != cacheItemMaxAge) {
+        Context.MemoryCache.Put(cacheKey, result, cacheItemMaxAge);
+      } else {
         Context.MemoryCache.Put(cacheKey, result);
       }
 

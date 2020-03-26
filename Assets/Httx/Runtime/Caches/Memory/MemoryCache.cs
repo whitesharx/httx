@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Httx.Requests;
 using Httx.Utils;
 
 namespace Httx.Caches.Memory {
@@ -43,12 +42,16 @@ namespace Httx.Caches.Memory {
   }
 
   public class MemoryCache<T> {
+    public const int PutCollectDisabled = -1;
+    public const int CollectEveryPut = 0;
+
     private readonly object selfLock = new object();
     private readonly int size;
     private readonly int maxAge;
     private readonly int collectFrequency;
+    private readonly Action<T, bool> onEvictValueCallback;
+
     private int collectAfter;
-    private Action<T, bool> onEvictValueCallback;
 
     private Dictionary<string, LinkedListNode<Item<T>>> cacheImpl =
       new Dictionary<string, LinkedListNode<Item<T>>>();
@@ -57,15 +60,14 @@ namespace Httx.Caches.Memory {
       new LinkedList<Item<T>>();
 
     public MemoryCache(int size, int maxAge = int.MaxValue,
-      int collectFrequency = 0, Action<T, bool> onEvictValueCallback = null) {
+      int collectFrequency = PutCollectDisabled, Action<T, bool> onEvictValueCallback = null) {
 
       this.size = size;
       this.maxAge = maxAge;
-      this.collectFrequency = collectFrequency;
       this.onEvictValueCallback = onEvictValueCallback;
+      this.collectFrequency = collectFrequency;
 
-      var isExpirationEnabled = int.MaxValue != maxAge && 0 != collectFrequency;
-      collectAfter = isExpirationEnabled ? collectFrequency : -1;
+      collectAfter = collectFrequency;
     }
 
     public void Put(string key, T value, int ttl) {
@@ -76,8 +78,7 @@ namespace Httx.Caches.Memory {
           RemoveFirst();
         }
 
-        var itemTtl = 0 != collectFrequency ? ttl : int.MaxValue;
-        var node = new LinkedListNode<Item<T>>(new Item<T>(key, value, itemTtl));
+        var node = new LinkedListNode<Item<T>>(new Item<T>(key, value, ttl));
 
         lruPolicy.AddLast(node);
         cacheImpl[key] = node;
@@ -106,7 +107,7 @@ namespace Httx.Caches.Memory {
     }
 
     private void TryCollect() {
-      if (-1 == collectAfter) {
+      if (PutCollectDisabled == collectAfter) {
         return;
       }
 

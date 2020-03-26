@@ -18,6 +18,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.Collections.Generic;
 using Httx.Requests.Extensions;
 
@@ -26,9 +27,11 @@ namespace Httx.Requests.Decorators {
 
   public class Cache : BaseRequest {
     private readonly Storage storageType;
+    private readonly int maxAge;
 
-    public Cache(IRequest next, Storage type) : base(next) {
+    public Cache(IRequest next, Storage type, TimeSpan ttl = default) : base(next) {
       storageType = type;
+      maxAge = (int) (ttl == default ? -1 : ttl.TotalMilliseconds);
     }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers {
@@ -41,6 +44,10 @@ namespace Httx.Requests.Decorators {
           result.Add(InternalHeaders.DiskCacheEnabled, true);
         } else if (storageType == Storage.Native) {
           result.Add(InternalHeaders.NativeCacheEnabled, true);
+        }
+
+        if (-1 != maxAge) {
+          result.Add(InternalHeaders.CacheItemMaxAge, maxAge);
         }
 
         return result;

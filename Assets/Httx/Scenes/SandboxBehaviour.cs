@@ -19,210 +19,47 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using Httx;
-using Httx.Caches;
-using Httx.Caches.Collections;
-using Httx.Caches.Disk;
-using Httx.Caches.Memory;
-using Httx.Loggers;
-using Httx.Requests.Awaiters;
 using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
-using Httx.Requests.Extensions;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
-using Httx.Sources.Caches;
-using Httx.Utils;
 using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.Networking;
 using Cache = Httx.Requests.Decorators.Cache;
-using Debug = UnityEngine.Debug;
-using Texture = Httx.Requests.Types.Texture;
+using Text = UnityEngine.UI.Text;
 
 class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   [SerializeField]
-  private UnityEngine.UI.Text debugText;
-
-  [Serializable]
-  public class TestJson {
-    [SerializeField]
-    private string key;
-
-    private TestJson() { }
-
-    public TestJson(string key) {
-      this.key = key;
-    }
-
-    public string Key => key;
-  }
-
+  private Text debugText;
 
   [UsedImplicitly]
-  private async void Start() {
-    // var result = await new As<string>(new Get(new Text("https://google.com")));
-
-    // var r2 = await new Head("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
-    // var r3 = await new Length("https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle");
-
-    // var jsonTextResult = await new As<string>(new Get(new Text("http://time.jsontest.com")));
-    // Debug.Log($"JsonResult: {jsonTextResult}");
-
-    // var url = "https://emilystories.app/static/v29/story/bundles/scene_1.apple-bundle";
-    // var assetBundle = await new As<AssetBundle>(new Get(new Bundle(url), this));
-    // var manifest = assetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
-    //
-    // Debug.Log($"AssetBundle: {assetBundle} Manifest: {manifest}");
-
-    // var fileUrl = "file:///Users/selfsx/Downloads/iOS.manifest";
-    // var fileUrl = "file:///Users/selfsx/Downloads/scene_1.apple-bundle";
-    // var fileUrl = "file:///Users/selfsx/Downloads/iOS";
-    //
-    // var result = await new As<AssetBundle>(new Get(new Bundle(fileUrl)));
-    //
-    // result.GetAllAssetNames().ToList().ForEach(asset => {
-    //   Debug.Log($"Result: {asset}");
-    // });
-
-    // var fileUrl = "file:///Users/selfsx/Downloads/iOS";
-    //
-    // var bundleResult = await new As<AssetBundle>(new Get(new Bundle(fileUrl)));
-    // Debug.Log($"BundleResult: {bundleResult}");
-    //
-    // bundleResult.Unload(true);
-    //
-    // var manifestResult = await new As<AssetBundleManifest>(new Get(new Manifest(fileUrl)));
-    // Debug.Log($"ManifestResult: {manifestResult}");
-
+  private void Start() {
     const int appVersion = 1;
     Context.InitializeDefault(appVersion, OnContextReady);
   }
 
-
-
-
-
-
-
-
   private async void OnContextReady() {
-
     var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
     var jsonUrl = "http://www.mocky.io/v2/5e69dddb2d0000aa005f9e20";
     var imageUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png";
+
+    var maxAge = TimeSpan.FromSeconds(2);
     var bundleUrl = "https://emilystories.app/static/v49/story/bundles/scene_1.apple-bundle";
+    var bundle0 = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory, maxAge)));
+    Debug.Log($"0-bundle: {bundle0.name} waiting 1 sec...");
 
-    // var l1 = await new As<long>(new Cache(new Length(bundleUrl), Storage.Disk));
-    // Debug.Log($"l1: {l1}");
+    await Task.Delay(TimeSpan.FromSeconds(1));
 
-    try {
-      var size = await new Length(bundleUrl);
-      debugText.text = $"size: {size}";
-      Debug.Log($"bundle-size: {size}");
-    } catch (Exception e) {
-      debugText.text = e.Message + " / " + e.StackTrace;
-      Debug.LogError(e);
-    }
+    var bundle1 = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory, maxAge)));
+    Debug.Log($"1-bundle: {bundle1.name} waiting 4 sec...");
 
+    await Task.Delay(TimeSpan.FromSeconds(4));
 
-    // // // ---
-
-    // var noCacheText = await new As<string>(new Get(new Text(textUrl)));
-    //
-    // Debug.Log($"text-no-cache: {noCacheText}");
-
-    // var noCacheJson = await new As<TestJson>(new Post(new Json<TestJson>(jsonUrl, new TestJson("superkey"))));
-    //
-    // Debug.Log($"json-no-cache: {noCacheJson.Key}");
-
-    //
-    // var withCacheText = await new As<string>(new Get(new Cache(new Text(textUrl), Storage.Disk)));
-    //
-    // Debug.Log($"text-with-cache: {withCacheText}");
-    //
-    // // ---
-    //
-    // var noCacheImage = await new As<UnityEngine.Texture>(new Get(new Texture(imageUrl)));
-    //
-    // Debug.Log($"image-no-cache: {noCacheImage}");
-    //
-    // var withCacheImage = await new As<UnityEngine.Texture>(new Get(new Cache(new Texture(imageUrl), Storage.Disk)));
-    //
-    // Debug.Log($"image-with-cache: {withCacheImage}");
-
-    // ---
-
-    // var s1 = new Stopwatch();
-    // var s2 = new Stopwatch();
-    //
-    // s1.Start();
-    //
-
-
-
-    // const string b1Url = "https://emilystories.app/static/v46/story/bundles/scene_1.apple-bundle";
-    // var b1Bundle = await new As<AssetBundle>(new Get(new Bundle(b1Url)));
-    // Debug.Log($"bundle-no-cache-1: {b1Bundle}");
-    //
-    // b1Bundle.UnloadUnsafe(true);
-    //
-    // var b11Bundle = await new As<AssetBundle>(new Get(new Bundle(b1Url)));
-    // Debug.Log($"bundle-no-cache-1.1: {b11Bundle}");
-
-
-
-    // const string b2Url = "https://emilystories.app/static/v46/story/bundles/scene_2.apple-bundle";
-    // var b2Bundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(b2Url), Storage.Memory)));
-    // Debug.Log($"bundle-no-cache: {b2Bundle}");
-    //
-    // const string b3Url = "https://emilystories.app/static/v46/story/bundles/scene_3.apple-bundle";
-    // var b3Bundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(b3Url), Storage.Memory)));
-    // Debug.Log($"bundle-no-cache: {b3Bundle}");
-    //
-    // const string b4Url = "https://emilystories.app/static/v46/story/bundles/scene_4.apple-bundle";
-    // var b4Bundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(b4Url), Storage.Memory)));
-    // Debug.Log($"bundle-no-cache: {b4Bundle}");
-    //
-    // const string b5Url = "https://emilystories.app/static/v46/story/bundles/scene_5.apple-bundle";
-    // var b5Bundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(b5Url), Storage.Memory)));
-    // Debug.Log($"bundle-no-cache: {b5Bundle}");
-
-
-
-
-    //
-    // s1.Stop();
-    //
-    // // noCacheBundle.Unload(true);
-    //
-    //
-    //
-    //
-    // s2.Start();
-    //
-    // var withCacheBundle = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory)));
-    // Debug.Log($"bundle-with-cache: {withCacheBundle}");
-    //
-    // s2.Stop();
-    //
-    // // withCacheBundle.Unload(true);
-    //
-    //
-    //
-    //
-    // Debug.Log($"s1: {s1.Elapsed} s2: {s2.Elapsed}");
+    var bundle2 = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory, maxAge)));
+    Debug.Log($"2-bundle: {bundle2.name}");
   }
 
-
-
   public void Report(float value) { }
-  // public void Report(float value) => Debug.Log($"SandboxBehaviour({value})");
 }
