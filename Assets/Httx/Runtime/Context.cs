@@ -198,7 +198,6 @@ namespace Httx {
           builder.WithNativeCache(nativeCache);
 
           builder.WithAwaiter(typeof(Head), typeof(UnityWebRequestAwaiter<>));
-          builder.WithAwaiter(typeof(Length), typeof(UnityWebRequestAwaiter<long>));
           builder.WithAwaiter(typeof(Bundle), typeof(UnityWebRequestAssetBundleAwaiter<>));
           builder.WithAwaiter(typeof(Bytes), typeof(UnityWebRequestAwaiter<>));
           builder.WithAwaiter(typeof(File), typeof(UnityWebRequestFileAwaiter));
@@ -208,6 +207,17 @@ namespace Httx {
           builder.WithAwaiter(typeof(Resource), typeof(UnityWebRequestAssetBundleAwaiter<>));
           builder.WithAwaiter(typeof(Text), typeof(UnityWebRequestAwaiter<>));
           builder.WithAwaiter(typeof(Texture), typeof(UnityWebRequestTextureAwaiter));
+
+          // XXX: AOT compatibility. It does not matter for library,
+          // open type will be registered anyway, but it does for IL2CPP to
+          // register existing value type.
+
+          // We're registering just basic "code/length" types here, if you need
+          // to manage custom value types, please refer to docs/discussions.
+          builder.WithAwaiter(typeof(Length), typeof(UnityWebRequestAwaiter<int>));
+          builder.WithAwaiter(typeof(Length), typeof(UnityWebRequestAwaiter<long>));
+          builder.WithAwaiter(typeof(Complete<>), typeof(CompleteAwaiter<int>));
+          builder.WithAwaiter(typeof(Complete<>), typeof(CompleteAwaiter<long>));
 
           builder.WithMapper(typeof(Head), typeof(HeadersMapper));
           builder.WithMapper(typeof(Length), typeof(ContentLengthMapper));

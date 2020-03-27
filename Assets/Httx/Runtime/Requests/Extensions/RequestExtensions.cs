@@ -30,6 +30,7 @@ namespace Httx.Requests.Extensions {
   public static class InternalHeaders {
     private const string Prefix = "X-Httx-";
 
+    public const string CompletedResult = Prefix + "Completed-Result";
     public const string MemoryCacheEnabled = Prefix + "MemoryCache-Enabled";
     public const string DiskCacheEnabled = Prefix + "DiskCache-Enabled";
     public const string NativeCacheEnabled = Prefix + "NativeCache-Enabled";
