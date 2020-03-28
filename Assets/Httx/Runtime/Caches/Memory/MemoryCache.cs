@@ -116,14 +116,12 @@ namespace Httx.Caches.Memory {
         var collectedLruImpl = new LinkedList<Item<T>>();
 
         foreach (var lruItem in lruPolicy.Where(lruItem => !lruItem.Expired)) {
-          collectedLruImpl.AddLast(lruItem);
+          collectedCacheImpl[lruItem.Key] = collectedLruImpl.AddLast(lruItem);
         }
 
         foreach (var p in cacheImpl) {
           if (p.Value.Value.Expired) {
             onEvictValueCallback?.Invoke(p.Value.Value.Value, true);
-          } else {
-            collectedCacheImpl[p.Key] = p.Value;
           }
         }
 
@@ -148,7 +146,7 @@ namespace Httx.Caches.Memory {
 
   public class MemoryCache : MemoryCache<object> {
     public MemoryCache(int size, int maxAge = int.MaxValue,
-      int collectFrequency = 0, Action<object, bool> onEvictValueCallback = null)
+      int collectFrequency = PutCollectDisabled, Action<object, bool> onEvictValueCallback = null)
       : base(size, maxAge, collectFrequency, onEvictValueCallback) { }
   }
 }
