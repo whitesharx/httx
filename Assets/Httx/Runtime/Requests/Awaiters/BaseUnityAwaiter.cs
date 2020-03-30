@@ -168,7 +168,7 @@ namespace Httx.Requests.Awaiters {
       var tryCache = new Func<IAsyncOperation, IAsyncOperation>(_ => cache.Get(url));
 
       var netRequest = new Func<IAsyncOperation, IAsyncOperation>(previous => {
-        var cachedFileUrl = previous.Result as string;
+        var cachedFileUrl = previous?.Result as string;
 
         if (string.IsNullOrEmpty(cachedFileUrl)) {
           return new UnityAsyncOperation(() => Send(request, headers));
@@ -179,7 +179,7 @@ namespace Httx.Requests.Awaiters {
         return new AsyncOperationQueue(
           _ => cache.Lock(cachedFileUrl),
           pLock => {
-            unsafeEditor = pLock.Result as Editor;
+            unsafeEditor = pLock?.Result as Editor;
             return new UnityAsyncOperation(() => Send(request, headers));
           });
       });
@@ -188,7 +188,8 @@ namespace Httx.Requests.Awaiters {
         var resultRequest = previous?.Result as UnityWebRequest;
 
         // TODO: Special handling for NotModified
-        if (resultRequest.LocalOrCached()
+        if (null == resultRequest
+          || resultRequest.LocalOrCached()
           || resultRequest.Redirect()
           || !resultRequest.Success()) {
           return previous;
