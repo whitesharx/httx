@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Httx.Caches.Disk;
 using Httx.Requests.Awaiters.Async;
 using Httx.Requests.Exceptions;
@@ -33,6 +34,7 @@ namespace Httx.Requests.Awaiters {
     private readonly IRequest inputRequest;
     private IAsyncOperation operation;
     private Action continuationAction;
+    private CancellationToken cancelToken;
     private bool isAwaken;
     private string requestId;
     private bool isCacheEnabled;
@@ -45,12 +47,21 @@ namespace Httx.Requests.Awaiters {
     }
 
     public void OnCompleted(Action continuation) {
+      if (cancelToken.IsCancellationRequested) {
+        TryDispose();
+        throw new OperationCanceledException();
+      }
+
       continuationAction = continuation;
       operation.OnComplete += continuationAction;
     }
 
     public bool IsCompleted {
       get {
+        if (default != cancelToken && cancelToken.IsCancellationRequested) {
+          throw new OperationCanceledException();
+        }
+
         if (default != cachedResult) {
           return true;
         }
@@ -69,6 +80,7 @@ namespace Httx.Requests.Awaiters {
         Log(inputRequest.AsJson());
 
         requestId = Guid.NewGuid().ToString();
+        cancelToken = inputRequest.FetchCancelToken();
         isCacheEnabled = inputRequest.IsMemoryCacheEnabled();
 
         if (isCacheEnabled && null == Context.MemoryCache) {
@@ -85,6 +97,10 @@ namespace Httx.Requests.Awaiters {
           }
         }
 
+        if (cancelToken.IsCancellationRequested) {
+          throw new OperationCanceledException();
+        }
+
         operation = Awake(inputRequest);
         isAwaken = true;
 
@@ -93,6 +109,11 @@ namespace Httx.Requests.Awaiters {
     }
 
     public TResult GetResult() {
+      if (cancelToken.IsCancellationRequested) {
+        TryDispose();
+        throw new OperationCanceledException();
+      }
+
       if (default != cachedResult) {
         return (TResult) cachedResult;
       }
@@ -119,9 +140,7 @@ namespace Httx.Requests.Awaiters {
 
         return MapInternal(inputRequest, operation);
       } finally {
-        UnityWebRequestReporter.RemoveReporterRef(requestId);
-        requestOpt?.Dispose();
-        operation = null;
+        TryDispose();
       }
     }
 
@@ -222,6 +241,18 @@ namespace Httx.Requests.Awaiters {
     private void Log(object message) {
       var logger = Context?.Logger;
       logger?.Log(message);
+    }
+
+    private void TryDispose() {
+      if (!string.IsNullOrEmpty(requestId)) {
+        UnityWebRequestReporter.RemoveReporterRef(requestId);
+      }
+
+      if (operation.Result is UnityWebRequest requestOpt) {
+       requestOpt.Dispose();
+      }
+
+      operation = null;
     }
   }
 }

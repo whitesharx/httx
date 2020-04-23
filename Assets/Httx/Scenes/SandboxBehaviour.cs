@@ -19,7 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.Threading.Tasks;
+using System.Threading;
 using Httx;
 using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
@@ -27,39 +27,57 @@ using Httx.Requests.Types;
 using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using UnityEngine;
-using Cache = Httx.Requests.Decorators.Cache;
 using Text = UnityEngine.UI.Text;
 
-class SandboxBehaviour : MonoBehaviour, IProgress<float> {
+public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   [SerializeField]
   private Text debugText;
 
+  private CancellationTokenSource tokenSource;
+
   [UsedImplicitly]
   private void Start() {
+    tokenSource = new CancellationTokenSource();
     const int appVersion = 1;
     Context.InitializeDefault(appVersion, OnContextReady);
   }
 
   private async void OnContextReady() {
+    debugText.text = "Ready...";
+
     var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
     var jsonUrl = "http://www.mocky.io/v2/5e69dddb2d0000aa005f9e20";
     var imageUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png";
 
-    var maxAge = TimeSpan.FromSeconds(2);
-    var bundleUrl = "https://emilystories.app/static/v49/story/bundles/scene_1.apple-bundle";
-    var bundle0 = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory, maxAge)));
-    Debug.Log($"0-bundle: {bundle0.name} waiting 1 sec...");
+    try {
+      var t = tokenSource.Token;
+      var bundleUrl = "https://emilystories.app/static/v59/story/bundles/scene_1.apple-bundle";
+      var bundle0 = await new As<AssetBundle>(new Cancel(new Get(new Bundle(bundleUrl), this), t));
 
-    await Task.Delay(TimeSpan.FromSeconds(1));
-
-    var bundle1 = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory, maxAge)));
-    Debug.Log($"1-bundle: {bundle1.name} waiting 4 sec...");
-
-    await Task.Delay(TimeSpan.FromSeconds(4));
-
-    var bundle2 = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Memory, maxAge)));
-    Debug.Log($"2-bundle: {bundle2.name}");
+      Debug.Log($"0-bundle: {bundle0.name}");
+      debugText.text = "Done.";
+    } catch (Exception e) {
+      Debug.Log($"Ended with exception: {e}");
+    }
   }
 
-  public void Report(float value) { }
+  public void Report(float value) {
+    Debug.Log($"report: {value}");
+  }
+
+  private void OnApplicationFocus(bool hasFocus) {
+    Debug.Log($"OnApplicationFocus({hasFocus})");
+
+    if (!hasFocus) {
+      tokenSource.Cancel();
+    }
+  }
+
+  private void OnApplicationPause(bool pauseStatus) {
+    Debug.Log($"OnApplicationPause({pauseStatus})");
+
+    if (pauseStatus) {
+      tokenSource.Cancel();
+    }
+  }
 }

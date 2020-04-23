@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Httx.Externals.MiniJSON;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Mappers;
@@ -46,6 +47,7 @@ namespace Httx.Requests.Extensions {
     public const string AssetBundleVersion = Prefix + "AssetBundle-Verison";
     public const string AssetBundleLoadManifest = Prefix + "AssetBundle-LoadManifest";
     public const string ResourcePath = Prefix + "Resource-Path";
+    public const string CancelToken = Prefix + "CancelToken";
 
     public static bool IsInternalHeader(this KeyValuePair<string, object> header) {
       return !string.IsNullOrEmpty(header.Key) && header.Key.StartsWith(Prefix);
@@ -150,6 +152,13 @@ namespace Httx.Requests.Extensions {
       var maxAge = headers.FetchHeader<int>(InternalHeaders.CacheItemMaxAge);
 
       return maxAge;
+    }
+
+    public static CancellationToken FetchCancelToken(this IRequest request) {
+      var headers = request.ResolveHeaders()?.ToList() ?? new List<KeyValuePair<string, object>>();
+      var token = headers.FetchHeader<CancellationToken>(InternalHeaders.CancelToken);
+
+      return token;
     }
 
     public static string AsJson(this IRequest request, int bodySize = 256) {
