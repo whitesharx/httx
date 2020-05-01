@@ -141,7 +141,14 @@ namespace Httx.Caches {
     }
 
     private async void PutImpl(UnityWebRequest completeRequest, Action onComplete) {
-      var key = Crypto.Sha256(completeRequest.url);
+      var url = completeRequest?.url;
+
+      if (null == completeRequest || string.IsNullOrEmpty(url)) {
+        onComplete();
+        return;
+      }
+
+      var key = Crypto.Sha256(url);
       var value = completeRequest.downloadHandler?.data;
 
       await Task.Run(() => {

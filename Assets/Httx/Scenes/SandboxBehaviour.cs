@@ -27,11 +27,10 @@ using Httx.Requests.Types;
 using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using UnityEngine;
-using Text = UnityEngine.UI.Text;
 
 public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   [SerializeField]
-  private Text debugText;
+  private UnityEngine.UI.Text debugText;
 
   private CancellationTokenSource tokenSource;
 
@@ -44,6 +43,8 @@ public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
 
   private async void OnContextReady() {
     debugText.text = "Ready...";
+
+    ExecuteIntroduction();
 
     var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
     var jsonUrl = "http://www.mocky.io/v2/5e69dddb2d0000aa005f9e20";
@@ -80,4 +81,6 @@ public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
       tokenSource.Cancel();
     }
   }
+
+  private async void ExecuteIntroduction() { }
 }
