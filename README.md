@@ -5,7 +5,7 @@
 X-Force HTTP/REST framework for Unity
 
  - :warning: Under heavy development
- - Zero dependency, built for Unity 
+ - Zero dependency, built for Unity
  - Simple, DSL-like API to compose your requests
  - Includes reliable Memory/Disk/Bundle cache support
  - Easily extensible for your custom needs
@@ -25,7 +25,7 @@ var user = new User("John Doe");
 var credentials = await new As<Credentials>(new Post(new Json<User>(url, user)));
 
 // What if my request requires basic authorization?
-var credentials = await new As<Credentials>(new Post(new Basic(new Json<User>(url, user), userName, password)));
+var token = await new As<Token>(new Post(new Basic(new Json<User>(url, user), name, password)));
 
 // And what if it's PUT request with bearer authorization?
 var credentials = await new As<Credentials>(new Put(new Bearer(new Json<User>(url, user), token)));
@@ -36,7 +36,7 @@ var bundle = await new As<AssetBundle>(new Get(new Bundle(url)));
 // I want this bundle cached on disk
 var bundle = await new As<AssetBundle>(new Cache(new Get(new Bundle(url)), Storage.Native));
 
-// I want to download a picture and also cache it on disk 
+// I want to download a picture and also cache it on disk
 var texture = await new As<Texture2D>(new Cache(new Get(new Texture(url)), Storage.Disk));
 
 // I just want to know size of a texture or content I need to download
