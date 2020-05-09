@@ -54,7 +54,9 @@ namespace Httx.Sources.Caches {
         }
       });
 
-      currentCache = Caching.AddCache(path);
+      var cacheOpt = Caching.GetCacheByPath(path);
+
+      currentCache = default != cacheOpt ? cacheOpt : Caching.AddCache(path);
       currentCache.maximumAvailableStorageSpace = maxSize;
 
       if (!currentCache.valid) {
