@@ -54,9 +54,7 @@ namespace Httx.Sources.Caches {
         }
       });
 
-      var cacheOpt = Caching.GetCacheByPath(path);
-
-      currentCache = default != cacheOpt ? cacheOpt : Caching.AddCache(path);
+      currentCache = AddCacheSafe(path);
       currentCache.maximumAvailableStorageSpace = maxSize;
 
       if (!currentCache.valid) {
@@ -84,5 +82,10 @@ namespace Httx.Sources.Caches {
     }
 
     public uint Version { get; }
+
+    private Cache AddCacheSafe(string cachePath) {
+      var tryCache = Caching.GetCacheByPath(cachePath);
+      return tryCache.valid ? tryCache : Caching.AddCache(cachePath);
+    }
   }
 }
