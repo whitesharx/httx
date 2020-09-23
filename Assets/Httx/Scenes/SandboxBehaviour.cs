@@ -19,7 +19,6 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.Threading;
 using Httx;
 using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
@@ -27,16 +26,14 @@ using Httx.Requests.Types;
 using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using UnityEngine;
+using Cache = Httx.Requests.Decorators.Cache;
 
 public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   [SerializeField]
   private UnityEngine.UI.Text debugText;
 
-  private CancellationTokenSource tokenSource;
-
   [UsedImplicitly]
   private void Start() {
-    tokenSource = new CancellationTokenSource();
     const int appVersion = 1;
     Context.InitializeDefault(appVersion, OnContextReady);
   }
@@ -44,16 +41,13 @@ public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   private async void OnContextReady() {
     debugText.text = "Ready...";
 
-    ExecuteIntroduction();
-
     var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
     var jsonUrl = "http://www.mocky.io/v2/5e69dddb2d0000aa005f9e20";
     var imageUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png";
 
     try {
-      var t = tokenSource.Token;
       var bundleUrl = "https://emilystories.app/static/v59/story/bundles/scene_1.apple-bundle";
-      var bundle0 = await new As<AssetBundle>(new Cancel(new Get(new Bundle(bundleUrl), this), t));
+      var bundle0 = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Native)));
 
       Debug.Log($"0-bundle: {bundle0.name}");
       debugText.text = "Done.";
@@ -62,25 +56,5 @@ public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
     }
   }
 
-  public void Report(float value) {
-    Debug.Log($"report: {value}");
-  }
-
-  private void OnApplicationFocus(bool hasFocus) {
-    Debug.Log($"OnApplicationFocus({hasFocus})");
-
-    if (!hasFocus) {
-      tokenSource.Cancel();
-    }
-  }
-
-  private void OnApplicationPause(bool pauseStatus) {
-    Debug.Log($"OnApplicationPause({pauseStatus})");
-
-    if (pauseStatus) {
-      tokenSource.Cancel();
-    }
-  }
-
-  private async void ExecuteIntroduction() { }
+  public void Report(float value) { }
 }
