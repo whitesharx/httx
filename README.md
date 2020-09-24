@@ -1,6 +1,7 @@
 ## About
 
 ![npm (tag)](https://img.shields.io/npm/v/com.whitesharx.httx/latest?color=green&logo=httx)
+[![CodeFactor](https://www.codefactor.io/repository/github/whitesharx/httx/badge)](https://www.codefactor.io/repository/github/whitesharx/httx)
 
 X-Force HTTP/REST framework for Unity
 
