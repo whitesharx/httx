@@ -29,9 +29,6 @@ using UnityEngine;
 using Cache = Httx.Requests.Decorators.Cache;
 
 public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
-  [SerializeField]
-  private UnityEngine.UI.Text debugText;
-
   [UsedImplicitly]
   private void Start() {
     const int appVersion = 1;
@@ -39,8 +36,6 @@ public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
   }
 
   private async void OnContextReady() {
-    debugText.text = "Ready...";
-
     var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
     var jsonUrl = "http://www.mocky.io/v2/5e69dddb2d0000aa005f9e20";
     var imageUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png";
@@ -50,7 +45,6 @@ public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
       var bundle0 = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Native)));
 
       Debug.Log($"0-bundle: {bundle0.name}");
-      debugText.text = "Done.";
     } catch (Exception e) {
       Debug.Log($"Ended with exception: {e}");
     }
