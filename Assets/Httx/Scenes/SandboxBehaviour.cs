@@ -18,32 +18,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
-using JetBrains.Annotations;
 using UnityEngine;
-// using Cache = Httx.Requests.Decorators.Cache;
 
-public class SandboxBehaviour : MonoBehaviour, IProgress<float> {
-  [UsedImplicitly]
-  private void Start() {
-    const int appVersion = 1;
-    // Context.InitializeDefault(appVersion, OnContextReady);
-  }
+public class SandboxBehaviour : MonoBehaviour {
 
-  private async void OnContextReady() {
-    var textUrl = "http://www.mocky.io/v2/5e63496b3600007500e8dcd5";
-    var jsonUrl = "http://www.mocky.io/v2/5e69dddb2d0000aa005f9e20";
-    var imageUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png";
-
-    try {
-      // var bundleUrl = "https://emilystories.app/static/v59/story/bundles/scene_1.apple-bundle";
-      // var bundle0 = await new As<AssetBundle>(new Get(new Cache(new Bundle(bundleUrl), Storage.Native)));
-      //
-      // Debug.Log($"0-bundle: {bundle0.name}");
-    } catch (Exception e) {
-      Debug.Log($"Ended with exception: {e}");
-    }
-  }
-
-  public void Report(float value) { }
 }
