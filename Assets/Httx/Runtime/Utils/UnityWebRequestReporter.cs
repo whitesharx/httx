@@ -22,9 +22,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.LowLevel;
-using UnityEngine.Experimental.PlayerLoop;
+using UnityEngine.LowLevel;
 using UnityEngine.Networking;
+using UnityEngine.PlayerLoop;
 
 namespace Httx.Utils {
   public static class UnityWebRequestReporter {

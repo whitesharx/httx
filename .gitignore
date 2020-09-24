@@ -6,9 +6,6 @@
 .vscode/
 .idea/
 .vs/
-*.sublime-workspace
-
-*.pidb.meta
 
 /*.userprefs
 /*.csproj
@@ -19,10 +16,12 @@
 /*.unityproj
 /*.booproj
 
-.DS_Store*
 ._*
 ~*
 *~
+*.sublime-workspace
+*.pidb.meta
+.DS_Store*
 .Spotlight-V100
 .Trashes
 .txt
@@ -30,11 +29,14 @@
 .tmp
 .bk
 
+
 ehthumbs.db
 [Tt]humbs.db
 
-Build-*/
 UnityPackageManager/
+UserSettings/
 Assets/Plugins/Editor/JetBrains
 Logs/
+
+Build-*/
 *_tests/
