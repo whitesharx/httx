@@ -29,6 +29,9 @@
 .tmp
 .bk
 
+InitTestScene*.unity
+InitTestScene*.unity.meta
+
 
 ehthumbs.db
 [Tt]humbs.db
