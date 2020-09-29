@@ -20,47 +20,20 @@
 
 using System;
 using System.Collections;
-using System.Threading.Tasks;
 using Httx.Requests.Awaiters;
-using Httx.Requests.Executors;
-using Httx.Requests.Types;
-using Httx.Requests.Verbs;
-using JetBrains.Annotations;
-using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Httx.Tests {
-  public class BaseRequestsTests {
-    private const int AppVersion = 1;
+  public static class HttxTestUtils {
+    private const int AppVersion = 7;
 
-    [UnitySetUp]
-    [UsedImplicitly]
-    public IEnumerator SetUp() {
+    public static IEnumerator SetUpContext() {
       var isReady = false;
-
       Context.InitializeDefault(AppVersion, () => { isReady = true; });
 
       while (!isReady) { yield return null; }
     }
 
-    [UnityTearDown]
-    [UsedImplicitly]
-    public void TearDown() {
-      Context.ClearDefault();
-    }
-
-    [UnityTest]
-    public IEnumerator GetText() {
-      var url = "https://run.mocky.io/v3/bb9ca31c-0cb4-4640-9bfa-ed3d7a58778f";
-      var request = new As<string>(new Get(new Text(url)));
-
-      return Execute(request, result => {
-        Assert.That(result, Is.EqualTo("simple-text"));
-      });
-    }
-
-    private static IEnumerator Execute<T>(IAwaitable<T> awaitable, Action<T> assertions) {
+    public static IEnumerator Execute<T>(IAwaitable<T> awaitable, Action<T> assertions) {
       var result = default(T);
       var isReady = false;
 
