@@ -24,7 +24,9 @@ using Httx.Requests.Types;
 using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.TestTools;
+using Texture = Httx.Requests.Types.Texture;
 
 namespace Httx.Tests {
   public class TypesTests {
@@ -71,8 +73,36 @@ namespace Httx.Tests {
       // TODO:
     }
 
-    public void Json() {
+    [UnityTest]
+    public IEnumerator Json() {
+      const string url = RequestEndpoints.JsonUrl;
+      var request = new As<JsonResponseModel>(new Get(new Json(url)));
 
+      return HttxTestUtils.Execute(request, result => {
+        Assert.That(result.Text, Is.EqualTo("some-string"));
+        Assert.That(result.Number, Is.EqualTo(7));
+      });
+    }
+
+    public void Manifest() {
+      // TODO:
+    }
+
+    public void Resource() {
+      // TODO:
+    }
+
+    [UnityTest]
+    public IEnumerator Texture() {
+      const string url = RequestEndpoints.TextureUrl;
+      var request = new As<Texture2D>(new Get(new Texture(url)));
+
+      return HttxTestUtils.Execute(request, texture => {
+        Assert.That(texture, Is.Not.Null);
+        Assert.That(texture.width, Is.EqualTo(RequestEndpoints.TextureSize));
+        Assert.That(texture.height, Is.EqualTo(RequestEndpoints.TextureSize));
+        Assert.That(texture.GetRawTextureData().Length, Is.EqualTo(RequestEndpoints.TextureBytes));
+      });
     }
   }
 }

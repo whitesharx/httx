@@ -18,9 +18,36 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
+using UnityEngine;
+
 namespace Httx.Tests {
   public static class RequestEndpoints {
     public const string TextUrl = "https://run.mocky.io/v3/372251d8-2760-4d42-b61c-569da2534962";
     public const string TextResponse = "success-respose";
+
+    public const string JsonUrl = "https://run.mocky.io/v3/cf731d9a-35ca-4a57-bf6b-6b0c9147449f";
+    public const string JsonResponse = "{ \"text\": \"some-string\", \"number\": 7 }";
+
+    public const string TextureUrl = "https://homepages.cae.wisc.edu/~ece533/images/zelda.png";
+    public const int TextureSize = 512;
+    public const int TextureBytes = 1048576;
+  }
+
+  [Serializable]
+  public class JsonResponseModel {
+    [SerializeField]
+    private string text;
+
+    [SerializeField]
+    private int number;
+
+    public JsonResponseModel(string text, int number) {
+      this.text = text;
+      this.number = number;
+    }
+
+    public string Text => text;
+    public int Number => number;
   }
 }
