@@ -19,7 +19,6 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Collections;
-using Httx.Requests.Awaiters;
 using Httx.Requests.Executors;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
@@ -28,9 +27,7 @@ using NUnit.Framework;
 using UnityEngine.TestTools;
 
 namespace Httx.Tests {
-  public class VerbsTests {
-    private const string Url = RequestEndpoints.TextUrl;
-
+  public class TypesTests {
     [UnitySetUp]
     [UsedImplicitly]
     public IEnumerator SetUp() {
@@ -43,40 +40,39 @@ namespace Httx.Tests {
       HttxTestUtils.TearDownDefaultContext();
     }
 
-    [UnityTest]
-    public IEnumerator CreateText() {
-      return TestSuccessResponse(new As<string>(new Create(new Text(Url))));
+    public void Bundle() {
+      // TODO:
     }
 
     [UnityTest]
-    public IEnumerator DeleteText() {
-      return TestSuccessResponse(new As<string>(new Delete(new Text(Url))));
-    }
+    public IEnumerator Bytes() {
+      const string url = RequestEndpoints.TextUrl;
+      const string text = RequestEndpoints.TextResponse;
 
-    [UnityTest]
-    public IEnumerator GetText() {
-      return TestSuccessResponse(new As<string>(new Get(new Text(Url))));
-    }
+      var responseBytes = System.Text.Encoding.UTF8.GetBytes(text);
+      var request = new As<byte[]>(new Get(new Bytes(url)));
 
-    [UnityTest]
-    public IEnumerator PatchText() {
-      return TestSuccessResponse(new As<string>(new Patch(new Text(Url))));
-    }
-
-    [UnityTest]
-    public IEnumerator PostText() {
-      return TestSuccessResponse(new As<string>(new Post(new Text(Url))));
-    }
-
-    [UnityTest]
-    public IEnumerator PutText() {
-      return TestSuccessResponse(new As<string>(new Put(new Text(Url))));
-    }
-
-    private static IEnumerator TestSuccessResponse(IAwaitable<string> awaitable) {
-      return HttxTestUtils.Execute(awaitable, result => {
-        Assert.That(result, Is.EqualTo(RequestEndpoints.TextResponse));
+      return HttxTestUtils.Execute(request, bytes => {
+        Assert.That(bytes, Is.EqualTo(responseBytes));
       });
+    }
+
+    [UnityTest]
+    public IEnumerator Complete() {
+      const string text = RequestEndpoints.TextResponse;
+      var request = new As<string>(new Complete<string>(text));
+
+      return HttxTestUtils.Execute(request, result => {
+        Assert.That(result, Is.EqualTo(text));
+      });
+    }
+
+    public void File() {
+      // TODO:
+    }
+
+    public void Json() {
+
     }
   }
 }

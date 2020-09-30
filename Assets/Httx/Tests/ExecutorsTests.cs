@@ -27,10 +27,6 @@ using UnityEngine.TestTools;
 
 namespace Httx.Tests {
   public class ExecutorsTests {
-    private const string Url = "https://run.mocky.io/v3/372251d8-2760-4d42-b61c-569da2534962";
-    private const string ResponseText = "success-respose";
-    private const string ResponseLength = "15";
-
     [UnitySetUp]
     [UsedImplicitly]
     public IEnumerator SetUp() {
@@ -45,20 +41,26 @@ namespace Httx.Tests {
 
     [UnityTest]
     public IEnumerator TestHead() {
-      return HttxTestUtils.Execute(new Head(Url), headers => {
+      const string url = RequestEndpoints.TextUrl;
+      var length = RequestEndpoints.TextResponse.Length;
+
+      return HttxTestUtils.Execute(new Head(url), headers => {
         var contentLengthHeader = headers.FirstOrDefault(h => h.Key == "Content-Length");
         var contentLength = contentLengthHeader.Value;
 
         Assert.That(contentLengthHeader, Is.Not.Null);
         Assert.That(contentLength, Is.Not.Null);
-        Assert.That(contentLength, Is.EqualTo(ResponseLength));
+        Assert.That(contentLength, Is.EqualTo($"{length}"));
       });
     }
 
     [UnityTest]
     public IEnumerator TestLength() {
-      return HttxTestUtils.Execute(new Length(Url), contentLength => {
-        Assert.That(contentLength, Is.EqualTo(long.Parse(ResponseLength)));
+      const string url = RequestEndpoints.TextUrl;
+      var length = (long) RequestEndpoints.TextResponse.Length;
+
+      return HttxTestUtils.Execute(new Length(url), contentLength => {
+        Assert.That(contentLength, Is.EqualTo(length));
       });
     }
   }

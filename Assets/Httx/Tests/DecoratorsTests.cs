@@ -31,9 +31,6 @@ using UnityEngine.TestTools;
 
 namespace Httx.Tests {
   public class DecoratorsTests {
-    private const string Url = "https://run.mocky.io/v3/372251d8-2760-4d42-b61c-569da2534962";
-    private const string ResponseText = "success-respose";
-
     [UnitySetUp]
     [UsedImplicitly]
     public IEnumerator SetUp() {
@@ -48,27 +45,34 @@ namespace Httx.Tests {
 
     [UnityTest]
     public IEnumerator BasicAuth() {
-      var request = new As<string>(new Get(new Basic(new Text(Url), "login", "password")));
+      const string url = RequestEndpoints.TextUrl;
+      const string text = RequestEndpoints.TextResponse;
+
+      var request = new As<string>(new Get(new Basic(new Text(url), "login", "password")));
 
       return HttxTestUtils.Execute(request, response => {
         LogAssert.Expect(LogType.Log, new Regex("Basic bG9naW46cGFzc3dvcmQ="));
-        Assert.That(response, Is.EqualTo(ResponseText));
+        Assert.That(response, Is.EqualTo(text));
       });
     }
 
     [UnityTest]
     public IEnumerator Bearer() {
-      var request = new As<string>(new Get(new Bearer(new Text(Url), "token")));
+      const string url = RequestEndpoints.TextUrl;
+      const string text = RequestEndpoints.TextResponse;
+
+      var request = new As<string>(new Get(new Bearer(new Text(url), "token")));
 
       return HttxTestUtils.Execute(request, response => {
         LogAssert.Expect(LogType.Log, new Regex("Bearer token"));
-        Assert.That(response, Is.EqualTo(ResponseText));
+        Assert.That(response, Is.EqualTo(text));
       });
     }
 
     [UnityTest]
     public IEnumerator Code() {
-      var request = new As<int>(new Get(new Code(new Text(Url))));
+      const string url = RequestEndpoints.TextUrl;
+      var request = new As<int>(new Get(new Code(new Text(url))));
 
       return HttxTestUtils.Execute(request, response => {
         Assert.That(response, Is.EqualTo(200));
