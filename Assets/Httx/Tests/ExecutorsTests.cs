@@ -34,13 +34,13 @@ namespace Httx.Tests {
     [UnitySetUp]
     [UsedImplicitly]
     public IEnumerator SetUp() {
-      return HttxTestUtils.SetUpContext();
+      return HttxTestUtils.SetUpDefaultContext();
     }
 
     [UnityTearDown]
     [UsedImplicitly]
     public void TearDown() {
-      Context.ClearDefault();
+      HttxTestUtils.TearDownDefaultContext();
     }
 
     [UnityTest]

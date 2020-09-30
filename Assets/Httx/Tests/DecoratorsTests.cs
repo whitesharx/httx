@@ -19,16 +19,18 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Collections;
-using Httx.Requests.Awaiters;
+using System.Text.RegularExpressions;
+using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Httx.Tests {
-  public class VerbsTests {
+  public class DecoratorsTests {
     private const string Url = "https://run.mocky.io/v3/372251d8-2760-4d42-b61c-569da2534962";
     private const string ResponseText = "success-respose";
 
@@ -45,38 +47,31 @@ namespace Httx.Tests {
     }
 
     [UnityTest]
-    public IEnumerator CreateText() {
-      return TestSuccessResponse(new As<string>(new Create(new Text(Url))));
+    public IEnumerator BasicAuth() {
+      var request = new As<string>(new Get(new Basic(new Text(Url), "login", "password")));
+
+      return HttxTestUtils.Execute(request, response => {
+        LogAssert.Expect(LogType.Log, new Regex("Basic bG9naW46cGFzc3dvcmQ="));
+        Assert.That(response, Is.EqualTo(ResponseText));
+      });
     }
 
     [UnityTest]
-    public IEnumerator DeleteText() {
-      return TestSuccessResponse(new As<string>(new Delete(new Text(Url))));
+    public IEnumerator Bearer() {
+      var request = new As<string>(new Get(new Bearer(new Text(Url), "token")));
+
+      return HttxTestUtils.Execute(request, response => {
+        LogAssert.Expect(LogType.Log, new Regex("Bearer token"));
+        Assert.That(response, Is.EqualTo(ResponseText));
+      });
     }
 
     [UnityTest]
-    public IEnumerator GetText() {
-      return TestSuccessResponse(new As<string>(new Get(new Text(Url))));
-    }
+    public IEnumerator Code() {
+      var request = new As<int>(new Get(new Code(new Text(Url))));
 
-    [UnityTest]
-    public IEnumerator PatchText() {
-      return TestSuccessResponse(new As<string>(new Patch(new Text(Url))));
-    }
-
-    [UnityTest]
-    public IEnumerator PostText() {
-      return TestSuccessResponse(new As<string>(new Post(new Text(Url))));
-    }
-
-    [UnityTest]
-    public IEnumerator PutText() {
-      return TestSuccessResponse(new As<string>(new Put(new Text(Url))));
-    }
-
-    private static IEnumerator TestSuccessResponse(IAwaitable<string> awaitable) {
-      return HttxTestUtils.Execute(awaitable, result => {
-        Assert.That(result, Is.EqualTo(ResponseText));
+      return HttxTestUtils.Execute(request, response => {
+        Assert.That(response, Is.EqualTo(200));
       });
     }
   }

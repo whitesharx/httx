@@ -26,11 +26,16 @@ namespace Httx.Tests {
   public static class HttxTestUtils {
     private const int AppVersion = 7;
 
-    public static IEnumerator SetUpContext() {
+    public static IEnumerator SetUpDefaultContext() {
       var isReady = false;
+
       Context.InitializeDefault(AppVersion, () => { isReady = true; });
 
       while (!isReady) { yield return null; }
+    }
+
+    public static void TearDownDefaultContext() {
+      Context.ClearDefault();
     }
 
     public static IEnumerator Execute<T>(IAwaitable<T> awaitable, Action<T> assertions) {
