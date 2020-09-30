@@ -18,8 +18,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.Collections;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Httx.Requests.Decorators;
 using Httx.Requests.Executors;
 using Httx.Requests.Types;
@@ -76,6 +78,34 @@ namespace Httx.Tests {
 
       return HttxTestUtils.Await(request, response => {
         Assert.That(response, Is.EqualTo(200));
+      });
+    }
+
+    [UnityTest]
+    public IEnumerator CancelException() {
+      const string url = RequestEndpoints.TextUrl;
+
+      var tokenSource = new CancellationTokenSource();
+      var request = new As<string>(new Get(new Cancel(new Text(url), tokenSource.Token)));
+
+      tokenSource.Cancel();
+
+      return HttxTestUtils.AwaitException(request, e => {
+        Assert.That(e, Is.Not.Null);
+        Assert.That(e, Is.TypeOf<OperationCanceledException>());
+      });
+    }
+
+    [UnityTest]
+    public IEnumerator CancelContinue() {
+      const string url = RequestEndpoints.TextUrl;
+      const string text = RequestEndpoints.TextResponse;
+
+      var tokenSource = new CancellationTokenSource();
+      var request = new As<string>(new Get(new Cancel(new Text(url), tokenSource.Token)));
+
+      return HttxTestUtils.Await(request, response => {
+        Assert.That(response, Is.EqualTo(text));
       });
     }
   }
