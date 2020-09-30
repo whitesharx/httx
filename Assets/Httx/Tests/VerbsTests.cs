@@ -74,7 +74,7 @@ namespace Httx.Tests {
     }
 
     private static IEnumerator TestSuccessResponse(IAwaitable<string> awaitable) {
-      return HttxTestUtils.Execute(awaitable, result => {
+      return HttxTestUtils.Await(awaitable, result => {
         Assert.That(result, Is.EqualTo(RequestEndpoints.TextResponse));
       });
     }

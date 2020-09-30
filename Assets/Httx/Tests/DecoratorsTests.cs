@@ -50,7 +50,7 @@ namespace Httx.Tests {
 
       var request = new As<string>(new Get(new Basic(new Text(url), "login", "password")));
 
-      return HttxTestUtils.Execute(request, response => {
+      return HttxTestUtils.Await(request, response => {
         LogAssert.Expect(LogType.Log, new Regex("Basic bG9naW46cGFzc3dvcmQ="));
         Assert.That(response, Is.EqualTo(text));
       });
@@ -63,7 +63,7 @@ namespace Httx.Tests {
 
       var request = new As<string>(new Get(new Bearer(new Text(url), "token")));
 
-      return HttxTestUtils.Execute(request, response => {
+      return HttxTestUtils.Await(request, response => {
         LogAssert.Expect(LogType.Log, new Regex("Bearer token"));
         Assert.That(response, Is.EqualTo(text));
       });
@@ -74,7 +74,7 @@ namespace Httx.Tests {
       const string url = RequestEndpoints.TextUrl;
       var request = new As<int>(new Get(new Code(new Text(url))));
 
-      return HttxTestUtils.Execute(request, response => {
+      return HttxTestUtils.Await(request, response => {
         Assert.That(response, Is.EqualTo(200));
       });
     }

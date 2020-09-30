@@ -21,6 +21,7 @@
 using System;
 using System.Collections;
 using Httx.Requests.Awaiters;
+using UnityEngine.TestTools;
 
 namespace Httx.Tests {
   public static class HttxTestUtils {
@@ -38,7 +39,7 @@ namespace Httx.Tests {
       Context.ClearDefault();
     }
 
-    public static IEnumerator Execute<T>(IAwaitable<T> awaitable, Action<T> assertions) {
+    public static IEnumerator Await<T>(IAwaitable<T> awaitable, Action<T> assertions) {
       var result = default(T);
       var isReady = false;
 
@@ -49,8 +50,37 @@ namespace Httx.Tests {
 
       Action();
 
-      while (!isReady) { yield return null; }
+      while (!isReady) {
+        yield return null;
+      }
+
       assertions(result);
+    }
+
+    public static IEnumerator AwaitException<T>(IAwaitable<T> awaitable, Action<Exception> assertions) {
+      var isReady = false;
+      Exception exception = null;
+
+      async void Action() {
+        try {
+          LogAssert.ignoreFailingMessages = true;
+          await awaitable;
+        } catch (Exception e) {
+          exception = e;
+        } finally {
+          LogAssert.ignoreFailingMessages = false;
+        }
+
+        isReady = true;
+      }
+
+      Action();
+
+      while (!isReady) {
+        yield return null;
+      }
+
+      assertions(exception);
     }
   }
 }

@@ -35,6 +35,9 @@ namespace Httx.Tests {
 
     public const string BundleUrl = "https://whitesharx.app/temporary/input-bundle.osx-bundle";
     public const string ManifestUrl = "https://whitesharx.app/temporary/input-bundle.osx-bundle.manifest";
+
+    public const string FakeUrl = "http://fakehost";
+    public const string NotFoundUrl = "https://whitesharx.app/not-exeistent-path";
   }
 
   [Serializable]

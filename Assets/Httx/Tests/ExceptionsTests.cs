@@ -19,14 +19,16 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Collections;
-using System.Linq;
+using Httx.Requests.Exceptions;
 using Httx.Requests.Executors;
+using Httx.Requests.Types;
+using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 
 namespace Httx.Tests {
-  public class ExecutorsTests {
+  public class ExceptionsTests {
     [UnitySetUp]
     [UsedImplicitly]
     public IEnumerator SetUp() {
@@ -40,27 +42,27 @@ namespace Httx.Tests {
     }
 
     [UnityTest]
-    public IEnumerator TestHead() {
-      const string url = RequestEndpoints.TextUrl;
-      var length = RequestEndpoints.TextResponse.Length;
+    public IEnumerator CantResolveHost() {
+      const string url = RequestEndpoints.FakeUrl;
+      var request = new As<string>(new Get(new Text(url)));
 
-      return HttxTestUtils.Await(new Head(url), headers => {
-        var contentLengthHeader = headers.FirstOrDefault(h => h.Key == "Content-Length");
-        var contentLength = contentLengthHeader.Value;
-
-        Assert.That(contentLengthHeader, Is.Not.Null);
-        Assert.That(contentLength, Is.Not.Null);
-        Assert.That(contentLength, Is.EqualTo($"{length}"));
+      return HttxTestUtils.AwaitException(request, e => {
+        Assert.That(e, Is.Not.Null);
+        Assert.That(e, Is.TypeOf<HttpException>());
       });
     }
 
     [UnityTest]
-    public IEnumerator TestLength() {
-      const string url = RequestEndpoints.TextUrl;
-      var length = (long) RequestEndpoints.TextResponse.Length;
+    public IEnumerator NotFound() {
+      const string url = RequestEndpoints.NotFoundUrl;
+      var request = new As<string>(new Get(new Text(url)));
 
-      return HttxTestUtils.Await(new Length(url), contentLength => {
-        Assert.That(contentLength, Is.EqualTo(length));
+      return HttxTestUtils.AwaitException(request, e => {
+        Assert.That(e, Is.Not.Null);
+        Assert.That(e, Is.TypeOf<HttpException>());
+
+        var httpException = (HttpException) e;
+        Assert.That(httpException.Code, Is.EqualTo(404));
       });
     }
   }

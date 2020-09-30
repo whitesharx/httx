@@ -48,7 +48,7 @@ namespace Httx.Tests {
       const string url = RequestEndpoints.BundleUrl;
       var request = new As<AssetBundle>(new Get(new Bundle(url)));
 
-      return HttxTestUtils.Execute(request, assetBundle => {
+      return HttxTestUtils.Await(request, assetBundle => {
         Assert.That(assetBundle, Is.Not.Null);
 
         var assets = assetBundle.LoadAllAssets();
@@ -69,7 +69,7 @@ namespace Httx.Tests {
       var responseBytes = System.Text.Encoding.UTF8.GetBytes(text);
       var request = new As<byte[]>(new Get(new Bytes(url)));
 
-      return HttxTestUtils.Execute(request, bytes => {
+      return HttxTestUtils.Await(request, bytes => {
         Assert.That(bytes, Is.EqualTo(responseBytes));
       });
     }
@@ -79,7 +79,7 @@ namespace Httx.Tests {
       const string text = RequestEndpoints.TextResponse;
       var request = new As<string>(new Complete<string>(text));
 
-      return HttxTestUtils.Execute(request, result => {
+      return HttxTestUtils.Await(request, result => {
         Assert.That(result, Is.EqualTo(text));
       });
     }
@@ -93,7 +93,7 @@ namespace Httx.Tests {
       const string url = RequestEndpoints.JsonUrl;
       var request = new As<JsonResponseModel>(new Get(new Json(url)));
 
-      return HttxTestUtils.Execute(request, result => {
+      return HttxTestUtils.Await(request, result => {
         Assert.That(result.Text, Is.EqualTo("some-string"));
         Assert.That(result.Number, Is.EqualTo(7));
       });
@@ -113,7 +113,7 @@ namespace Httx.Tests {
       const string url = RequestEndpoints.TextureUrl;
       var request = new As<Texture2D>(new Get(new Texture(url)));
 
-      return HttxTestUtils.Execute(request, texture => {
+      return HttxTestUtils.Await(request, texture => {
         Assert.That(texture, Is.Not.Null);
         Assert.That(texture.width, Is.EqualTo(RequestEndpoints.TextureSize));
         Assert.That(texture.height, Is.EqualTo(RequestEndpoints.TextureSize));
