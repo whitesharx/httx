@@ -32,6 +32,9 @@ namespace Httx.Tests {
     public const string TextureUrl = "https://homepages.cae.wisc.edu/~ece533/images/zelda.png";
     public const int TextureSize = 512;
     public const int TextureBytes = 1048576;
+
+    public const string BundleUrl = "https://whitesharx.app/temporary/input-bundle.osx-bundle";
+    public const string ManifestUrl = "https://whitesharx.app/temporary/input-bundle.osx-bundle.manifest";
   }
 
   [Serializable]

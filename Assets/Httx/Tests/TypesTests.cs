@@ -19,6 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System.Collections;
+using System.Linq;
 using Httx.Requests.Executors;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
@@ -42,8 +43,22 @@ namespace Httx.Tests {
       HttxTestUtils.TearDownDefaultContext();
     }
 
-    public void Bundle() {
-      // TODO:
+    [UnityTest]
+    public IEnumerator Bundle() {
+      const string url = RequestEndpoints.BundleUrl;
+      var request = new As<AssetBundle>(new Get(new Bundle(url)));
+
+      return HttxTestUtils.Execute(request, assetBundle => {
+        Assert.That(assetBundle, Is.Not.Null);
+
+        var assets = assetBundle.LoadAllAssets();
+
+        Assert.That(assets, Is.Not.Null);
+        Assert.That(assets, Is.Not.Empty);
+        Assert.That(assets.First().name, Is.EqualTo("text-file"));
+
+        assetBundle.Unload(true);
+      });
     }
 
     [UnityTest]
@@ -83,6 +98,7 @@ namespace Httx.Tests {
         Assert.That(result.Number, Is.EqualTo(7));
       });
     }
+
 
     public void Manifest() {
       // TODO:
