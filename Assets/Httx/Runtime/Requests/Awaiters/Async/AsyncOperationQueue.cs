@@ -41,7 +41,7 @@ namespace Httx.Requests.Awaiters.Async {
 
     private void ExecuteNext(IAsyncOperation previous) {
       if (0 == operationsQueue.Count) {
-        Result = currentOperation.Result;
+        Result = currentOperation?.Result;
         Done = true;
         OnComplete?.Invoke();
 
