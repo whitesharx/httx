@@ -27,7 +27,7 @@ using UnityEngine.Networking;
 
 namespace Httx.Caches {
   public class DiskCacheArgs {
-    public DiskCacheArgs(string path, int version, int maxSize, int collectFrequency) {
+    public DiskCacheArgs(string path, int version, long maxSize, int collectFrequency) {
       Path = path;
       Version = version;
       MaxSize = maxSize;
@@ -36,14 +36,14 @@ namespace Httx.Caches {
 
     public string Path { get; }
     public int Version { get; }
-    public int MaxSize { get; }
+    public long MaxSize { get; }
     public int CollectFrequency { get; }
   }
 
   public class DiskCache : IDisposable {
     private readonly string path;
     private readonly int version;
-    private readonly int maxSize;
+    private readonly long maxSize;
     private readonly int collectFrequency;
 
     private int opsCount;

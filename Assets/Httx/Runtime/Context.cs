@@ -162,10 +162,10 @@ namespace Httx {
     private static readonly string NativeCachePath =
       Path.Combine(Application.persistentDataPath, "Httx", "BundlesCache");
 
-    private static int MemoryMaxSize = 32;
-    private static int DiskMaxSize = 64 * 1024 * 1024;
-    private static int NativeMaxSize = 128 * 1024 * 1024;
-    private static int DiskCollectFrequency = 128;
+    private const int MemoryMaxSize = 32;
+    private const int DiskCollectFrequency = 128;
+    private const long DiskMaxSize = 64 * 1024 * 1024;
+    private const long NativeMaxSize = 128 * 1024 * 1024;
 
     public static void InitializeDefault(int version, Action onContextReady,
       Action<Builder> onBeforeInstantiate = null, int inflateMultiplier = 1) {

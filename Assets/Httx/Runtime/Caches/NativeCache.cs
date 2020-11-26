@@ -25,7 +25,7 @@ using UnityEngine;
 
 namespace Httx.Sources.Caches {
   public class NativeCacheArgs {
-    public NativeCacheArgs(string path, uint version, int maxSize) {
+    public NativeCacheArgs(string path, uint version, long maxSize) {
       Path = path;
       Version = version;
       MaxSize = maxSize;
@@ -33,12 +33,12 @@ namespace Httx.Sources.Caches {
 
     public string Path { get; }
     public uint Version { get; }
-    public int MaxSize { get; }
+    public long MaxSize { get; }
   }
 
   public class NativeCache : IDisposable {
     private readonly string path;
-    private readonly int maxSize;
+    private readonly long maxSize;
     private Cache currentCache;
 
     public NativeCache(NativeCacheArgs args) {
