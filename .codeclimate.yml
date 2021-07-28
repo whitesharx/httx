@@ -1,0 +1,21 @@
+version: "2"
+
+plugins:
+  fixme:
+    enabled: true
+    config:
+      strings:
+      - FIXME
+      - TODO
+      - REFACTOR
+  editorconfig:
+    enabled: true
+
+exclude_patterns:
+  - "ProjectSettings/"
+  - "Packages/"
+  - "Assets/Httx/Tests/**/*.cs"
+  - "Assets/Httx/Runtime/Externals/**/*.cs"
+  - "**/*.unity"
+  - "**/*.meta"
+  - "**/*.asmdef"

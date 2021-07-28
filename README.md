@@ -1,7 +1,7 @@
 ## About
 
 ![npm (tag)](https://img.shields.io/npm/v/com.whitesharx.httx/latest?color=green&logo=httx)
-[![CodeFactor](https://www.codefactor.io/repository/github/whitesharx/httx/badge)](https://www.codefactor.io/repository/github/whitesharx/httx)
+[![Maintainability](https://api.codeclimate.com/v1/badges/e740a73d11bf4b2ca8e9/maintainability)](https://codeclimate.com/github/whitesharx/httx/maintainability)
 
 X-Force HTTP/REST framework for Unity
 
@@ -84,7 +84,7 @@ if you already have NPM registry added:
 ```json
 {
   "dependencies": {
-    "com.whitesharx.httx": "0.5.2"
+    "com.whitesharx.httx": "0.5.25"
   }
 }
 ```
