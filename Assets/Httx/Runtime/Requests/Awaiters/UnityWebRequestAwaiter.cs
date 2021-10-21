@@ -34,7 +34,7 @@ namespace Httx.Requests.Awaiters {
     }
 
     public override TResult Map(IRequest request, IAsyncOperation completeOperation) {
-      var requestImpl = (UnityWebRequest) completeOperation.Result;
+      var requestImpl = completeOperation.SafeResult<UnityWebRequest>();
 
       if (isResponseCodeOnly) {
         var result = (int) requestImpl.responseCode;

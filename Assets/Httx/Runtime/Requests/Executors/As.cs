@@ -18,12 +18,53 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
+using System.Collections.Generic;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Extensions;
+using JetBrains.Annotations;
 
 namespace Httx.Requests.Executors {
+  public class ETag {
+    public ETag([CanBeNull] string ifNoneMatch, Action<string> updated) {
+      IfNoneMatch = ifNoneMatch;
+      Updated = updated;
+    }
+
+    [CanBeNull]
+    public string IfNoneMatch { get; }
+
+    public Action<string> Updated { get; }
+
+    public override string ToString() =>
+        $"if-none-match({(string.IsNullOrEmpty(IfNoneMatch) ? "empty" : IfNoneMatch)})";
+  }
+
   public class As<TResult> : BaseRequest, IAwaitable<TResult> {
-    public As(IRequest next) : base(next) { }
+    private readonly ETag tag;
+
+    public As(IRequest next, ETag eTag = null) : base(next) {
+      tag = eTag;
+    }
+
     public IAwaiter<TResult> GetAwaiter() => this.ResolveAwaiter<TResult>(Context.Instance);
+
+    public override IEnumerable<KeyValuePair<string, object>> Headers {
+      get {
+        var headers = new Dictionary<string, object>();
+
+        if (null == tag) {
+          return headers;
+        }
+
+        headers[InternalHeaders.ETagObject] = tag;
+
+        if (!string.IsNullOrEmpty(tag.IfNoneMatch)) {
+          headers["If-None-Match"] = tag.IfNoneMatch;
+        }
+
+        return headers;
+      }
+    }
   }
 }

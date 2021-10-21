@@ -18,11 +18,25 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using JetBrains.Annotations;
 
 namespace Httx.Requests.Awaiters.Async {
   public static class AsyncExtensions {
     [CanBeNull]
-    public static T Result<T>(this IAsyncOperation operation) where T : class => operation?.Result as T;
+    public static T UnsafeResult<T>(this IAsyncOperation operation) where T : class => operation?.Result as T;
+
+    public static T SafeResult<T>(this IAsyncOperation operation) where T : class {
+      try {
+        return (T)operation.Result;
+      } catch (InvalidCastException e) {
+        var operationType = operation.GetType().Name;
+        var resultType = null == operation.Result ? "null" : operation.Result.GetType().Name;
+        var castType = typeof(T).Name;
+        var message = $"can't cast operation {operationType} result of type {resultType} to {castType}";
+
+        throw new InvalidCastException(message, e);
+      }
+    }
   }
 }
