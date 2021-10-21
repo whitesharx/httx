@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2020 Sergey Ivonchik
+// Copyright (c) 2020 Sergey Ivonchik
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,30 +18,32 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Httx;
-using Httx.Requests.Executors;
-using Httx.Requests.Types;
-using Httx.Requests.Verbs;
-using JetBrains.Annotations;
-using UnityEngine;
+using System.Collections.Generic;
+using Httx.Requests.Extensions;
 
-public class SandboxBehaviour : MonoBehaviour {
-  private const int Version = 1;
+namespace Httx.Requests.Executors {
+  public class ETag<T> {
+    public ETag(string tag, T value) {
+      Tag = tag;
+      Value = value;
+    }
 
-  [UsedImplicitly]
-  private void Awake() {
-    Context.InitializeDefault(Version, OnContextReady);
+    public string Tag { get; }
+    public T Value { get; }
   }
 
-  private async void OnContextReady() {
-    const string url = "https://api-develop.settinx.app/config/multiverse/profile/initial-data";
+  public class Tagged<T> : As<ETag<T>> {
+    private readonly string tag;
 
-    // XXX: Tagged request requires Cache decorator
+    public Tagged(IRequest next, string eTag = null) : base(next) {
+      tag = eTag;
+    }
 
-    var response = await new Tagged<string>(new Get(new Text(url)));
-
-
-    Debug.Log($"etag: {response.Tag} value: {response.Value}");
-
+    public override IEnumerable<KeyValuePair<string, object>> Headers =>
+        new Dictionary<string, object> {
+            ["If-None-Match"] = string.IsNullOrEmpty(tag) ? string.Empty : tag,
+            [InternalHeaders.ETagEnabled] = true,
+            [InternalHeaders.ETagInnerType] = typeof(T)
+        };
   }
 }

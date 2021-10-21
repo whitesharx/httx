@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2020 Sergey Ivonchik
+// Copyright (c) 2021 Sergey Ivonchik
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,30 +18,11 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Httx;
-using Httx.Requests.Executors;
-using Httx.Requests.Types;
-using Httx.Requests.Verbs;
 using JetBrains.Annotations;
-using UnityEngine;
 
-public class SandboxBehaviour : MonoBehaviour {
-  private const int Version = 1;
-
-  [UsedImplicitly]
-  private void Awake() {
-    Context.InitializeDefault(Version, OnContextReady);
-  }
-
-  private async void OnContextReady() {
-    const string url = "https://api-develop.settinx.app/config/multiverse/profile/initial-data";
-
-    // XXX: Tagged request requires Cache decorator
-
-    var response = await new Tagged<string>(new Get(new Text(url)));
-
-
-    Debug.Log($"etag: {response.Tag} value: {response.Value}");
-
+namespace Httx.Requests.Awaiters.Async {
+  public static class AsyncExtensions {
+    [CanBeNull]
+    public static T Result<T>(this IAsyncOperation operation) where T : class => operation?.Result as T;
   }
 }

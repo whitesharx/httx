@@ -37,7 +37,7 @@ namespace Httx.Requests.Awaiters {
     private CancellationToken cancelToken;
     private bool isAwaken;
     private string requestId;
-    private bool isCacheEnabled;
+    private bool isMemoryCacheEnabled;
     private int cacheItemMaxAge;
     private string cacheKey;
     private object cachedResult;
@@ -81,13 +81,13 @@ namespace Httx.Requests.Awaiters {
 
         requestId = Guid.NewGuid().ToString();
         cancelToken = inputRequest.FetchCancelToken();
-        isCacheEnabled = inputRequest.IsMemoryCacheEnabled();
+        isMemoryCacheEnabled = inputRequest.IsMemoryCacheEnabled();
 
-        if (isCacheEnabled && null == Context.MemoryCache) {
-          throw new InvalidOperationException("memory cache enabled, but not initialized");
+        if (isMemoryCacheEnabled && null == Context.MemoryCache) {
+          throw new InvalidOperationException("memory cache operation requested, but cache is not initialized");
         }
 
-        if (isCacheEnabled) {
+        if (isMemoryCacheEnabled) {
           cacheItemMaxAge = inputRequest.FetchCacheItemMaxAge();
           cacheKey = Crypto.Sha256(inputRequest.ResolveUrl());
           cachedResult = Context.MemoryCache.Get(cacheKey);
@@ -115,7 +115,7 @@ namespace Httx.Requests.Awaiters {
       }
 
       if (default != cachedResult) {
-        return (TResult) cachedResult;
+        return (TResult)cachedResult;
       }
 
       var requestOpt = operation.Result as UnityWebRequest;
@@ -148,8 +148,7 @@ namespace Httx.Requests.Awaiters {
     public abstract TResult Map(IRequest request, IAsyncOperation completeOperation);
 
     protected UnityWebRequestAsyncOperation Send(UnityWebRequest request,
-      IEnumerable<KeyValuePair<string, object>> headers) {
-
+        IEnumerable<KeyValuePair<string, object>> headers) {
       var hx = headers?.ToList() ?? new List<KeyValuePair<string, object>>();
       var pRef = hx.FetchHeader<WeakReference<IProgress<float>>>(InternalHeaders.ProgressObject);
 
@@ -164,68 +163,86 @@ namespace Httx.Requests.Awaiters {
     }
 
     protected IAsyncOperation SendCached(UnityWebRequest request,
-      IEnumerable<KeyValuePair<string, object>> headers) {
-
+        IEnumerable<KeyValuePair<string, object>> headers) {
       var hx = headers?.ToList() ?? new List<KeyValuePair<string, object>>();
       var isDiskCacheEnabled = hx.FetchHeader<bool>(InternalHeaders.DiskCacheEnabled);
 
       return !isDiskCacheEnabled
-        ? new UnityAsyncOperation(() => Send(request, hx))
-        : CreateCacheOperation(request, hx);
+          ? new UnityAsyncOperation(() => Send(request, hx))
+          : CreateCacheOperation(request, hx);
     }
 
     protected Context Context { get; private set; }
 
     private IAsyncOperation CreateCacheOperation(UnityWebRequest request,
-      IEnumerable<KeyValuePair<string, object>> headers) {
+        IReadOnlyCollection<KeyValuePair<string, object>> headers) {
+      var isETagEnabled = headers.FetchHeader<bool>(InternalHeaders.ETagEnabled);
 
       var url = request.url;
       var cache = Context.DiskCache;
 
-      Editor unsafeEditor = null;
+      if (null == cache) {
+        throw new InvalidOperationException("disk cache operation requested, but cache is not initialized");
+      }
 
-      var tryCache = new Func<IAsyncOperation, IAsyncOperation>(_ => cache.Get(url));
+      Editor cacheValueEditor = null;
 
+      // XXX: Hit cache and return local data file url.
+      var tryHitCache = new Func<IAsyncOperation, IAsyncOperation>(_ => cache.Get(url));
+
+      // XXX: Try send network request (with or without if-none-match).
       var netRequest = new Func<IAsyncOperation, IAsyncOperation>(previous => {
-        var cachedFileUrl = previous?.Result as string;
+        var cachedFileUrl = previous.Result<string>();
 
-        if (string.IsNullOrEmpty(cachedFileUrl)) {
+        // XXX: No cache entry found or fresh request. Requests with ETag always fire.
+        if (string.IsNullOrEmpty(cachedFileUrl) || isETagEnabled) {
           return new UnityAsyncOperation(() => Send(request, headers));
         }
 
+        // XXX: Cache entry found. Lock entry and fetch result from local file ('file://' url).
         request.url = cachedFileUrl;
 
         return new AsyncOperationQueue(
-          _ => cache.Lock(cachedFileUrl),
-          pLock => {
-            unsafeEditor = pLock?.Result as Editor;
-            return new UnityAsyncOperation(() => Send(request, headers));
-          });
+            _ => cache.Lock(cachedFileUrl),
+            pLock => {
+              cacheValueEditor = pLock.Result<Editor>();
+              return new UnityAsyncOperation(() => Send(request, headers));
+            });
       });
 
-      var putCache = new Func<IAsyncOperation, IAsyncOperation>(previous => {
-        var resultRequest = previous?.Result as UnityWebRequest;
+      // XXX: Put raw request data to cache.
+      var tryPutCache = new Func<IAsyncOperation, IAsyncOperation>(previous => {
+        var resultRequest = previous.Result<UnityWebRequest>();
 
-        // TODO: Special handling for NotModified
+        // XXX: If eTagged and not-modified, then simply hit cache and return result.
+        if (resultRequest.NotModified() && isETagEnabled) {
+          return new AsyncOperationQueue(
+              tryHitCache,
+              netRequest,
+              _ => cache.Unlock(cacheValueEditor));
+        }
+
         if (null == resultRequest
-          || resultRequest.LocalOrCached()
-          || resultRequest.Redirect()
-          || !resultRequest.Success()) {
+            || resultRequest.LocalOrCached()
+            || resultRequest.Redirect()
+            || !resultRequest.Success()) {
           return previous;
         }
 
         return new AsyncOperationQueue(
-          _ => cache.Put(resultRequest),
-          _ => cache.Unlock(unsafeEditor));
+            _ => cache.Put(resultRequest),
+            _ => cache.Unlock(cacheValueEditor));
       });
 
-      return new AsyncOperationQueue(tryCache, netRequest, putCache);
+      return isETagEnabled
+          ? new AsyncOperationQueue(netRequest, tryPutCache)
+          : new AsyncOperationQueue(tryHitCache, netRequest, tryPutCache);
     }
 
     private TResult MapInternal(IRequest request, IAsyncOperation completeOperation) {
       var result = Map(request, completeOperation);
 
-      if (!isCacheEnabled || string.IsNullOrEmpty(cacheKey)) {
+      if (!isMemoryCacheEnabled || string.IsNullOrEmpty(cacheKey)) {
         return result;
       }
 
@@ -249,7 +266,7 @@ namespace Httx.Requests.Awaiters {
       }
 
       if (operation.Result is UnityWebRequest requestOpt) {
-       requestOpt.Dispose();
+        requestOpt.Dispose();
       }
 
       operation = null;

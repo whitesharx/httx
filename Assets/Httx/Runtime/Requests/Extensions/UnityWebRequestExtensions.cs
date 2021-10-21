@@ -128,5 +128,9 @@ namespace Httx.Requests.Extensions {
     public static bool Redirect(this UnityWebRequest request) {
       return request.responseCode >= 300 && request.responseCode <= 399;
     }
+
+    public static bool NotModified(this  UnityWebRequest request) {
+      return request.responseCode == 304;
+    }
   }
 }

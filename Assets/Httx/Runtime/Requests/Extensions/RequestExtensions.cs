@@ -48,6 +48,8 @@ namespace Httx.Requests.Extensions {
     public const string AssetBundleLoadManifest = Prefix + "AssetBundle-LoadManifest";
     public const string ResourcePath = Prefix + "Resource-Path";
     public const string CancelToken = Prefix + "CancelToken";
+    public const string ETagEnabled = Prefix + "ETag-Enabled";
+    public const string ETagInnerType = Prefix + "ETag-InnerType";
 
     public static bool IsInternalHeader(this KeyValuePair<string, object> header) {
       return !string.IsNullOrEmpty(header.Key) && header.Key.StartsWith(Prefix);
@@ -69,14 +71,14 @@ namespace Httx.Requests.Extensions {
 
     public static IEnumerable<KeyValuePair<string, object>> ResolveHeaders(this IRequest request) {
       return LeftToRight(request)
-        .Select(r => r.Headers ?? Enumerable.Empty<KeyValuePair<string, object>>())
-        .Aggregate((a, b) => a.Concat(b));
+          .Select(r => r.Headers ?? Enumerable.Empty<KeyValuePair<string, object>>())
+          .Aggregate((a, b) => a.Concat(b));
     }
 
     public static IBodyMapper<TBody> ResolveBodyMapper<TBody>(this IRequest request, Context ctx) {
       var mapperType = LeftToRight(request)
-        .Select(r => ctx.ResolveMapper(r.GetType()))
-        .LastOrDefault(t => null != t);
+          .Select(r => ctx.ResolveMapper(r.GetType()))
+          .LastOrDefault(t => null != t);
 
       if (null == mapperType) {
         throw new InvalidOperationException("[resolve body mapper]: mapper of not found");
@@ -86,20 +88,20 @@ namespace Httx.Requests.Extensions {
       var mapperArgsCount = mapperArgs.Length;
 
       if (0 == mapperArgsCount) {
-        return (IBodyMapper<TBody>) Activator.CreateInstance(mapperType);
+        return (IBodyMapper<TBody>)Activator.CreateInstance(mapperType);
       }
 
       var typeArgs = mapperArgs
-        .Select((t, idx) => 0 == idx ? typeof(TBody) : typeof(object))
-        .ToArray();
+          .Select((t, idx) => 0 == idx ? typeof(TBody) : typeof(object))
+          .ToArray();
 
-      return (IBodyMapper<TBody>) Activator.CreateInstance(mapperType.MakeGenericType(typeArgs));
+      return (IBodyMapper<TBody>)Activator.CreateInstance(mapperType.MakeGenericType(typeArgs));
     }
 
     public static IResultMapper<TResult> ResolveResultMapper<TResult>(this IRequest request, Context ctx) {
       var mapperType = LeftToRight(request)
-        .Select(r => ctx.ResolveMapper(r.GetType()))
-        .FirstOrDefault(t => null != t);
+          .Select(r => ctx.ResolveMapper(r.GetType()))
+          .FirstOrDefault(t => null != t);
 
       if (null == mapperType) {
         throw new InvalidOperationException("[resolve result mapper]: result of not found");
@@ -109,35 +111,37 @@ namespace Httx.Requests.Extensions {
       var mapperArgsCount = mapperArgs.Length;
 
       if (0 == mapperArgsCount) {
-        return (IResultMapper<TResult>) Activator.CreateInstance(mapperType);
+        return (IResultMapper<TResult>)Activator.CreateInstance(mapperType);
       }
 
       var resultArgs = mapperArgs
-        .Select((t, idx) => mapperArgsCount - 1 == idx ? typeof(TResult) : typeof(object))
-        .ToArray();
+          .Select((t, idx) => mapperArgsCount - 1 == idx ? typeof(TResult) : typeof(object))
+          .ToArray();
 
-      return (IResultMapper<TResult>) Activator.CreateInstance(mapperType.MakeGenericType(resultArgs));
+      return (IResultMapper<TResult>)Activator.CreateInstance(mapperType.MakeGenericType(resultArgs));
     }
 
     public static IAwaiter<TResult> ResolveAwaiter<TResult>(this IRequest request, Context ctx) {
       var awaiterType = LeftToRight(request)
-        .Select(r => ctx.ResolveAwaiter(r.GetType()))
-        .FirstOrDefault(t => null != t);
+          .Select(r => ctx.ResolveAwaiter(r.GetType()))
+          .FirstOrDefault(t => null != t);
 
       if (null == awaiterType) {
         throw new InvalidOperationException("[resolve awaiter]: awaiter not found");
       }
 
-      var resultType = awaiterType.ContainsGenericParameters ?
-        awaiterType.MakeGenericType(typeof(TResult)) : awaiterType;
+      var resultType = awaiterType.ContainsGenericParameters
+          ? awaiterType.MakeGenericType(typeof(TResult))
+          : awaiterType;
 
       var awakeConstructor = resultType.GetConstructor(new[] { typeof(IRequest) });
-      return (IAwaiter<TResult>) awakeConstructor?.Invoke(new object[] { request });
+      return (IAwaiter<TResult>)awakeConstructor?.Invoke(new object[] { request });
     }
 
-    public static T FetchHeader<T>(this IEnumerable<KeyValuePair<string, object>> headers, string key, T defaultValue = default) {
+    public static T FetchHeader<T>(this IEnumerable<KeyValuePair<string, object>> headers, string key,
+        T defaultValue = default) {
       var value = headers?.FirstOrDefault(h => h.Key == key).Value;
-      return default != value ? (T) value : defaultValue;
+      return default != value ? (T)value : defaultValue;
     }
 
     public static bool IsMemoryCacheEnabled(this IRequest request) {
