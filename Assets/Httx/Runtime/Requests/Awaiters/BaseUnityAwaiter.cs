@@ -229,6 +229,19 @@ namespace Httx.Requests.Awaiters {
 
     private TResult MapInternal(IRequest request, IAsyncOperation completeOperation) {
       var result = Map(request, completeOperation);
+      var conditionObject = request.FetchConditionObject();
+
+      if (null != conditionObject) {
+        var requestImpl = completeOperation.UnsafeResult<UnityWebRequest>();
+
+        if (null != requestImpl) {
+          var eTag = requestImpl.GetResponseHeader("ETag");
+
+          if (eTag != conditionObject.Value) {
+            conditionObject.OnValueChanged?.Invoke(eTag);
+          }
+        }
+      }
 
       if (!isMemoryCacheEnabled || string.IsNullOrEmpty(cacheKey)) {
         return result;
