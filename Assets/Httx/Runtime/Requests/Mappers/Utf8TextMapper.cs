@@ -23,10 +23,7 @@ using System.Text;
 
 namespace Httx.Requests.Mappers {
   public class Utf8TextMapper : IMapper<string> {
-    public IEnumerable<byte> AsBody(string text) =>
-      string.IsNullOrEmpty(text) ? null : Encoding.UTF8.GetBytes(text);
-
-    // TODO: More safe
-    public string FromResult(object bytes) => Encoding.UTF8.GetString((byte[]) bytes);
+    public IEnumerable<byte> AsBody(string text) => string.IsNullOrEmpty(text) ? null : Encoding.UTF8.GetBytes(text);
+    public string FromResult(object bytes) => null == bytes ? string.Empty : Encoding.UTF8.GetString((byte[])bytes);
   }
 }

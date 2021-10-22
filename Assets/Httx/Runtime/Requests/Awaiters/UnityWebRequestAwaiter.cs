@@ -21,18 +21,6 @@ namespace Httx.Requests.Awaiters {
       isResponseCodeOnly = resolvedHeaders.FetchHeader<bool>(InternalHeaders.ResponseCodeOnly);
     }
 
-    public override UnityWebRequest Copy(UnityWebRequest request) {
-      var requestImpl = new UnityWebRequest(request.url, request.method) {
-          downloadHandler = new DownloadHandlerBuffer()
-      };
-
-      if (null != resolvedBody && 0 != resolvedBody.Length) {
-        requestImpl.uploadHandler = new UploadHandlerRaw(resolvedBody);
-      }
-
-      return requestImpl;
-    }
-
     public override IAsyncOperation Awake(IRequest request) {
       var verb = request.ResolveVerb();
       var url = request.ResolveUrl();

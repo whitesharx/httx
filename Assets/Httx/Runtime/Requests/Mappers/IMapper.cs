@@ -30,5 +30,6 @@ namespace Httx.Requests.Mappers {
   }
 
   public interface IMapper<in TBody, out TResult> : IBodyMapper<TBody>, IResultMapper<TResult> { }
+
   public interface IMapper<T> : IMapper<T, T> { }
 }

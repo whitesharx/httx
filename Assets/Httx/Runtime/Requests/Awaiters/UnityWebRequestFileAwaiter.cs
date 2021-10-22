@@ -20,17 +20,12 @@
 
 using System;
 using Httx.Requests.Awaiters.Async;
-using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
   public class UnityWebRequestFileAwaiter : BaseUnityAwaiter<int> {
     private string inputPath;
 
     public UnityWebRequestFileAwaiter(IRequest request) : base(request) { }
-
-    public override UnityWebRequest Copy(UnityWebRequest request) {
-      throw new NotImplementedException();
-    }
 
     public override IAsyncOperation Awake(IRequest request) {
       throw new NotImplementedException();

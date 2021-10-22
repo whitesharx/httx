@@ -25,10 +25,8 @@ using System.Threading;
 using Httx.Caches.Disk;
 using Httx.Requests.Awaiters.Async;
 using Httx.Requests.Exceptions;
-using Httx.Requests.Executors;
 using Httx.Requests.Extensions;
 using Httx.Utils;
-using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
@@ -120,7 +118,7 @@ namespace Httx.Requests.Awaiters {
         return (TResult)cachedResult;
       }
 
-      var requestOpt = operation.Result as UnityWebRequest;
+      var requestOpt = operation.UnsafeResult<UnityWebRequest>();
       var e = requestOpt?.AsException();
 
       try {
@@ -146,18 +144,16 @@ namespace Httx.Requests.Awaiters {
       }
     }
 
-    public abstract UnityWebRequest Copy(UnityWebRequest request);
     public abstract IAsyncOperation Awake(IRequest request);
     public abstract TResult Map(IRequest request, IAsyncOperation completeOperation);
 
-    // TODO: Copy Arg!
     protected UnityWebRequestAsyncOperation Send(UnityWebRequest request,
         IEnumerable<KeyValuePair<string, object>> headers) {
       var hx = headers?.ToList() ?? new List<KeyValuePair<string, object>>();
       var pRef = hx.FetchHeader<WeakReference<IProgress<float>>>(InternalHeaders.ProgressObject);
 
       if (null == pRef) {
-        return Copy(request).AppendHeaders(hx).SendWebRequest();
+        return request.AppendHeaders(hx).SendWebRequest();
       }
 
       var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, request);
@@ -169,13 +165,7 @@ namespace Httx.Requests.Awaiters {
     protected IAsyncOperation SendCached(UnityWebRequest request,
         IEnumerable<KeyValuePair<string, object>> headers) {
       var hx = headers?.ToList() ?? new List<KeyValuePair<string, object>>();
-
       var isDiskCacheEnabled = hx.FetchHeader<bool>(InternalHeaders.DiskCacheEnabled);
-      var eTagObject = hx.FetchHeader<ETag>(InternalHeaders.ETagObject);
-
-      if (!isDiskCacheEnabled && null != eTagObject) {
-        throw new InvalidOperationException("requests with ETag require Cache(Storage.Disk) decorator");
-      }
 
       return !isDiskCacheEnabled
           ? new UnityAsyncOperation(() => Send(request, hx))
@@ -185,11 +175,7 @@ namespace Httx.Requests.Awaiters {
     protected Context Context { get; private set; }
 
     private IAsyncOperation CreateCacheOperation(UnityWebRequest request,
-        IReadOnlyCollection<KeyValuePair<string, object>> headers) {
-
-      var eTagObject = headers.FetchHeader<ETag>(InternalHeaders.ETagObject);
-      var hasETagValue = !string.IsNullOrEmpty(eTagObject?.IfNoneMatch);
-
+        IEnumerable<KeyValuePair<string, object>> headers) {
       var url = request.url;
       var cache = Context.DiskCache;
 
@@ -200,44 +186,33 @@ namespace Httx.Requests.Awaiters {
       Editor cacheValueEditor = null;
 
       // XXX: Hit cache and return local data file url.
-      var tryHitCache = new Func<IAsyncOperation, IAsyncOperation>(_ => {
-        Debug.Log($"[Base]: tryHitCache: url->{url}");
-        return cache.Get(url);
-      });
+      var tryHitCache = new Func<IAsyncOperation, IAsyncOperation>(_ => cache.Get(url));
 
-      // XXX: Try send network request (with or without if-none-match).
+      // XXX: Try send network request.
       var netRequest = new Func<IAsyncOperation, IAsyncOperation>(previous => {
         var cachedFileUrl = previous.UnsafeResult<string>();
-        Debug.Log($"[Base]: netRequest cachedFileUrl->{cachedFileUrl}");
 
-        // XXX: No cache entry found or fresh request. Requests with ETag always fire.
-        if (string.IsNullOrEmpty(cachedFileUrl) || hasETagValue) {
+        // XXX: No cache entry found or fresh request.
+        if (string.IsNullOrEmpty(cachedFileUrl)) {
           return new UnityAsyncOperation(() => Send(request, headers));
         }
 
         // XXX: Cache entry found. Lock entry and fetch result from local file ('file://' url).
         request.url = cachedFileUrl;
 
-        return new AsyncOperationQueue(
-            _ => cache.Lock(cachedFileUrl),
+        // @formatter:off
+        return new AsyncOperationQueue(_ =>
+            cache.Lock(cachedFileUrl),
             pLock => {
               cacheValueEditor = pLock.UnsafeResult<Editor>();
               return new UnityAsyncOperation(() => Send(request, headers));
             });
+        // @formatter:on
       });
 
       // XXX: Put raw request data to cache.
       var tryPutCache = new Func<IAsyncOperation, IAsyncOperation>(previous => {
         var resultRequest = previous.UnsafeResult<UnityWebRequest>();
-        Debug.Log($"[Base]: tryPutCache->{resultRequest?.responseCode}");
-
-        // XXX: If eTagged and not-modified, then simply hit cache and return result.
-        if (hasETagValue && resultRequest.NotModified()) {
-          return new AsyncOperationQueue(
-              tryHitCache,
-              netRequest,
-              _ => cache.Unlock(cacheValueEditor));
-        }
 
         if (null == resultRequest
             || resultRequest.LocalOrCached()
@@ -246,30 +221,14 @@ namespace Httx.Requests.Awaiters {
           return previous;
         }
 
-        return new AsyncOperationQueue(
-            _ => cache.Put(resultRequest),
-            _ => cache.Unlock(cacheValueEditor));
+        return new AsyncOperationQueue(_ => cache.Put(resultRequest), _ => cache.Unlock(cacheValueEditor));
       });
 
-      return null != eTagObject
-          ? new AsyncOperationQueue(netRequest, tryPutCache)
-          : new AsyncOperationQueue(tryHitCache, netRequest, tryPutCache);
+      return new AsyncOperationQueue(tryHitCache, netRequest, tryPutCache);
     }
 
     private TResult MapInternal(IRequest request, IAsyncOperation completeOperation) {
-      Debug.Log($"map-internal: {completeOperation}");
-
       var result = Map(request, completeOperation);
-      var eTagObject = request.FetchETagObject();
-
-      if (null != eTagObject) {
-        var resultRequest = completeOperation.SafeResult<UnityWebRequest>();
-        var eTagValue = resultRequest.GetResponseHeader("ETag");
-
-        if (!string.IsNullOrEmpty(eTagValue) && eTagValue != eTagObject.IfNoneMatch) {
-          eTagObject.Updated?.Invoke(eTagValue);
-        }
-      }
 
       if (!isMemoryCacheEnabled || string.IsNullOrEmpty(cacheKey)) {
         return result;

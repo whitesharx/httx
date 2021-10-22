@@ -35,12 +35,6 @@ namespace Httx.Requests.Awaiters {
       isReadable = resolvedHeaders.FetchHeader<bool>(InternalHeaders.TextureReadable);
     }
 
-    public override UnityWebRequest Copy(UnityWebRequest request) {
-      return new UnityWebRequest(request.url, request.method) {
-          downloadHandler = new DownloadHandlerTexture(isReadable)
-      };
-    }
-
     public override IAsyncOperation Awake(IRequest request) {
       var verb = request.ResolveVerb();
       var url = request.ResolveUrl();

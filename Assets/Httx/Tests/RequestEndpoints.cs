@@ -29,9 +29,8 @@ namespace Httx.Tests {
     public const string JsonUrl = "https://run.mocky.io/v3/cf731d9a-35ca-4a57-bf6b-6b0c9147449f";
     public const string JsonResponse = "{ \"text\": \"some-string\", \"number\": 7 }";
 
-    public const string TextureUrl = "https://homepages.cae.wisc.edu/~ece533/images/zelda.png";
+    public const string TextureUrl = "https://dummyimage.com/512.jpg";
     public const int TextureSize = 512;
-    public const int TextureBytes = 1048576;
 
     public const string BundleUrl = "https://whitesharx.app/temporary/input-bundle.osx-bundle";
     public const string ManifestUrl = "https://whitesharx.app/temporary/input-bundle.osx-bundle.manifest";

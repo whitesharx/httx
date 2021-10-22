@@ -100,8 +100,7 @@ namespace Httx.Requests.Extensions {
     }
 
     public static UnityWebRequest AppendHeaders(this UnityWebRequest request,
-      IEnumerable<KeyValuePair<string, object>> headers) {
-
+        IEnumerable<KeyValuePair<string, object>> headers) {
       if (null == headers) {
         return request;
       }
@@ -127,10 +126,6 @@ namespace Httx.Requests.Extensions {
 
     public static bool Redirect(this UnityWebRequest request) {
       return request.responseCode >= 300 && request.responseCode <= 399;
-    }
-
-    public static bool NotModified(this  UnityWebRequest request) {
-      return request.responseCode == 304;
     }
   }
 }

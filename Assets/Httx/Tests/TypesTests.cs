@@ -117,7 +117,6 @@ namespace Httx.Tests {
         Assert.That(texture, Is.Not.Null);
         Assert.That(texture.width, Is.EqualTo(RequestEndpoints.TextureSize));
         Assert.That(texture.height, Is.EqualTo(RequestEndpoints.TextureSize));
-        Assert.That(texture.GetRawTextureData().Length, Is.EqualTo(RequestEndpoints.TextureBytes));
       });
     }
   }

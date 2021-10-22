@@ -25,7 +25,6 @@ using System.Text;
 using System.Threading;
 using Httx.Externals.MiniJSON;
 using Httx.Requests.Awaiters;
-using Httx.Requests.Executors;
 using Httx.Requests.Mappers;
 
 namespace Httx.Requests.Extensions {
@@ -49,7 +48,6 @@ namespace Httx.Requests.Extensions {
     public const string AssetBundleLoadManifest = Prefix + "AssetBundle-LoadManifest";
     public const string ResourcePath = Prefix + "Resource-Path";
     public const string CancelToken = Prefix + "CancelToken";
-    public const string ETagObject = Prefix + "ETag-Object";
 
     public static bool IsInternalHeader(this KeyValuePair<string, object> header) {
       return !string.IsNullOrEmpty(header.Key) && header.Key.StartsWith(Prefix);
@@ -163,13 +161,6 @@ namespace Httx.Requests.Extensions {
       var token = headers.FetchHeader<CancellationToken>(InternalHeaders.CancelToken);
 
       return token;
-    }
-
-    public static ETag FetchETagObject(this IRequest request) {
-      var headers = request.ResolveHeaders()?.ToList() ?? new List<KeyValuePair<string, object>>();
-      var eTagObject = headers.FetchHeader<ETag>(InternalHeaders.ETagObject);
-
-      return eTagObject;
     }
 
     public static string AsJson(this IRequest request, int bodySize = 256) {

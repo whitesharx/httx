@@ -19,13 +19,8 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using Httx;
-using Httx.Requests.Decorators;
-using Httx.Requests.Executors;
-using Httx.Requests.Types;
-using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using UnityEngine;
-using Cache = Httx.Requests.Decorators.Cache;
 
 public class SandboxBehaviour : MonoBehaviour {
   private const int Version = 1;
@@ -35,22 +30,5 @@ public class SandboxBehaviour : MonoBehaviour {
     Context.InitializeDefault(Version, OnContextReady);
   }
 
-  private async void OnContextReady() {
-
-    // const string contentETag = "\"4363e79751f42f61b7a7b2bd50e53837\"";
-    // const string url = "https://whitesharx.app/temporary/etag.txt";
-    //
-    // // XXX: Tagged request requires Cache decorator
-    //
-    // var eTag = new ETag(contentETag, newTag => Debug.Log($"new-tag: {newTag}"));
-    //
-    // var response = await new As<string>(new Get(new Cache(new Text(url), Storage.Disk)), eTag);
-    //
-    // Debug.Log($"response: {response}");
-
-
-    // var response = await new As<string>(new Get(new Text(url)));
-    //
-    // Debug.Log($"response: {response}");
-  }
+  private async void OnContextReady() { }
 }
