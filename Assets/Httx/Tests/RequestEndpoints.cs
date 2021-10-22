@@ -40,6 +40,12 @@ namespace Httx.Tests {
 
     public const string ETagUrl = "https://whitesharx.app/temporary/etag.txt";
     public const string ETagText = "some-value-1\n";
+
+    public const string StreamingAssetsUrl1 = "assets://text-file-in-root.txt";
+    public const string StreamingAssetsUrl2 = "assets://tests/content.json";
+
+    public const string StreamingAssetsResponse1 = "content-text\n";
+    public const string StreamingAssetsResponse2 = "{ \"text\": \"some-string\", \"number\": 7 }";
   }
 
   [Serializable]

@@ -62,7 +62,10 @@ namespace Httx.Requests.Extensions {
     }
 
     public static string ResolveUrl(this IRequest request) {
-      return LeftToRight(request).Select(r => r.Url).Last(url => !string.IsNullOrEmpty(url));
+      return LeftToRight(request)
+          .Select(r => r.Url)
+          .Last(url => !string.IsNullOrEmpty(url))
+          .NormalizeStreamingAssetsUrl();
     }
 
     public static IEnumerable<byte> ResolveBody(this IRequest request) {
