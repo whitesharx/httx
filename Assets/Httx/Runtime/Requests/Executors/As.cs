@@ -36,8 +36,7 @@ namespace Httx.Requests.Executors {
 
     public Action<string> Updated { get; }
 
-    public override string ToString() =>
-        $"if-none-match({(string.IsNullOrEmpty(IfNoneMatch) ? "empty" : IfNoneMatch)})";
+    public override string ToString() => string.IsNullOrEmpty(IfNoneMatch) ? "empty" : IfNoneMatch;
   }
 
   public class As<TResult> : BaseRequest, IAwaitable<TResult> {

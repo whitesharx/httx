@@ -69,8 +69,9 @@ namespace Httx.Caches.Disk {
 
     private readonly object evictLock = new object();
     private readonly Regex legalKeyPattern = new Regex("^[a-z0-9_-]{1,120}$");
+
     private readonly LinkedDictionary<string, UnsafeEntry> lruEntries =
-      new LinkedDictionary<string, UnsafeEntry>();
+        new LinkedDictionary<string, UnsafeEntry>();
 
     /// <summary>
     /// To differentiate between old and current snapshots, each entry is given
@@ -101,7 +102,8 @@ namespace Httx.Caches.Disk {
     /// <param name="maxSize">the maximum number of bytes this cache should use to store</param>
     /// <param name="compactThreshold">Since how many operations cache will Collect</param>
     /// <returns></returns>
-    public static DiskLruCache Open(DirectoryInfo directory, int appVersion, int valueCount, long maxSize, int compactThreshold = 2000) {
+    public static DiskLruCache Open(DirectoryInfo directory, int appVersion, int valueCount, long maxSize,
+        int compactThreshold = 2000) {
       if (maxSize <= 0) {
         throw new ArgumentException("maxSize <= 0");
       }
@@ -159,10 +161,10 @@ namespace Httx.Caches.Disk {
         var blank = reader.ReadLine();
 
         if (Magic != magic
-          || Version1 != version
-          || appVersion.ToString() != appVersionString
-          || ValueCount.ToString() != valueCountString
-          || string.Empty != blank) {
+            || Version1 != version
+            || appVersion.ToString() != appVersionString
+            || ValueCount.ToString() != valueCountString
+            || string.Empty != blank) {
           throw new IOException($"unexpected journal header: [{magic}, {version}, {valueCountString}, {blank}");
         }
 
@@ -271,7 +273,8 @@ namespace Httx.Caches.Disk {
     private void RebuildJournal() {
       journalWriter?.Close();
 
-      using (var writer = new StreamWriter(journalFileTmp.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite))) {
+      using (var writer =
+          new StreamWriter(journalFileTmp.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite))) {
         writer.WriteLine(Magic);
         writer.WriteLine(Version1);
         writer.WriteLine(appVersion.ToString());
@@ -280,8 +283,8 @@ namespace Httx.Caches.Disk {
 
         foreach (var entry in lruEntries.Values) {
           writer.WriteLine(null != entry.UnsafeCurrentEditor
-            ? $"{DirtyFlag} {entry.Key}"
-            : $"{CleanFlag} {entry.Key}{entry.GetLengths()}");
+              ? $"{DirtyFlag} {entry.Key}"
+              : $"{CleanFlag} {entry.Key}{entry.GetLengths()}");
         }
       }
 
@@ -360,7 +363,7 @@ namespace Httx.Caches.Disk {
       lruEntries.TryGetValue(key, out var entry);
 
       if (expectedSequenceNumber != AnySequenceNumber
-        && (null == entry || entry.UnsafeSequenceNumber != expectedSequenceNumber)) {
+          && (null == entry || entry.UnsafeSequenceNumber != expectedSequenceNumber)) {
         return null; // Snapshot is stale.
       }
 
@@ -622,7 +625,7 @@ namespace Httx.Caches.Disk {
     /// </summary>
     private bool JournalRebuildRequired() {
       return redundantOpCount >= redundantOpCompactThreshold
-        && redundantOpCount >= lruEntries.Count;
+          && redundantOpCount >= lruEntries.Count;
     }
 
     private void TrimToSize() {

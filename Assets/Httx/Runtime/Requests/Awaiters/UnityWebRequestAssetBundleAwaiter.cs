@@ -33,6 +33,10 @@ namespace Httx.Requests.Awaiters {
 
     public UnityWebRequestAssetBundleAwaiter(IRequest request) : base(request) { }
 
+    public override UnityWebRequest Copy(UnityWebRequest request) {
+      throw new NotImplementedException();
+    }
+
     public override IAsyncOperation Awake(IRequest request) {
       var verb = request.ResolveVerb();
       var url = request.ResolveUrl();

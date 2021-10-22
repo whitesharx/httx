@@ -57,10 +57,7 @@ namespace Httx.Caches {
     }
 
     public async void Initialize(Action onComplete) {
-      await Task.Run(() => {
-        cacheImpl = DiskLruCache.Open(path, version, maxSize, collectFrequency);
-      });
-
+      await Task.Run(() => { cacheImpl = DiskLruCache.Open(path, version, maxSize, collectFrequency); });
       onComplete();
     }
 
@@ -120,9 +117,7 @@ namespace Httx.Caches {
     }
 
     public async void Delete(Action onComplete) {
-      await Task.Run(() => {
-        cacheImpl.Delete();
-      });
+      await Task.Run(() => { cacheImpl.Delete(); });
 
       onComplete();
     }
@@ -180,9 +175,7 @@ namespace Httx.Caches {
         onComplete();
       }
 
-      await Task.Run(() => {
-        editor?.Commit();
-      });
+      await Task.Run(() => { editor?.Commit(); });
 
       onComplete();
     }

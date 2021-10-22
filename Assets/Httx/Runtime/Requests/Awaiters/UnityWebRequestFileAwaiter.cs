@@ -23,31 +23,21 @@ using Httx.Requests.Awaiters.Async;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
-  // TODO: Implement
   public class UnityWebRequestFileAwaiter : BaseUnityAwaiter<int> {
     private string inputPath;
 
     public UnityWebRequestFileAwaiter(IRequest request) : base(request) { }
 
+    public override UnityWebRequest Copy(UnityWebRequest request) {
+      throw new NotImplementedException();
+    }
+
     public override IAsyncOperation Awake(IRequest request) {
-      // var verb = request.ResolveVerb();
-      // var url = request.ResolveUrl();
-      // var headers = request.ResolveHeaders()?.ToList();
-
-      // var path = headers.FetchHeader<string>(InternalHeaders.FilePath);
-      // var isAppend = headers.FetchHeader<bool>(InternalHeaders.FileAppend);
-      // var isRemoveOnAbort = headers.FetchHeader<bool>(InternalHeaders.FileRemoveOnAbort);
-      //
-      // var requestImpl = new UnityWebRequest(url, verb);
-
-      throw new NotImplementedException("will be implemented in future versions");
-
-      // return new UnityAsyncOperation(() => Send(requestImpl, headers));
+      throw new NotImplementedException();
     }
 
     public override int Map(IRequest request, IAsyncOperation completeOperation) {
-      var webRequest = (UnityWebRequest) completeOperation.Result;
-      return (int) webRequest.responseCode;
+      throw new NotImplementedException();
     }
   }
 }

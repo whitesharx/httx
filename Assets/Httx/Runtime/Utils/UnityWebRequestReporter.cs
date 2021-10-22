@@ -47,8 +47,9 @@ namespace Httx.Utils {
     }
 
     private static bool isInitialized;
+
     private static readonly Dictionary<string, ReporterWrapper> Reporters =
-      new Dictionary<string, ReporterWrapper>();
+        new Dictionary<string, ReporterWrapper>();
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Initialize() {
@@ -65,15 +66,15 @@ namespace Httx.Utils {
       var fixedUpdateSystem = rootSystem.subSystemList.First(s => s.type == typeof(FixedUpdate));
 
       var fixedUpdateList = new List<PlayerLoopSystem>(fixedUpdateSystem.subSystemList) {
-        new PlayerLoopSystem {
-          type = typeof(HttxUnityWebRequestReporterFixedUpdate),
-          updateDelegate = UpdateFunctionImpl
-        }
+          new PlayerLoopSystem {
+              type = typeof(HttxUnityWebRequestReporterFixedUpdate),
+              updateDelegate = UpdateFunctionImpl
+          }
       };
 
       fixedUpdateSystem.subSystemList = fixedUpdateList.ToArray();
       rootSystem.subSystemList = rootSystem.subSystemList.Select(s =>
-        s.type == typeof(FixedUpdate) ? fixedUpdateSystem : s).ToArray();
+          s.type == typeof(FixedUpdate) ? fixedUpdateSystem : s).ToArray();
 
       PlayerLoop.SetPlayerLoop(rootSystem);
       isInitialized = true;
@@ -102,10 +103,11 @@ namespace Httx.Utils {
         // for the sake of simplicity, let's try how this approach
         // will be valid for most use cases.
         var progressValue = null != request?.uploadHandler
-          ? request.uploadProgress : request?.downloadProgress;
+            ? request.uploadProgress
+            : request?.downloadProgress;
 
         if (progressValue != null) {
-          progress?.Report((float) progressValue);
+          progress?.Report((float)progressValue);
         }
       }
     }

@@ -54,14 +54,13 @@ namespace Httx.Caches.Memory {
     private int collectAfter;
 
     private Dictionary<string, LinkedListNode<Item<T>>> cacheImpl =
-      new Dictionary<string, LinkedListNode<Item<T>>>();
+        new Dictionary<string, LinkedListNode<Item<T>>>();
 
     private LinkedList<Item<T>> lruPolicy =
-      new LinkedList<Item<T>>();
+        new LinkedList<Item<T>>();
 
     public MemoryCache(int size, int maxAge = int.MaxValue,
-      int collectFrequency = PutCollectDisabled, Action<T, bool> onEvictValueCallback = null) {
-
+        int collectFrequency = PutCollectDisabled, Action<T, bool> onEvictValueCallback = null) {
       this.size = size;
       this.maxAge = maxAge;
       this.onEvictValueCallback = onEvictValueCallback;
@@ -146,7 +145,7 @@ namespace Httx.Caches.Memory {
 
   public class MemoryCache : MemoryCache<object> {
     public MemoryCache(int size, int maxAge = int.MaxValue,
-      int collectFrequency = PutCollectDisabled, Action<object, bool> onEvictValueCallback = null)
-      : base(size, maxAge, collectFrequency, onEvictValueCallback) { }
+        int collectFrequency = PutCollectDisabled, Action<object, bool> onEvictValueCallback = null)
+        : base(size, maxAge, collectFrequency, onEvictValueCallback) { }
   }
 }

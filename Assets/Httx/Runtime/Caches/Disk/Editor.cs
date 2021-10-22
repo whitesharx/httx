@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Httx.Caches.Disk {
   /// <summary>
@@ -79,8 +78,8 @@ namespace Httx.Caches.Disk {
     public Stream WriterInstanceAt(int index) {
       if (index < 0 || index >= parent.ValueCount) {
         throw new ArgumentException($"Expected index {index} to "
-          + "be greater than 0 and less than the maximum value count "
-          + $"of {parent.ValueCount}");
+            + "be greater than 0 and less than the maximum value count "
+            + $"of {parent.ValueCount}");
       }
 
       lock (parent) {
@@ -107,7 +106,6 @@ namespace Httx.Caches.Disk {
             // return NULL_OUTPUT_STREAM;
             outputStream = null;
           }
-
         }
 
         return outputStream;

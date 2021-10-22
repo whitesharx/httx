@@ -26,7 +26,7 @@ namespace Httx.Utils {
       var utcNow = DateTime.UtcNow;
       var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-      return (long) (utcNow - epoch).TotalMilliseconds;
+      return (long)(utcNow - epoch).TotalMilliseconds;
     }
 
     public static long Since(long t) {

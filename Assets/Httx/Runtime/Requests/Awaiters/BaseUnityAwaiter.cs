@@ -28,6 +28,7 @@ using Httx.Requests.Exceptions;
 using Httx.Requests.Executors;
 using Httx.Requests.Extensions;
 using Httx.Utils;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Httx.Requests.Awaiters {
@@ -145,16 +146,18 @@ namespace Httx.Requests.Awaiters {
       }
     }
 
+    public abstract UnityWebRequest Copy(UnityWebRequest request);
     public abstract IAsyncOperation Awake(IRequest request);
     public abstract TResult Map(IRequest request, IAsyncOperation completeOperation);
 
+    // TODO: Copy Arg!
     protected UnityWebRequestAsyncOperation Send(UnityWebRequest request,
         IEnumerable<KeyValuePair<string, object>> headers) {
       var hx = headers?.ToList() ?? new List<KeyValuePair<string, object>>();
       var pRef = hx.FetchHeader<WeakReference<IProgress<float>>>(InternalHeaders.ProgressObject);
 
       if (null == pRef) {
-        return request.AppendHeaders(hx).SendWebRequest();
+        return Copy(request).AppendHeaders(hx).SendWebRequest();
       }
 
       var wrapper = new UnityWebRequestReporter.ReporterWrapper(pRef, request);
@@ -197,11 +200,15 @@ namespace Httx.Requests.Awaiters {
       Editor cacheValueEditor = null;
 
       // XXX: Hit cache and return local data file url.
-      var tryHitCache = new Func<IAsyncOperation, IAsyncOperation>(_ => cache.Get(url));
+      var tryHitCache = new Func<IAsyncOperation, IAsyncOperation>(_ => {
+        Debug.Log($"[Base]: tryHitCache: url->{url}");
+        return cache.Get(url);
+      });
 
       // XXX: Try send network request (with or without if-none-match).
       var netRequest = new Func<IAsyncOperation, IAsyncOperation>(previous => {
         var cachedFileUrl = previous.UnsafeResult<string>();
+        Debug.Log($"[Base]: netRequest cachedFileUrl->{cachedFileUrl}");
 
         // XXX: No cache entry found or fresh request. Requests with ETag always fire.
         if (string.IsNullOrEmpty(cachedFileUrl) || hasETagValue) {
@@ -222,6 +229,7 @@ namespace Httx.Requests.Awaiters {
       // XXX: Put raw request data to cache.
       var tryPutCache = new Func<IAsyncOperation, IAsyncOperation>(previous => {
         var resultRequest = previous.UnsafeResult<UnityWebRequest>();
+        Debug.Log($"[Base]: tryPutCache->{resultRequest?.responseCode}");
 
         // XXX: If eTagged and not-modified, then simply hit cache and return result.
         if (hasETagValue && resultRequest.NotModified()) {
@@ -249,6 +257,8 @@ namespace Httx.Requests.Awaiters {
     }
 
     private TResult MapInternal(IRequest request, IAsyncOperation completeOperation) {
+      Debug.Log($"map-internal: {completeOperation}");
+
       var result = Map(request, completeOperation);
       var eTagObject = request.FetchETagObject();
 

@@ -37,16 +37,20 @@ public class SandboxBehaviour : MonoBehaviour {
 
   private async void OnContextReady() {
 
-    const string contentETag = "\"4363e79751f42f61b7a7b2bd50e53837\"";
-    const string url = "https://whitesharx.app/temporary/etag.txt";
+    // const string contentETag = "\"4363e79751f42f61b7a7b2bd50e53837\"";
+    // const string url = "https://whitesharx.app/temporary/etag.txt";
+    //
+    // // XXX: Tagged request requires Cache decorator
+    //
+    // var eTag = new ETag(contentETag, newTag => Debug.Log($"new-tag: {newTag}"));
+    //
+    // var response = await new As<string>(new Get(new Cache(new Text(url), Storage.Disk)), eTag);
+    //
+    // Debug.Log($"response: {response}");
 
-    // XXX: Tagged request requires Cache decorator
 
-    var eTag = new ETag(contentETag, newTag => Debug.Log($"new-tag: {newTag}"));
-
-    var response = await new As<string>(new Get(new Cache(new Text(url), Storage.Disk)), eTag);
-
-    Debug.Log($"response: {response}");
-
+    // var response = await new As<string>(new Get(new Text(url)));
+    //
+    // Debug.Log($"response: {response}");
   }
 }
