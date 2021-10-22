@@ -30,6 +30,7 @@ namespace Httx.Tests {
     public static IEnumerator SetUpDefaultContext() {
       var isReady = false;
 
+      Context.ClearDefault();
       Context.InitializeDefault(AppVersion, () => { isReady = true; });
 
       while (!isReady) { yield return null; }

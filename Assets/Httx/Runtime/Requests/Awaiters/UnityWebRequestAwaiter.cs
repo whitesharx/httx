@@ -44,6 +44,10 @@ namespace Httx.Requests.Awaiters {
         return (TResult)(object)result;
       }
 
+      if (null == requestImpl?.downloadHandler?.data) {
+        return default;
+      }
+
       var bytes = requestImpl.downloadHandler.data;
 
       if (null != bytes && 0 != bytes.Length) {

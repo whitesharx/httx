@@ -23,6 +23,7 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Httx.Requests.Decorators;
+using Httx.Requests.Exceptions;
 using Httx.Requests.Executors;
 using Httx.Requests.Types;
 using Httx.Requests.Verbs;
@@ -30,9 +31,13 @@ using JetBrains.Annotations;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Cache = Httx.Requests.Decorators.Cache;
+using Match = Httx.Requests.Decorators.Match;
 
 namespace Httx.Tests {
   public class DecoratorsTests {
+    private string tagStorage = string.Empty;
+
     [UnitySetUp]
     [UsedImplicitly]
     public IEnumerator SetUp() {
@@ -76,9 +81,7 @@ namespace Httx.Tests {
       const string url = RequestEndpoints.TextUrl;
       var request = new As<int>(new Get(new Code(new Text(url))));
 
-      return HttxTestUtils.Await(request, response => {
-        Assert.That(response, Is.EqualTo(200));
-      });
+      return HttxTestUtils.Await(request, response => { Assert.That(response, Is.EqualTo(200)); });
     }
 
     [UnityTest]
@@ -104,7 +107,52 @@ namespace Httx.Tests {
       var tokenSource = new CancellationTokenSource();
       var request = new As<string>(new Get(new Cancel(new Text(url), tokenSource.Token)));
 
+      return HttxTestUtils.Await(request, response => { Assert.That(response, Is.EqualTo(text)); });
+    }
+
+    [UnityTest]
+    [Order(1)]
+    public IEnumerator IfNoneMatch1EmptyTag() {
+      const string url = RequestEndpoints.ETagUrl;
+      const string text = RequestEndpoints.ETagText;
+
+      var condition = new Condition(If.NoneMatch, tagStorage, eTag => { tagStorage = eTag; });
+      var request = new As<string>(new Get(new Match(new Cache(new Text(url), Storage.Disk), condition)));
+
       return HttxTestUtils.Await(request, response => {
+        Assert.That(tagStorage, Is.Not.Empty);
+        Assert.That(response, Is.EqualTo(text));
+      });
+    }
+
+    [UnityTest]
+    [Order(2)]
+    public IEnumerator IfNoneMatch2UpToDateTagException() {
+      const string url = RequestEndpoints.ETagUrl;
+
+      Assert.That(tagStorage, Is.Not.Empty);
+
+      var condition = new Condition(If.NoneMatch, tagStorage, null);
+      var request = new As<string>(new Get(new Match(new Cache(new Text(url), Storage.Disk), condition)));
+
+      return HttxTestUtils.AwaitException(request, e => {
+        Assert.That(e, Is.Not.Null);
+        Assert.That(e, Is.TypeOf<NotModifiedException>());
+      });
+    }
+
+    [UnityTest]
+    [Order(3)]
+    public IEnumerator IfNoneMatch3UpToDateTagRecover() {
+      const string url = RequestEndpoints.ETagUrl;
+      const string text = RequestEndpoints.ETagText;
+
+      Assert.That(tagStorage, Is.Not.Empty);
+
+      var request = new As<string>(new Get(new Cache(new Text(url), Storage.Disk)));
+
+      return HttxTestUtils.Await(request, response => {
+        Assert.That(tagStorage, Is.Not.Empty);
         Assert.That(response, Is.EqualTo(text));
       });
     }

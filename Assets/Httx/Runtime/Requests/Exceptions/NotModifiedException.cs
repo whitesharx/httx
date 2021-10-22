@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Sergey Ivonchik
+// Copyright (c) 2021 Sergey Ivonchik
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,9 +19,11 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 
 namespace Httx.Requests.Exceptions {
-  public class HttpSerializationException : Exception {
-    public HttpSerializationException(string msg, Exception ex) : base(msg, ex) { }
+  public class NotModifiedException : HttpException {
+    public NotModifiedException(string url, string message, IEnumerable<KeyValuePair<string, string>> headers)
+        : base(url, 304, message, headers, Array.Empty<byte>()) { }
   }
 }

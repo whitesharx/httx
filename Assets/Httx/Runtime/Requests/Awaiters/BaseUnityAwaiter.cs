@@ -24,6 +24,7 @@ using System.Linq;
 using System.Threading;
 using Httx.Caches.Disk;
 using Httx.Requests.Awaiters.Async;
+using Httx.Requests.Decorators;
 using Httx.Requests.Exceptions;
 using Httx.Requests.Extensions;
 using Httx.Utils;
@@ -175,7 +176,10 @@ namespace Httx.Requests.Awaiters {
     protected Context Context { get; private set; }
 
     private IAsyncOperation CreateCacheOperation(UnityWebRequest request,
-        IEnumerable<KeyValuePair<string, object>> headers) {
+        IReadOnlyCollection<KeyValuePair<string, object>> headers) {
+      var conditionObject = headers.FetchHeader<Condition>(InternalHeaders.ConditionObject);
+      var hasCondition = !string.IsNullOrEmpty(conditionObject?.Value);
+
       var url = request.url;
       var cache = Context.DiskCache;
 
@@ -190,7 +194,8 @@ namespace Httx.Requests.Awaiters {
 
       // XXX: Try send network request.
       var netRequest = new Func<IAsyncOperation, IAsyncOperation>(previous => {
-        var cachedFileUrl = previous.UnsafeResult<string>();
+        // XXX: If condition enabled and set, always skip initial cache hit.
+        var cachedFileUrl = hasCondition ? null : previous.UnsafeResult<string>();
 
         // XXX: No cache entry found or fresh request.
         if (string.IsNullOrEmpty(cachedFileUrl)) {
@@ -221,20 +226,30 @@ namespace Httx.Requests.Awaiters {
           return previous;
         }
 
-        return new AsyncOperationQueue(_ => cache.Put(resultRequest), _ => cache.Unlock(cacheValueEditor));
+        // @formatter:off
+        return new AsyncOperationQueue(
+            _ => cache.Put(resultRequest),
+            _ => cache.Unlock(cacheValueEditor));
+        // @formatter:on
       });
 
       return new AsyncOperationQueue(tryHitCache, netRequest, tryPutCache);
     }
 
     private TResult MapInternal(IRequest request, IAsyncOperation completeOperation) {
-      var result = Map(request, completeOperation);
       var conditionObject = request.FetchConditionObject();
 
       if (null != conditionObject) {
         var requestImpl = completeOperation.UnsafeResult<UnityWebRequest>();
 
         if (null != requestImpl) {
+          if (requestImpl.NotModified()) {
+            var url = requestImpl.url;
+            var headers = requestImpl.GetResponseHeaders();
+
+            throw new NotModifiedException(url, "content with given tag was not modified.", headers);
+          }
+
           var eTag = requestImpl.GetResponseHeader("ETag");
 
           if (eTag != conditionObject.Value) {
@@ -242,6 +257,8 @@ namespace Httx.Requests.Awaiters {
           }
         }
       }
+
+      var result = Map(request, completeOperation);
 
       if (!isMemoryCacheEnabled || string.IsNullOrEmpty(cacheKey)) {
         return result;

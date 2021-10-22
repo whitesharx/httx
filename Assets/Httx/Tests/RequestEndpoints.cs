@@ -37,6 +37,9 @@ namespace Httx.Tests {
 
     public const string FakeUrl = "http://fakehost";
     public const string NotFoundUrl = "https://whitesharx.app/not-exeistent-path";
+
+    public const string ETagUrl = "https://whitesharx.app/temporary/etag.txt";
+    public const string ETagText = "some-value-1\n";
   }
 
   [Serializable]
