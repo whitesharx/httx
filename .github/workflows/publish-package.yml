@@ -1,0 +1,30 @@
+name: Publish package
+
+on:
+  push:
+    tags:
+      - '[0-9].[0-9]+.[0-9]+'
+      - '[0-9].[0-9]+.[0-9]+-preview.[0-9]+'
+
+jobs:
+  publish-package:
+    name:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          lfs: 'true'
+      - run: npm install -g semver
+      - run: 'echo PACKAGE_VERSION=$(basename $GITHUB_REF) >> $GITHUB_ENV'
+      - run: 'semver $PACKAGE_VERSION'
+      - run: |
+          .github/scripts/sync-package-json.ps1 \
+            -Manifest Packages/manifest.json \
+            -Package Assets/Httx/package.json \
+            -Version $PACKAGE_VERSION
+      - run: npm publish
+        working-directory: Assets/Httx
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+

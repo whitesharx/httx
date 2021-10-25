@@ -1,6 +1,6 @@
 {
   "name": "com.whitesharx.httx",
-  "version": "0.5.25",
+  "version": "${ ci.tag_value }",
   "displayName": "Httx",
   "description": "X-force HTTP/REST framework for Unity",
   "unity": "2019.1",
