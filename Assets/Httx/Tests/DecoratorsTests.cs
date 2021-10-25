@@ -65,6 +65,22 @@ namespace Httx.Tests {
     }
 
     [UnityTest]
+    public IEnumerator BasicAuthFluent() {
+      const string url = RequestEndpoints.TextUrl;
+      const string text = RequestEndpoints.TextResponse;
+
+      var fluentRequest = new Text(url)
+          .Get()
+          .Basic("login", "password")
+          .As<string>();
+
+      return HttxTestUtils.Await(fluentRequest, response => {
+        LogAssert.Expect(LogType.Log, new Regex("Basic bG9naW46cGFzc3dvcmQ="));
+        Assert.That(response, Is.EqualTo(text));
+      });
+    }
+
+    [UnityTest]
     public IEnumerator Bearer() {
       const string url = RequestEndpoints.TextUrl;
       const string text = RequestEndpoints.TextResponse;
@@ -78,11 +94,39 @@ namespace Httx.Tests {
     }
 
     [UnityTest]
+    public IEnumerator BearerFluent() {
+      const string url = RequestEndpoints.TextUrl;
+      const string text = RequestEndpoints.TextResponse;
+
+      var requestFluent = new Text(url)
+          .Get()
+          .Bearer("token")
+          .As<string>();
+
+      return HttxTestUtils.Await(requestFluent, response => {
+        LogAssert.Expect(LogType.Log, new Regex("Bearer token"));
+        Assert.That(response, Is.EqualTo(text));
+      });
+    }
+
+    [UnityTest]
     public IEnumerator Code() {
       const string url = RequestEndpoints.TextUrl;
       var request = new As<int>(new Get(new Code(new Text(url))));
 
       return HttxTestUtils.Await(request, response => { Assert.That(response, Is.EqualTo(200)); });
+    }
+
+    [UnityTest]
+    public IEnumerator CodeFluent() {
+      const string url = RequestEndpoints.TextUrl;
+
+      var requestFluent = new Text(url)
+          .Get()
+          .Code()
+          .As<int>();
+
+      return HttxTestUtils.Await(requestFluent, response => { Assert.That(response, Is.EqualTo(200)); });
     }
 
     [UnityTest]
