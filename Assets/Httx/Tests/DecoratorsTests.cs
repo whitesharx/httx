@@ -30,6 +30,7 @@ using Httx.Requests.Verbs;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.TestTools;
 using Cache = Httx.Requests.Decorators.Cache;
 using Match = Httx.Requests.Decorators.Match;
@@ -108,6 +109,38 @@ namespace Httx.Tests {
       var request = new As<string>(new Get(new Cancel(new Text(url), tokenSource.Token)));
 
       return HttxTestUtils.Await(request, response => { Assert.That(response, Is.EqualTo(text)); });
+    }
+
+    [UnityTest]
+    public IEnumerator Hook() {
+      const string url = RequestEndpoints.TextUrl;
+      const string text = RequestEndpoints.TextResponse;
+
+      UnityWebRequest r1 = null;
+      UnityWebRequest r2 = null;
+
+      var callbacks = new Callback<UnityWebRequest> {
+          OnBeforeRequestSent = requestBeforeSent => {
+            r1 = requestBeforeSent;
+            Debug.Log("OnBeforeRequestSent::Called()");
+          },
+          OnResponseReceived = requestAfterReceived => {
+            r2 = requestAfterReceived;
+            Debug.Log("OnResponseReceived::Called()");
+          }
+      };
+
+      var request = new As<string>(new Get(new Hook<UnityWebRequest>(new Text(url), callbacks)));
+
+      return HttxTestUtils.Await(request, response => {
+        Assert.That(r1, Is.Not.Null);
+        Assert.That(r2, Is.Not.Null);
+
+        LogAssert.Expect(LogType.Log, new Regex("OnBeforeRequestSent::Called()"));
+        LogAssert.Expect(LogType.Log, new Regex("OnResponseReceived::Called()"));
+
+        Assert.That(response, Is.EqualTo(text));
+      });
     }
 
     [UnityTest]

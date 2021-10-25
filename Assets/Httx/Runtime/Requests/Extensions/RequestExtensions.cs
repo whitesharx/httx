@@ -27,6 +27,7 @@ using Httx.Externals.MiniJSON;
 using Httx.Requests.Awaiters;
 using Httx.Requests.Decorators;
 using Httx.Requests.Mappers;
+using UnityEngine.Networking;
 
 namespace Httx.Requests.Extensions {
   public static class InternalHeaders {
@@ -50,6 +51,7 @@ namespace Httx.Requests.Extensions {
     public const string ResourcePath = Prefix + "Resource-Path";
     public const string CancelToken = Prefix + "CancelToken";
     public const string ConditionObject = Prefix + "Condition-Object";
+    public const string HookObject = Prefix + "Hook-Object";
 
     public static bool IsInternalHeader(this KeyValuePair<string, object> header) {
       return !string.IsNullOrEmpty(header.Key) && header.Key.StartsWith(Prefix);
@@ -173,6 +175,20 @@ namespace Httx.Requests.Extensions {
       var condition = headers.FetchHeader<Condition>(InternalHeaders.ConditionObject);
 
       return condition;
+    }
+
+    public static void CallOnBeforeRequestSent(this IRequest request, UnityWebRequest unityWebRequest) {
+      var headers = request.ResolveHeaders()?.ToList() ?? new List<KeyValuePair<string, object>>();
+      var callbackObject = headers.FetchHeader<Callback<UnityWebRequest>>(InternalHeaders.HookObject);
+
+      callbackObject?.OnBeforeRequestSent?.Invoke(unityWebRequest);
+    }
+
+    public static void CallOnOnResponseReceived(this IRequest request, UnityWebRequest unityWebRequest) {
+      var headers = request.ResolveHeaders()?.ToList() ?? new List<KeyValuePair<string, object>>();
+      var callbackObject = headers.FetchHeader<Callback<UnityWebRequest>>(InternalHeaders.HookObject);
+
+      callbackObject?.OnResponseReceived?.Invoke(unityWebRequest);
     }
 
     public static string AsJson(this IRequest request, int bodySize = 256) {

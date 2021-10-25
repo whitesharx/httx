@@ -122,6 +122,8 @@ namespace Httx.Requests.Awaiters {
       var requestOpt = operation.UnsafeResult<UnityWebRequest>();
       var e = requestOpt?.AsException();
 
+      inputRequest.CallOnOnResponseReceived(requestOpt);
+
       try {
         if (null != e) {
           Log(e.AsJson());
@@ -152,6 +154,8 @@ namespace Httx.Requests.Awaiters {
         IEnumerable<KeyValuePair<string, object>> headers) {
       var hx = headers?.ToList() ?? new List<KeyValuePair<string, object>>();
       var pRef = hx.FetchHeader<WeakReference<IProgress<float>>>(InternalHeaders.ProgressObject);
+
+      inputRequest.CallOnBeforeRequestSent(request);
 
       if (null == pRef) {
         return request.AppendHeaders(hx).SendWebRequest();
