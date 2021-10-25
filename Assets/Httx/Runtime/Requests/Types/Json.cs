@@ -13,10 +13,11 @@ namespace Httx.Requests.Types {
       Url = url;
 
       if (typeof(TBody) == typeof(byte[])) {
-        Body = (byte[]) (object) body;
+        Body = (byte[])(object)body;
       } else {
-        Body = Equals(body, default(TBody)) ?
-          default : this.ResolveBodyMapper<TBody>(Context.Instance).AsBody(body);
+        Body = Equals(body, default(TBody))
+            ? default
+            : this.ResolveBodyMapper<TBody>(Context.Instance).AsBody(body);
       }
     }
 
@@ -26,7 +27,7 @@ namespace Httx.Requests.Types {
     public override IEnumerable<KeyValuePair<string, object>> Headers {
       get {
         var headers = new Dictionary<string, object> {
-          { "Accept", "application/json;charset=UTF-8" }
+            { "Accept", "application/json;charset=UTF-8" }
         };
 
         if (null != Body && 0 != Body.Count()) {

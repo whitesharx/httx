@@ -16,6 +16,11 @@ namespace Httx.Requests.Decorators {
     }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers =>
-      new Dictionary<string, object> { ["Authorization"] = $"Basic {token}" };
+        new Dictionary<string, object> { ["Authorization"] = $"Basic {token}" };
+  }
+
+  public static class BasicFluentExtensions {
+    public static IRequest Basic(this IRequest request, string userName, string password) =>
+        new Basic(request, userName, password);
   }
 }

@@ -29,6 +29,10 @@ namespace Httx.Requests.Decorators {
     }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers =>
-      new Dictionary<string, object> { ["Authorization"] = $"Bearer {token}" };
+        new Dictionary<string, object> { ["Authorization"] = $"Bearer {token}" };
+  }
+
+  public static class BearerFluentExtensions {
+    public static IRequest Bearer(this IRequest request, string authToken) => new Bearer(request, authToken);
   }
 }

@@ -26,4 +26,9 @@ namespace Httx.Requests.Verbs {
     public Delete(IRequest next, IProgress<float> progress = null) : base(next, progress) { }
     public override string Verb => UnityWebRequest.kHttpVerbDELETE;
   }
+
+  public static class DeleteFluentExtensions {
+    public static IRequest Delete(this IRequest request, IProgress<float> progress = null) =>
+        new Delete(request, progress);
+  }
 }

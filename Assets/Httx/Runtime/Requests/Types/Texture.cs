@@ -18,8 +18,6 @@ namespace Httx.Requests.Types {
     public override string Url { get; }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers =>
-      new Dictionary<string, object> {
-        [InternalHeaders.TextureReadable] = readable
-      };
+        new Dictionary<string, object> { [InternalHeaders.TextureReadable] = readable };
   }
 }

@@ -23,10 +23,10 @@ namespace Httx.Requests.Types {
     public override string Url { get; }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers =>
-      new Dictionary<string, object> {
-        [InternalHeaders.FilePath] = path,
-        [InternalHeaders.FileAppend] = isAppend,
-        [InternalHeaders.FileRemoveOnAbort] = isRemoveOnAbort
-      };
+        new Dictionary<string, object> {
+            [InternalHeaders.FilePath] = path,
+            [InternalHeaders.FileAppend] = isAppend,
+            [InternalHeaders.FileRemoveOnAbort] = isRemoveOnAbort
+        };
   }
 }

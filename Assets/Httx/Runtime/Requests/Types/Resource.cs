@@ -32,6 +32,6 @@ namespace Httx.Requests.Types {
     }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers =>
-      new Dictionary<string, object> { [InternalHeaders.ResourcePath] = path };
+        new Dictionary<string, object> { [InternalHeaders.ResourcePath] = path };
   }
 }

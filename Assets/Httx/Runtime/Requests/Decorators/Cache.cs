@@ -23,7 +23,11 @@ using System.Collections.Generic;
 using Httx.Requests.Extensions;
 
 namespace Httx.Requests.Decorators {
-  public enum Storage { Memory, Disk, Native }
+  public enum Storage {
+    Memory,
+    Disk,
+    Native
+  }
 
   public class Cache : BaseRequest {
     private readonly Storage storageType;
@@ -31,7 +35,7 @@ namespace Httx.Requests.Decorators {
 
     public Cache(IRequest next, Storage type, TimeSpan ttl = default) : base(next) {
       storageType = type;
-      maxAge = (int) (ttl == default ? -1 : ttl.TotalMilliseconds);
+      maxAge = (int)(ttl == default ? -1 : ttl.TotalMilliseconds);
     }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers {
@@ -53,5 +57,10 @@ namespace Httx.Requests.Decorators {
         return result;
       }
     }
+  }
+
+  public static class CacheFluentExtensions {
+    public static IRequest Cache(this IRequest request, Storage type, TimeSpan ttl = default) =>
+        new Cache(request, type, ttl);
   }
 }

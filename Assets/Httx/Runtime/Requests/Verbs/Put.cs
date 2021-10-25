@@ -26,4 +26,8 @@ namespace Httx.Requests.Verbs {
     public Put(IRequest next, IProgress<float> progress = null) : base(next, progress) { }
     public override string Verb => UnityWebRequest.kHttpVerbPUT;
   }
+
+  public static class PutFluentExtensions {
+    public static IRequest Put(this IRequest request, IProgress<float> progress = null) => new Put(request, progress);
+  }
 }

@@ -25,4 +25,9 @@ namespace Httx.Requests.Verbs {
     public Patch(IRequest next, IProgress<float> progress = null) : base(next, progress) { }
     public override string Verb => "PATCH";
   }
+
+  public static class PatchFluentExtensions {
+    public static IRequest Patch(this IRequest request, IProgress<float> progress = null) =>
+        new Patch(request, progress);
+  }
 }

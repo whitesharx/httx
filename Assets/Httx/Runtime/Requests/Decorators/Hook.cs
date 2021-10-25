@@ -48,4 +48,12 @@ namespace Httx.Requests.Decorators {
   public class Hook<TObject> : Hook<TObject, TObject> {
     public Hook(IRequest next, Callback<TObject, TObject> callback) : base(next, callback) { }
   }
+
+  public static class HookFluentExtensions {
+    public static IRequest Hook<TRequest, TResponse>(this IRequest request, Callback<TRequest, TResponse> callback) =>
+        new Hook<TRequest, TResponse>(request, callback);
+
+    public static IRequest Hook<TObject>(this IRequest request, Callback<TObject> callback) =>
+        new Hook<TObject>(request, callback);
+  }
 }

@@ -26,9 +26,13 @@ namespace Httx.Requests.Decorators {
     public Code(IRequest next) : base(next) { }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers =>
-      new Dictionary<string, object> {
-        ["Accept"] = "*/*",
-        [InternalHeaders.ResponseCodeOnly] = true
-      };
+        new Dictionary<string, object> {
+            ["Accept"] = "*/*",
+            [InternalHeaders.ResponseCodeOnly] = true
+        };
+  }
+
+  public static class CodeFluentExtensions {
+    public static IRequest Code(this IRequest request) => new Code(request);
   }
 }

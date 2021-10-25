@@ -20,7 +20,7 @@ namespace Httx.Requests.Types {
     public override IEnumerable<KeyValuePair<string, object>> Headers {
       get {
         var headers = new Dictionary<string, object> {
-          { "Accept", "text/plain;charset=UTF-8" }
+            { "Accept", "text/plain;charset=UTF-8" }
         };
 
         if (null != Body && 0 != Body.Count()) {

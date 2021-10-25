@@ -82,4 +82,8 @@ namespace Httx.Requests.Decorators {
       }
     }
   }
+
+  public static class MatchFluentExtensions {
+    public static IRequest Match(this IRequest request, Condition condition) => new Match(request, condition);
+  }
 }

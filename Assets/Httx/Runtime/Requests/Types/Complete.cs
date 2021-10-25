@@ -30,8 +30,6 @@ namespace Httx.Requests.Types {
     }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers =>
-      new Dictionary<string, object> {
-        [InternalHeaders.CompletedResult] = inputResult
-      };
+        new Dictionary<string, object> { [InternalHeaders.CompletedResult] = inputResult };
   }
 }

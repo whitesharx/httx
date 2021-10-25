@@ -26,4 +26,8 @@ namespace Httx.Requests.Executors {
     public As(IRequest next) : base(next) { }
     public IAwaiter<TResult> GetAwaiter() => this.ResolveAwaiter<TResult>(Context.Instance);
   }
+
+  public static class AsFluentExtensions {
+    public static IAwaitable<TResult> As<TResult>(this IRequest request) => new As<TResult>(request);
+  }
 }

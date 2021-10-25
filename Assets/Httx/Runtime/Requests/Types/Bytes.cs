@@ -34,7 +34,7 @@ namespace Httx.Requests.Types {
     public override IEnumerable<KeyValuePair<string, object>> Headers {
       get {
         var headers = new Dictionary<string, object> {
-          { "Accept", "application/octet-stream" }
+            { "Accept", "application/octet-stream" }
         };
 
         if (null != Body && 0 != Body.Count()) {

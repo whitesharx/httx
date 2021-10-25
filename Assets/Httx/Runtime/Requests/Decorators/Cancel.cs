@@ -31,6 +31,10 @@ namespace Httx.Requests.Decorators {
     }
 
     public override IEnumerable<KeyValuePair<string, object>> Headers =>
-      new Dictionary<string, object> { [InternalHeaders.CancelToken] = currentToken };
+        new Dictionary<string, object> { [InternalHeaders.CancelToken] = currentToken };
+  }
+
+  public static class CancelFluentExtensions {
+    public static IRequest Cancel(this IRequest request, CancellationToken token) => new Cancel(request, token);
   }
 }
