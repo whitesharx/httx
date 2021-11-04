@@ -199,8 +199,8 @@ var bundle = await new As<AssetBundle>(new Get(new Bundle(url), onProgress));
 There's more stuff under the hood. Please check detailed documentation and examples to
 understand how this librarty could fit your needs.
 
-* [Documentation]()
-* [Examples]()
+* [Documentation](https://github.com/whitesharx/httx/wiki/Home)
+* [Examples](https://github.com/whitesharx/httx/wiki/Examples)
 
 ## License
 
