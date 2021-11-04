@@ -15,6 +15,10 @@
   <a aria-label="NPM" href="https://www.npmjs.com/package/com.whitesharx.httx">
     <img alt="" src="https://img.shields.io/npm/v/com.whitesharx.httx/latest?label=NPM&style=for-the-badge&labelColor=000000&color=CB3837&logo=npm">
   </a>
+
+  <a aria-label="Unity" href="https://forum.unity.com/threads/httx-x-force-http-rest-library.1192855/">
+    <img alt="" src="https://img.shields.io/static/v1?label=Unity&message=Forum&style=for-the-badge&labelColor=000000&color=CCCCCC&logo=unity">
+  </a>
 </p>
 
 <br>
