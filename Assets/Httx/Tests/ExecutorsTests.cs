@@ -63,5 +63,26 @@ namespace Httx.Tests {
         Assert.That(contentLength, Is.EqualTo(length));
       });
     }
+
+    [UnityTest]
+    public IEnumerator TestContentType() {
+      const string url = RequestEndpoints.TextUrl;
+      var length = RequestEndpoints.TextResponse.Length;
+
+      return HttxTestUtils.Await(new Head(url), headers => {
+        var contentTypeHeader = headers.FirstOrDefault(h => h.Key == "Content-Type");
+        var contentType = contentTypeHeader.Value;
+
+        Assert.That(contentType, Is.Not.Null);
+        Assert.That(contentType, Is.Not.Empty);
+      });
+    }
+
+    [UnityTest]
+    public IEnumerator TestTypeWIthEmptyBody() {
+      const string url = RequestEndpoints.EmptyBodyUrl;
+
+      return HttxTestUtils.Await(new ContentType(url), Assert.IsNotEmpty);
+    }
   }
 }

@@ -44,14 +44,12 @@ namespace Httx.Requests.Awaiters {
         return (TResult)(object)result;
       }
 
-      if (null == requestImpl?.downloadHandler?.data) {
-        return default;
-      }
+      if (null != requestImpl?.downloadHandler?.data) {
+        var bytes = requestImpl.downloadHandler.data;
 
-      var bytes = requestImpl.downloadHandler.data;
-
-      if (null != bytes && 0 != bytes.Length) {
-        return request.ResolveResultMapper<TResult>(Context).FromResult(bytes);
+        if (0 != bytes.Length) {
+          return request.ResolveResultMapper<TResult>(Context).FromResult(bytes);
+        }
       }
 
       var headers = requestImpl.GetResponseHeaders();

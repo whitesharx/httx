@@ -216,11 +216,13 @@ namespace Httx {
           // to manage custom value types, please refer to docs/discussions.
           builder.WithAwaiter(typeof(Length), typeof(UnityWebRequestAwaiter<int>));
           builder.WithAwaiter(typeof(Length), typeof(UnityWebRequestAwaiter<long>));
+          builder.WithAwaiter(typeof(ContentType), typeof(UnityWebRequestAwaiter<string>));
           builder.WithAwaiter(typeof(Complete<>), typeof(CompleteAwaiter<int>));
           builder.WithAwaiter(typeof(Complete<>), typeof(CompleteAwaiter<long>));
 
           builder.WithMapper(typeof(Head), typeof(HeadersMapper));
           builder.WithMapper(typeof(Length), typeof(ContentLengthMapper));
+          builder.WithMapper(typeof(ContentType), typeof(ContentTypeMapper));
           builder.WithMapper(typeof(Bytes), typeof(NopMapper<,>));
           builder.WithMapper(typeof(Json<>), typeof(Utf8JsonUtilityMapper<,>));
           builder.WithMapper(typeof(Json), typeof(Utf8JsonUtilityMapper<,>));
