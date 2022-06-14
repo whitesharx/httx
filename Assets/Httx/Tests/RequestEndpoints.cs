@@ -23,6 +23,8 @@ using UnityEngine;
 
 namespace Httx.Tests {
   public static class RequestEndpoints {
+    public const string EmptyBodyUrl = "https://run.mocky.io/v3/ed28f0a7-349c-4666-9b36-932d6c5a623b";
+
     public const string TextUrl = "https://run.mocky.io/v3/372251d8-2760-4d42-b61c-569da2534962";
     public const string TextResponse = "success-respose";
 
