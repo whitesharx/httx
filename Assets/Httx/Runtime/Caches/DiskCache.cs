@@ -19,6 +19,7 @@
 // OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Httx.Caches.Disk;
 using Httx.Requests.Awaiters.Async;
@@ -125,7 +126,8 @@ namespace Httx.Caches {
     public void Dispose() => cacheImpl?.Dispose();
 
     private async void GetImpl(string requestUrl, Action<string> onComplete) {
-      var fileUrl = await Task.Run(() => {
+      var fileUrl = await Task.Run(async () => {
+        await Task.Delay(3);
         var key = Crypto.Sha256(requestUrl);
         var snapshot = cacheImpl.Get(key);
 
@@ -160,14 +162,22 @@ namespace Httx.Caches {
     }
 
     private async void LockImpl(string requestUrl, Action<Editor> onComplete) {
-      var result = await Task.Run(() => {
-        var key = Crypto.Sha256(requestUrl);
-        var snapshot = cacheImpl.Get(key);
+      var semaphoreSlim = new SemaphoreSlim(1, 1);
+      await semaphoreSlim.WaitAsync().ConfigureAwait(false);
 
-        return snapshot?.Edit();
-      });
+      try {
+        var result = await Task.Run(async () => {
+          await Task.Delay(3);
+          var key = Crypto.Sha256(requestUrl);
+          var snapshot = cacheImpl.Get(key);
+          return snapshot?.Edit();
+        });
 
-      onComplete(result);
+        onComplete(result);
+
+      } finally {
+        semaphoreSlim.Release();
+      }
     }
 
     private async void UnlockImpl(Editor editor, Action onComplete) {
